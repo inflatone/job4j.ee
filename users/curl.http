@@ -1,0 +1,35 @@
+POST http://localhost:8080/userstore/users?action=create&name=Sergei&login=sname&password=password
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+POST http://localhost:8080/userstore/users?action=create&name=Mattew&login=crocket&password=password
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+POST http://localhost:8080/userstore/users?action=create&name=Alexander&login=username&password=password
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+POST http://localhost:8080/userstore/users?action=update&id=1&name=Updated&login=updated&password=updated
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+POST http://localhost:8080/userstore/users?action=delete&id=1
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://localhost:8080/userstore/users
+Accept: */*
+Cache-Control: no-cache
+
+###
