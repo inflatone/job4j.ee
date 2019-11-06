@@ -10,9 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 
-import static java.util.Objects.requireNonNull;
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.job4j.ee.store.service.UserService.getUserService;
+import static ru.job4j.ee.store.util.ServletUtil.getRequiredId;
 import static ru.job4j.ee.store.web.Action.*;
 
 /**
@@ -88,16 +88,5 @@ public class UserRequestDispatcher extends RequestDispatcher<User> {
     private User composeModel(Integer id, HttpServletRequest request) {
         return new User(id, request.getParameter("name"),
                 request.getParameter("login"), request.getParameter("password"), new Date());
-    }
-
-    /**
-     * Searches required id parameter inside the request parameters map, throws NPE if cannot find it
-     *
-     * @param request servlet request
-     * @return item id
-     */
-    private int getRequiredId(HttpServletRequest request) {
-        String paramId = request.getParameter("id");
-        return Integer.valueOf(requireNonNull(paramId));
     }
 }
