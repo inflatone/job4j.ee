@@ -1,6 +1,11 @@
 package ru.job4j.ee.store.web;
 
 import com.google.common.base.Strings;
+import one.util.streamex.StreamEx;
+
+import java.util.Map;
+
+import static java.util.function.Function.identity;
 
 /**
  * Represents supported request actions enumeration
@@ -13,7 +18,10 @@ public enum Action {
     create,
     update,
     delete,
-    all;
+    empty;
+
+    private static final Map<String, Action> ACTION_MAPPER = StreamEx.of(values()).toMap(Enum::name, identity());
+
 
     /**
      * Represents 'customized' version of default enum method valueOf(String name)
@@ -23,6 +31,6 @@ public enum Action {
      * @return enum instance with the given name
      */
     public static Action defineAction(String action) {
-        return Strings.isNullOrEmpty(action) ? all : Action.valueOf(action);
+        return Strings.isNullOrEmpty(action) ? empty : ACTION_MAPPER.get(action);
     }
 }
