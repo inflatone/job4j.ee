@@ -2,6 +2,7 @@ package ru.job4j.ee.store.util;
 
 import javax.servlet.ServletRequest;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static java.util.Objects.requireNonNull;
 
@@ -29,5 +30,13 @@ public class ServletUtil {
     public static int getRequiredId(ServletRequest request) {
         String paramId = request.getParameter("id");
         return Integer.valueOf(requireNonNull(paramId, "id must not be null"));
+    }
+
+    /**
+     * @param date date
+     * @return string representation of the given date
+     */
+    public static String formatDate(Date date) {
+        return FORMATTER.get().format(date);
     }
 }
