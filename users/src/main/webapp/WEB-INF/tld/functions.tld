@@ -12,4 +12,10 @@
         <function-class>ru.job4j.ee.store.util.ServletUtil</function-class>
         <function-signature>java.lang.String formatDate(java.util.Date)</function-signature>
     </function>
+
+    <function>
+        <name>isAdmin</name>
+        <function-class>ru.job4j.ee.store.web.auth.AuthUtil</function-class>
+        <function-signature>boolean isAdminAuth(javax.servlet.http.HttpServletRequest)</function-signature>
+    </function>
 </taglib>

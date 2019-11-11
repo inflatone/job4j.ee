@@ -52,6 +52,24 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
+    public User findByLogin(String login) {
+        return StreamEx.of(storage.values())
+                .filterBy(User::getLogin, login)
+                .map(User::new)
+                .findAny()
+                .orElse(null);
+    }
+
+    @Override
+    public boolean enable(int id, boolean enabled) {
+        var user = find(id);
+        if (user != null) {
+            user.setEnabled(enabled);
+        }
+        return user != null;
+    }
+
+    @Override
     public List<User> findAll() {
         return StreamEx.of(storage.values())
                 .map(User::new)

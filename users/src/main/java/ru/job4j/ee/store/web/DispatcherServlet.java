@@ -10,6 +10,9 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static ru.job4j.ee.store.util.ServletUtil.createRedirection;
+import static ru.job4j.ee.store.util.ServletUtil.forwardToJsp;
+import static ru.job4j.ee.store.web.auth.AuthUtil.getRootCause;
 
 /**
  * Represents the template class to implement servlet-handlers to dispatch http GET/POST requests
@@ -19,10 +22,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * @since 2019-11-07
  */
 public abstract class DispatcherServlet extends HttpServlet {
-    private static final String PREFIX = "WEB-INF/jsp/";
-    private static final String SUFFIX = ".jsp";
-    private static final String REDIRECT_FORMAT = PREFIX + "%s" + SUFFIX;
-
     /**
      * Stores available actions on GET requests executing
      */
@@ -36,12 +35,12 @@ public abstract class DispatcherServlet extends HttpServlet {
     /**
      * Must contain the logic of filling of GET requests executors map
      */
-    abstract void fillGetActions();
+    protected abstract void fillGetActions();
 
     /**
      * Must contain the logic of filling of POST requests executors map
      */
-    abstract void fillPostActions();
+    protected abstract void fillPostActions();
 
     /**
      * Must contain the logic of redirecting to certain page after POST requests completing
@@ -49,7 +48,7 @@ public abstract class DispatcherServlet extends HttpServlet {
      * @param request  request
      * @param response response
      */
-    abstract void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException;
+    protected abstract void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException;
 
     /**
      * Adds a new action to the GET requests executors map
@@ -57,7 +56,7 @@ public abstract class DispatcherServlet extends HttpServlet {
      * @param action     action type
      * @param redirector action executor (redirector to JSP) bonded to the action
      */
-    void submitGetAction(Action action, RequestRedirector redirector) {
+    protected void submitGetAction(Action action, RequestRedirector redirector) {
         getActions.put(action, redirector);
     }
 
@@ -67,7 +66,7 @@ public abstract class DispatcherServlet extends HttpServlet {
      * @param action    action type
      * @param processor action executor (form processor) bonded to the action
      */
-    void submitPostAction(Action action, RequestProcessor processor) {
+    protected void submitPostAction(Action action, RequestProcessor processor) {
         postActions.put(action, processor);
     }
 
@@ -82,8 +81,8 @@ public abstract class DispatcherServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setCharacterEncoding(UTF_8.name());
         var action = defineAction(request);
-        var url = getActions.getOrDefault(action, this::getError).path(request);
-        request.getRequestDispatcher(url).forward(request, response);
+        var jspName = getActions.getOrDefault(action, this::getError).path(request);
+        forwardToJsp(jspName, request, response);
     }
 
     @Override
@@ -93,8 +92,27 @@ public abstract class DispatcherServlet extends HttpServlet {
         if (processor == null) {
             postError(request, response);
         } else {
+            requestProcessorWrapper(processor, request, response);
+        }
+    }
+
+    /**
+     * Wraps request processor execution and app's exception handling,
+     * which sets error attribute from the thrown exception to the request context to be retrieved on JSP side
+     *
+     * @param processor request processor
+     * @param request   request
+     * @param response  response
+     */
+    private void requestProcessorWrapper(RequestProcessor processor, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        try {
             processor.process(request);
             sendRedirect(request, response);
+        } catch (RuntimeException e) {
+            var root = getRootCause(e);
+            var message = root.getMessage();
+            request.setAttribute("error", message != null ? message : root.getClass().getSimpleName());
+            doGet(request, response);
         }
     }
 
@@ -110,16 +128,6 @@ public abstract class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * Sets the given page name to the redirect formatter ("WEB-INF/jsp/*.jsp")
-     *
-     * @param jspName page name
-     * @return JSP path to redirect
-     */
-    String createRedirection(String jspName) {
-        return String.format(REDIRECT_FORMAT, jspName);
-    }
-
-    /**
      * Composes the error page path to redirect in case of app error
      * May contain the logic of putting into ctx some error object to access from JSP in future
      *
@@ -127,6 +135,7 @@ public abstract class DispatcherServlet extends HttpServlet {
      * @return error JSP path to redirect in case of app error
      */
     String getError(HttpServletRequest request) {
+        request.setAttribute("error", "Wrong action, please try again");
         return createRedirection("error");
     }
 
@@ -137,8 +146,8 @@ public abstract class DispatcherServlet extends HttpServlet {
      * @param response response
      */
     void postError(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        var url = getError(request);
-        request.getRequestDispatcher(url).forward(request, response);
+        request.setAttribute("error", "Wrong action, please try again");
+        forwardToJsp("error", request, response);
     }
 
     /**

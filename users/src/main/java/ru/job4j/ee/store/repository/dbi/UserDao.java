@@ -21,17 +21,23 @@ import java.util.List;
 @RegisterConstructorMapper(User.class)
 public interface UserDao {
     @GetGeneratedKeys
-    @SqlUpdate("INSERT INTO users (login, name, password, image_id) VALUES (:login, :name, :password, :imageId)")
+    @SqlUpdate("INSERT INTO users (login, name, password, role, enabled, image_id) VALUES (:login, :name, :password, :role, :enabled, :imageId)")
     int insertAndReturnId(@BindBean User user, @Bind("imageId") Integer imageId);
 
-    @SqlUpdate("UPDATE users SET login=:login, name=:name, password=:password, image_id=:imageId WHERE id=:id")
+    @SqlUpdate("UPDATE users SET login=:login, name=:name, password=:password, role=:role, image_id=:imageId WHERE id=:id")
     int update(@BindBean User user, @Bind("imageId") Integer imageId);
+
+    @SqlUpdate("UPDATE users SET enabled=:enabled WHERE id=:id")
+    int enable(@Bind("id") int id, @Bind("enabled") boolean enabled);
 
     @SqlUpdate("DELETE FROM users WHERE id=:id")
     int delete(@Bind(value = "id") int id);
 
     @SqlQuery("SELECT * FROM users WHERE id=:id")
     User find(@Bind(value = "id") int id);
+
+    @SqlQuery("SELECT * FROM users WHERE login=:login")
+    User findByLogin(@Bind(value = "login") String login);
 
     @SqlQuery("SELECT * FROM users ORDER BY login")
     List<User> findAll();

@@ -9,6 +9,7 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 import static ru.job4j.ee.store.repository.JdbiUserImageRepository.getUserImageRepository;
 import static ru.job4j.ee.store.repository.JdbiUserRepository.getUserRepository;
+import static ru.job4j.ee.store.util.ValidationUtil.checkNotFound;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
 
 /**
@@ -75,6 +76,16 @@ public class UserService {
      */
     public void delete(int id) {
         checkNotFoundEntityWithId(repository.delete(id), id);
+    }
+
+    /**
+     * Asks the store to enable/disable the given entity, checks if successful of the executed operation
+     *
+     * @param id      id
+     * @param enabled enable/disable point
+     */
+    public void enable(int id, boolean enabled) {
+        checkNotFoundEntityWithId(repository.enable(id, enabled), id);
     }
 
     /**

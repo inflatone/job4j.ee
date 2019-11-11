@@ -28,6 +28,19 @@ public class ValidationUtil {
     }
 
     /**
+     * Receives the object, checks if it is not null, and gives it back if okay,
+     * throws {@link NotFoundException} with submitted message otherwise
+     *
+     * @param object  given value
+     * @param message submitted message
+     * @return given value
+     */
+    public static <T> T checkNotFound(T object, String message) {
+        checkNotFound(object != null, message);
+        return object;
+    }
+
+    /**
      * Checks if the given boolean value is true,
      * otherwise throws NPE with the message containing the submitted id
      *

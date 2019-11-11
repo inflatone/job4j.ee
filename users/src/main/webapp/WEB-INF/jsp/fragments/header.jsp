@@ -17,5 +17,9 @@
         tr {
             border: none;
         }
+        div[class="error"] {
+            background-color: red;
+            font-weight: bold;
+        }
     </style>
 </head>

@@ -2,7 +2,11 @@ package ru.job4j.ee.store.util;
 
 import com.google.common.base.Strings;
 
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.function.Function;
@@ -17,11 +21,37 @@ import static java.util.Objects.requireNonNull;
  * @since 2019-11-09
  */
 public class ServletUtil {
+    private static final String PREFIX = "WEB-INF/jsp/";
+    private static final String SUFFIX = ".jsp";
+    private static final String REDIRECT_FORMAT = PREFIX + "%s" + SUFFIX;
+
     public static final ThreadLocal<SimpleDateFormat> FORMATTER
             = ThreadLocal.withInitial(() -> new SimpleDateFormat("d.MM.yyyy H:mm:ss"));
     
     private ServletUtil() {
         throw new IllegalStateException("should not be instantiated");
+    }
+
+    /**
+     * Sets the given page name to the redirect formatter ("WEB-INF/jsp/*.jsp")
+     *
+     * @param jspName page name
+     * @return JSP path to redirect
+     */
+    public static String createRedirection(String jspName) {
+        return String.format(REDIRECT_FORMAT, jspName);
+    }
+
+    /**
+     * Includes the logic of forwarding the given request to JSP path associated with the given JSP name
+     *
+     * @param jspName  page name
+     * @param request  request
+     * @param response response
+     */
+    public static void forwardToJsp(String jspName, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        var url = createRedirection(jspName);
+        request.getRequestDispatcher(url).forward(request, response);
     }
 
     /**

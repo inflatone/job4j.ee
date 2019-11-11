@@ -1,6 +1,7 @@
 package ru.job4j.ee.store.web;
 
 import org.slf4j.Logger;
+import ru.job4j.ee.store.model.Role;
 import ru.job4j.ee.store.model.UserImage;
 import ru.job4j.ee.store.service.UserImageService;
 
@@ -13,6 +14,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static ru.job4j.ee.store.service.UserImageService.getUserImageService;
 import static ru.job4j.ee.store.util.ServletUtil.*;
 import static ru.job4j.ee.store.web.Action.delete;
+import static ru.job4j.ee.store.web.auth.AuthUtil.getAuthUser;
+import static ru.job4j.ee.store.web.auth.AuthUtil.redirectToMain;
 
 /**
  * Represents web layer of the app that serves user image data requests
@@ -27,17 +30,17 @@ public class UserImageServlet extends DispatcherServlet {
     private final UserImageService service = getUserImageService();
 
     @Override
-    void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendRedirect(request.getContextPath() + "/");
+    protected void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        redirectToMain(request, response);
     }
 
     @Override
-    void fillPostActions() {
+    protected void fillPostActions() {
         submitPostAction(delete, this::doRemove);
     }
 
     @Override
-    void fillGetActions() {
+    protected void fillGetActions() {
         // no need to dispatch GET requests, doGet() is overridden here
         // may be extended in future: add showing preview-thumbnails instead of original-sized images all the time
     }
@@ -105,8 +108,21 @@ public class UserImageServlet extends DispatcherServlet {
      */
     void doRemove(HttpServletRequest request) {
         int id = getRequiredId(request);
-        int userId = getRequiredParameter(request, "userId", Integer::valueOf);
+        int userId = getRequiredUserId(request);
         log.info("Delete image {} of user with id {}", id, userId);
         service.delete(id, userId);
+    }
+
+    /**
+     * Retrieves the item id parameter from the given request's context if user has ADMIN role,
+     * from the authorized user data if user has NO ADMIN role, throws NPE if unauthorized call suspected
+     *
+     * @param request request
+     * @return user id
+     */
+    private int getRequiredUserId(HttpServletRequest request) {
+        var authUser = getAuthUser(request, true);
+        return authUser.getRole() == Role.ADMIN ? getRequiredParameter(request, "userId", Integer::valueOf)
+                : authUser.getId(); // users can delete only own photos
     }
 }
