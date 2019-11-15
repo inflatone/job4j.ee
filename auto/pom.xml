@@ -24,6 +24,47 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+
+            <properties>
+                <db.driver>${postgres.driver}</db.driver>
+                <db.url>${postgres.url}/autotest</db.url>
+
+                <db.serverName>localhost</db.serverName>
+                <db.portNumber>5432</db.portNumber>
+                <db.databaseName>autotest</db.databaseName>
+
+                <db.username>${postgres.username}</db.username>
+                <db.password>${postgres.password}</db.password>
+
+                <db.dialect>${postgres.hibernate.dialect}</db.dialect>
+                <db.xa-datasource.classname>${postgres.xa-datasource.classname}</db.xa-datasource.classname>
+                <db.schema.generation>none</db.schema.generation>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.liquibase</groupId>
+                        <artifactId>liquibase-maven-plugin</artifactId>
+                        <version>3.6.3</version>
+                        <configuration>
+                            <changeLogFile>${basedir}/db/changelog.xml</changeLogFile>
+                            <url>${db.url}</url>
+                            <driver>${db.driver}</driver>
+                            <username>${db.username}</username>
+                            <password>${db.password}</password>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>update</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -39,9 +80,120 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>META-INF/persistence.xml</exclude>
+                    <exclude>database.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>META-INF/persistence.xml</include>
+                    <include>database.properties</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <excludes>
+                    <exclude>META-INF/persistence.xml</exclude>
+                    <exclude>database.properties</exclude>
+                </excludes>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>META-INF/persistence.xml</include>
+                    <include>database.properties</include>
+                </includes>
+            </testResource>
+        </testResources>
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>ru.job4j</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <!--CDI-->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>${google.inject.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-persist</artifactId>
+            <version>${google.inject.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- a simple dumb JDBC connection pool. Bitronix is good: http://btm.codehaus.org/ -->
+        <dependency>
+            <groupId>org.codehaus.btm</groupId>
+            <artifactId>btm</artifactId>
+            <version>2.1.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>${hsqldb.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>name.falgout.jeffrey.testing.junit5</groupId>
+            <artifactId>guice-extension</artifactId>
+            <version>1.2.1</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>junit-platform-commons</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
     </dependencies>
 
 </project>
