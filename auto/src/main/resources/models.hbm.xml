@@ -1,0 +1,85 @@
+<hibernate-mapping xmlns="http://www.hibernate.org/xsd/hibernate-mapping" package="ru.job4j.auto.model">
+
+    <class name="BaseEntity" abstract="true">
+        <id name="id" column="id">
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="name">common_seq</param>
+                <param name="sequence_name">common_seq</param>
+                <param name="allocation_size">50</param>
+                <param name="initial_value">100000</param>
+            </generator>
+        </id>
+
+        <union-subclass name="BaseTypedEntity" abstract="true">
+            <property name="type" column="type"/>
+
+            <union-subclass name="Body" table="body" batch-size="10"/>
+
+            <union-subclass name="Engine" table="engine" batch-size="10"/>
+
+            <union-subclass name="Transmission" table="transmission" batch-size="10"/>
+        </union-subclass>
+
+        <union-subclass name="Vendor" table="vendor">
+            <property name="name" column="name"/>
+            <property name="country" column="country"/>
+            <property name="logoLink" column="logo_link"/>
+        </union-subclass>
+
+        <union-subclass name="Car" table="car">
+            <many-to-one name="vendor" column="vendor_id" class="ru.job4j.auto.model.Vendor" fetch="join" lazy="false"/>
+
+            <property name="model" column="model"/>
+            <property name="year" column="year"/>
+            <property name="mileage" column="mileage"/>
+
+            <many-to-one name="transmission" column="transmission_id" class="ru.job4j.auto.model.Transmission"
+                         fetch="join" lazy="false"/>
+            <many-to-one name="body" column="body_id" class="ru.job4j.auto.model.Body" fetch="join" lazy="false"/>
+            <many-to-one name="engine" column="engine_id" class="ru.job4j.auto.model.Engine" fetch="join" lazy="false"/>
+
+            <one-to-one name="post" class="ru.job4j.auto.model.Post" property-ref="car" fetch="select" cascade="none" lazy="no-proxy"/>
+        </union-subclass>
+
+        <union-subclass name="ru.job4j.auto.model.User" table="users">
+            <property name="name" column="name" not-null="true"/>
+            <property name="login" column="login" not-null="true"/>
+            <property name="password" column="password" not-null="true"/>
+            <property name="registered" insert="false" update="false">
+                <column name="registered" sql-type="timestamp" default="now()"/>
+            </property>
+
+            <!-- https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/JPA-and-Hibernate-enum-mapping-with-annotations-or-the-hbmxml-file -->
+            <property name="role" column="role">
+                <type name="org.hibernate.type.EnumType">
+                    <param name="enumClass">ru.job4j.auto.model.Role</param>
+                    <param name="useNamed">true</param>
+                </type>
+            </property>
+            <property name="enabled">
+                <column name="enabled" sql-type="boolean" default="true" not-null="true"/>
+            </property>
+
+            <set name="posts" table="post" inverse="true" lazy="true" fetch="select">
+                <key on-delete="cascade">
+                    <column name="user_id" not-null="true"/>
+                </key>
+                <one-to-many entity-name="ru.job4j.auto.model.Post"/>
+            </set>
+        </union-subclass>
+
+        <union-subclass name="Post" table="post">
+            <property name="title" column="title" not-null="true"/>
+            <property name="message" column="message"/>
+            <property name="posted" insert="false" update="false">
+                <column name="posted" sql-type="timestamp" default="now()"/>
+            </property>
+            <property name="price" column="price"/>
+
+            <many-to-one name="car" cascade="save-update" column="car_id" unique="true" not-null="false" lazy="false"/>
+            <many-to-one name="user" column="user_id" class="User" fetch="join" lazy="no-proxy"/>
+        </union-subclass>
+    </class>
+
+</hibernate-mapping>
+
