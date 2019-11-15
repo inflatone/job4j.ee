@@ -10,7 +10,7 @@
     <packaging>war</packaging>
 
     <properties>
-        <jackson-json.version>2.9.9</jackson-json.version>
+        <jackson-json.version>2.10.1</jackson-json.version>
     </properties>
 
     <profiles>
