@@ -6,9 +6,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
+import javax.persistence.*;
+
+@Access(AccessType.FIELD)
+@MappedSuperclass
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class BaseEntity {
+    public static final int START_SEQ = 100000;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "common_seq")
+    @SequenceGenerator(name = "common_seq", sequenceName = "common_seq", allocationSize = 1, initialValue = START_SEQ)
     @Getter
     @Setter
     protected Integer id;

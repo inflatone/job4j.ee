@@ -6,11 +6,18 @@
     <!-- Define persistence unit -->
     <persistence-unit name="autoTest" >
         <jta-data-source>myDS</jta-data-source>
-<!--        <mapping-file>../models.xml</mapping-file>-->
+
+        <class>ru.job4j.auto.model.Body</class>
+        <class>ru.job4j.auto.model.Engine</class>
+        <class>ru.job4j.auto.model.Transmission</class>
+        <class>ru.job4j.auto.model.Vendor</class>
+        <class>ru.job4j.auto.model.Car</class>
+        <class>ru.job4j.auto.model.User</class>
+        <class>ru.job4j.auto.model.Post</class>
+
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
         <properties>
-            <property name="hibernate.hbmxml.files" value="models.hbm.xml"/>
-
             <property name="hibernate.use_identifier_rollback" value="true"/>
             <property name="hibernate.dialect" value="${hsqldb.hibernate.dialect}"/>
 
