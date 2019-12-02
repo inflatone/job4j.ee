@@ -3,33 +3,28 @@ package ru.job4j.ee.store.model;
 import java.util.Date;
 
 /**
- * Model to transfer data layer-to-layer
+ * Model to transfer user data layer-to-layer
  *
  * @author Alexander Savchenko
  * @version 1.0
  * @since 2019-11-05
  */
-public class User {
-    private Integer id;
+public class User extends BaseEntity {
     private String name;
     private String login;
     private String password;
     private Date created;
 
     public User(User user) {
-        this(user.id, user.name, user.login, user.password, user.created);
+        this(user.getId(), user.name, user.login, user.password, user.created);
     }
 
     public User(Integer id, String name, String login, String password, Date created) {
-        this.id = id;
+        super(id);
         this.name = name;
         this.login = login;
         this.password = password;
         this.created = created;
-    }
-
-    public Integer getId() {
-        return id;
     }
 
     public String getName() {
@@ -46,14 +41,6 @@ public class User {
 
     public Date getCreated() {
         return created;
-    }
-
-    public boolean isNew() {
-        return id == null;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public void setName(String name) {
@@ -75,7 +62,7 @@ public class User {
     @Override
     public String toString() {
         return "User{"
-                + "id=" + id
+                + "id=" + getId()
                 + ", name='" + name + '\''
                 + ", login='" + login + '\''
                 + ", password='" + password + '\''
