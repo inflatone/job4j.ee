@@ -2,8 +2,10 @@ package ru.job4j.ee.store.web;
 
 import org.slf4j.Logger;
 import ru.job4j.ee.store.model.User;
+import ru.job4j.ee.store.model.UserImage;
 import ru.job4j.ee.store.service.UserService;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.util.Date;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.job4j.ee.store.service.UserService.getUserService;
+import static ru.job4j.ee.store.util.ServletUtil.getParameter;
 import static ru.job4j.ee.store.util.ServletUtil.getRequiredId;
 import static ru.job4j.ee.store.web.Action.*;
 
@@ -50,7 +53,7 @@ public class UserServlet extends DispatcherServlet {
      *
      * @param request request
      */
-    void doCreate(HttpServletRequest request) {
+    void doCreate(HttpServletRequest request) throws IOException, ServletException {
         User user = createModel(null, request);
         log.info("Create {}", user);
         service.create(user);
@@ -61,7 +64,7 @@ public class UserServlet extends DispatcherServlet {
      *
      * @param request request
      */
-    void doUpdate(HttpServletRequest request) {
+    void doUpdate(HttpServletRequest request) throws IOException, ServletException {
         User user = createModel(getRequiredId(request), request);
         log.info("Update {}", user);
         service.update(user);
@@ -116,11 +119,26 @@ public class UserServlet extends DispatcherServlet {
      * @param request request
      * @return user transfer object
      */
-    private User createModel(Integer id, HttpServletRequest request) {
+    private User createModel(Integer id, HttpServletRequest request) throws IOException, ServletException {
         String name = request.getParameter("name");
         String login = request.getParameter("login");
         String password = request.getParameter("password");
-        return new User(id, name, login, password, new Date());
+        return new User(id, name, login, password, new Date(), extractUserImage(request));
+    }
+
+    /**
+     * Retrieves image data from the given request
+     *
+     * @param request request
+     * @return image data
+     */
+    private UserImage extractUserImage(HttpServletRequest request) throws IOException, ServletException {
+        var part = request.getPart("image");
+        if (part.getSize() == 0) {
+            Integer imageId = getParameter(request, "imageId", false, Integer::valueOf);
+            return new UserImage(imageId == null ? 0 : imageId); // stub id to prevent mistaken image saving (service call isNew() to detect if it needs to save img)
+        }
+        return new UserImage(part.getSubmittedFileName(), part.getContentType(), part.getSize(), part.getInputStream());
     }
 
     /**
@@ -143,6 +161,6 @@ public class UserServlet extends DispatcherServlet {
      * @return empty user model
      */
     private User buildEmptyModel() {
-        return new User(null, "", "", "", null);
+        return new User(null, "", "", "", null, null);
     }
 }
