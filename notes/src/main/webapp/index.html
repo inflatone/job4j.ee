@@ -1,0 +1,77 @@
+<!DOCKTYPE html>
+<html lang="en">
+<head>
+    <title>TODO list manager</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js" defer></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            defer></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            defer></script>
+    <link rel="shortcut icon" href="http://icons.iconarchive.com/icons/pelfusion/long-shadow-ios7/32/Notes-icon.png">
+</head>
+<body>
+<script type="text/javascript" src="js/job4j.notes.js" defer></script>
+<div class="container-fluid">
+    <h1>TODO list manager</h1>
+    <hr>
+    <button class="btn btn-primary" onclick="addItem()">Add note</button>
+    <br><br>
+
+    <p class="h4">Notes</p>
+    <p class="h6"><input type="checkbox" id="checker" checked onclick="filter()"> show all</p>
+    <table class="table table-hover" id="table">
+        <thead class="thead-light">
+        <tr>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Completed</th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" tabindex="-1" id="modalForm">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modalTitle"></h4>
+                <button type="button" class="close" data-dismiss="modal" onclick="dismiss()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form" class="border border-light" novalidate>
+                    <input type="hidden" name="id" id="id">
+                    <input type="hidden" name="created" id="created">
+                    <input type="hidden" name="done" id="done">
+                    <div class="form-group">
+                        <label for="description" class="col-form-label"></label>
+                        <input class="form-control" type="text" name="description" id="description"
+                               placeholder="Description" required>
+                        <div class="invalid-feedback">Please enter description</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="dismiss()">
+                    <span class="fa fa-close"></span>
+                    Cancel
+                </button>
+                <button type="button" id="formButton" class="btn btn-primary">
+                    <span class="fa fa-check"></span>
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

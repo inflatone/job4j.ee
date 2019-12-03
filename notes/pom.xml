@@ -24,6 +24,45 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+
+            <properties>
+                <db.driver>${postgres.driver}</db.driver>
+                <db.url>${postgres.url}/notes</db.url>
+                <db.username>${postgres.username}</db.username>
+                <db.password>${postgres.password}</db.password>
+                <db.dialect>org.hibernate.dialect.PostgreSQL10Dialect</db.dialect>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>liquibase</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.liquibase</groupId>
+                        <artifactId>liquibase-maven-plugin</artifactId>
+                        <version>3.6.3</version>
+                        <configuration>
+                            <changeLogFile>${basedir}/db/changelog.xml</changeLogFile>
+                            <url>${db.url}</url>
+                            <driver>${db.driver}</driver>
+                            <username>${db.username}</username>
+                            <password>${db.password}</password>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>update</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -36,12 +75,86 @@
                 <configuration>
                     <warName>noteManager</warName>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                    </archive>
+                    <webResources>
+                        <resource>
+                            <directory>tomcat</directory>
+                            <targetPath>META-INF</targetPath>
+                            <filtering>true</filtering>
+                            <includes>
+                                <include>context.xml</include>
+                            </includes>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>hibernate.cfg.xml</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>hibernate.cfg.xml</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>ru.job4j</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-hibernate5</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!--CDI-->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>${google.inject.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-servlet</artifactId>
+            <version>${google.inject.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
