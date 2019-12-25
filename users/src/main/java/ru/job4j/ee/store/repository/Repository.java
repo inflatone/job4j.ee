@@ -14,9 +14,9 @@ public interface Repository<T> {
      * Creates (id == null) and updates (id != null) entity data in the store
      *
      * @param entry entity
-     * @return entity (with inserted id in CREATE case), or null (if not found in UPDATE case)
+     * @return true if successful
      */
-    T save(T entry);
+    boolean save(T entry);
 
     /**
      * Deletes the entity associated with the given id from the store
