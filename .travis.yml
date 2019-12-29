@@ -1,0 +1,33 @@
+# https://docs.travis-ci.com/user/languages/java/
+language: java
+jdk: openjdk11
+
+#https://dzone.com/articles/travis-ci-tutorial-java-projects
+cache:
+  directories:
+    - $HOME/.m2
+
+# https://stackoverflow.com/a/49852690/548473:
+services:
+  - postgresql
+
+before_install:
+  - psql -c 'create database test;' -U postgres
+  - psql -c 'create user "user"; grant all privileges on database test to "user";' -U postgres
+
+install:
+  mvn install -P travis,!main -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+
+script:
+  mvn test -P travis,!main -B
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+# https://docs.travis-ci.com/user/notifications#Configuring-email-notifications
+notifications:
+  email:
+    recipients:
+      - sane5ever@gmail.com
+    on_success: change # default: change
+    on_failure: always # default: always
