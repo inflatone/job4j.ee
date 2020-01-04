@@ -7,8 +7,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
@@ -25,9 +24,6 @@ public class ServletUtil {
     private static final String SUFFIX = ".jsp";
     private static final String REDIRECT_FORMAT = PREFIX + "%s" + SUFFIX;
 
-    public static final ThreadLocal<SimpleDateFormat> FORMATTER
-            = ThreadLocal.withInitial(() -> new SimpleDateFormat("d.MM.yyyy H:mm:ss"));
-    
     private ServletUtil() {
         throw new IllegalStateException("should not be instantiated");
     }
@@ -105,10 +101,16 @@ public class ServletUtil {
     }
 
     /**
-     * @param date date
-     * @return string representation of the given date
+     * Suppresses an exception, which may be thrown due function computation (and returns the given default value in this case)
+     *
+     * @param function function to run
+     * @return result of function computation, or the default value if an exception would be thrown
      */
-    public static String formatDate(Date date) {
-        return FORMATTER.get().format(date);
+    public static <T> T suppressException(Callable<T> function, T defaultValue) {
+        try {
+            return function.call();
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 }

@@ -10,6 +10,8 @@ import ru.job4j.ee.store.model.User;
 
 import java.util.List;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 /**
  * User DAO shell
  * Contains methods to complete CRUD operations with {@link User} objects
@@ -20,12 +22,18 @@ import java.util.List;
  */
 @RegisterConstructorMapper(User.class)
 public interface UserDao {
-    @GetGeneratedKeys
-    @SqlUpdate("INSERT INTO users (login, name, password, role, enabled, image_id) VALUES (:login, :name, :password, :role, :enabled, :imageId)")
-    int insertAndReturnId(@BindBean User user, @Bind("imageId") Integer imageId);
+    String SELECT_ALL = "SELECT u.*, t.name city_name, t.country_id city_country_id, c.name city_country_name " +
+            "FROM users u LEFT OUTER JOIN city t ON u.city_id = t.id LEFT OUTER JOIN country c on t.country_id = c.id";
 
-    @SqlUpdate("UPDATE users SET login=:login, name=:name, password=:password, role=:role, image_id=:imageId WHERE id=:id")
-    int update(@BindBean User user, @Bind("imageId") Integer imageId);
+    @GetGeneratedKeys
+    @SqlUpdate("INSERT INTO users (login, name, password, role, enabled, city_id) VALUES (:login, :name, :password, :role, :enabled, :cityId)")
+    int insertAndReturnId(@BindBean User user, @Bind("cityId") Integer cityId);
+
+    @SqlUpdate("UPDATE users SET login=:login, name=:name, password=:password, role=:role, city_id=:cityId WHERE id=:id")
+    int update(@BindBean User user, @Bind("cityId") Integer cityId);
+
+    @SqlUpdate("UPDATE users SET login=:login, name=:name, role=:role, city_id=:cityId WHERE id=:id")
+    int updateWithoutPassword(@BindBean User user, @Bind("cityId") Integer cityId);
 
     @SqlUpdate("UPDATE users SET enabled=:enabled WHERE id=:id")
     int enable(@Bind("id") int id, @Bind("enabled") boolean enabled);
@@ -33,39 +41,23 @@ public interface UserDao {
     @SqlUpdate("DELETE FROM users WHERE id=:id")
     int delete(@Bind(value = "id") int id);
 
-    @SqlQuery("SELECT * FROM users WHERE id=:id")
+    @SqlQuery(SELECT_ALL + " WHERE u.id=:id")
     User find(@Bind(value = "id") int id);
 
-    @SqlQuery("SELECT * FROM users WHERE login=:login")
+    @SqlQuery(SELECT_ALL + " WHERE login=:login")
     User findByLogin(@Bind(value = "login") String login);
 
-    @SqlQuery("SELECT * FROM users ORDER BY login")
+    @SqlQuery(SELECT_ALL + " ORDER BY login")
     List<User> findAll();
 
     default int insertAndReturnId(User user) {
-        return insertAndReturnId(user, getImageIdSafely(user));
+        return insertAndReturnId(user, user.getCity().getId());
     }
 
     /**
      * @return affected row count
      */
     default int update(User user) {
-        return update(user, getImageIdSafely(user));
-    }
-
-    /**
-     * @return ID or null (if entity is null or its id has default value)
-     */
-    private Integer getImageIdSafely(User user) {
-        var image = user.getImage();
-        return image == null ? null : zeroToNull(image.getId());
-    }
-
-    /**
-     * @param id id
-     * @return ID or null if id is equals to default value (0)
-     */
-    private Integer zeroToNull(Integer id) {
-        return id == 0 ? null : id;
+        return nullToEmpty(user.getPassword()).isBlank() ? updateWithoutPassword(user, user.getCity().getId()) : update(user, user.getCity().getId());
     }
 }

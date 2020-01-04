@@ -101,4 +101,13 @@ public class JdbiProvider {
     public static UserImageDao getUserImageDao() {
         return getDao(UserImageDao.class);
     }
+
+    /**
+     * Creates a new sql object of city DAO
+     *
+     * @return city DAO
+     */
+    public static CityDao getCityDao() {
+        return getDao(CityDao.class);
+    }
 }

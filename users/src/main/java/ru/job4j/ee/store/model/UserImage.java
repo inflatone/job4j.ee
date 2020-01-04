@@ -1,5 +1,6 @@
 package ru.job4j.ee.store.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jdbi.v3.core.mapper.reflect.ColumnName;
 import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
@@ -42,22 +43,27 @@ public class UserImage extends BaseEntity {
         this.data = data;
     }
 
+    @JsonIgnore
     public String getContentType() {
         return contentType;
     }
 
+    @JsonIgnore
     public String getName() {
         return name;
     }
 
+    @JsonIgnore
     public long getSize() {
         return size;
     }
 
+    @JsonIgnore
     public long getOid() {
         return oid;
     }
 
+    @JsonIgnore
     public InputStream getData() {
         return data;
     }

@@ -1,66 +1,101 @@
-<jsp:useBean id="authUser" scope="session" type="ru.job4j.ee.store.model.User"/>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="fn" uri="http://junior.job4j.ru/functions" %>
 <html>
 <jsp:include page="fragments/header.jsp"/>
 <body>
-<section>
-    <jsp:include page="fragments/bodyHeader.jsp"/>
-    <jsp:useBean id="user" type="ru.job4j.ee.store.model.User" scope="request"/>
-    <h2>Profile</h2>
-    <table border="0">
-        <thead>
-        <tr>
-            <th>Key</th>
-            <th>Value</th>
-        </tr>
-        </thead>
-        <tr>
-            <td>Userpic:</td>
-            <td><img src="images?id=${user.image.id}" alt="userpic" width="400"></td>
-        </tr>
-        <tr>
-            <td>Login:</td>
-            <td>${user.login}</td>
-        </tr>
-        <tr>
-            <td>Name:</td>
-            <td>${user.name}</td>
-        </tr>
-        <tr>
-            <td>Password:</td>
-            <td>${user.password}</td>
-        </tr>
-        <tr>
-            <td>Created:</td>
-            <td>${fn:formatDate(user.created)}</td>
-        </tr>
-        <tr>
-            <td>Role:</td>
-            <td>${user.role}</td>
-        </tr>
-        <tr>
-            <td>Enabled:</td>
-            <td><input type="checkbox" ${user.enabled ? 'checked' : ''} disabled></td>
-        </tr>
-    </table>
-    <p>
-    <form action="" method="get">
-        <input type="hidden" name="id" value="${user.id}"/>
-        <input type="hidden" name="action" value="update"/>
-        <button type="submit">Edit profile</button>
-    </form>
 
-    <form action="" method="post">
-        <input type="hidden" name="id" value="${user.id}"/>
-        <input type="hidden" name="action" value="delete"/>
-        <button type="submit">Remove profile</button>
-    </form>
+<script type="text/javascript" src="resources/js/common.js" defer></script>
+<script type="text/javascript" src="resources/js/users.form.js" defer></script>
+<script type="text/javascript" src="resources/js/users.profile.js" defer></script>
 
-    <button type="button" onclick="window.location.href='logout'">Sign out</button>
-    </p>
-</section>
+<div class="jumbotron bg-light pt-4">
+    <div class="container">
+        <h2 class="text-center">Profile</h2>
+        <div class="btn-group" role="group">
+            <button id="editButton" class="btn btn-primary">
+                <span class="fa fa-pencil"></span>
+                Edit profile
+            </button>
+            <button class="btn btn-secondary" onclick="doDelete()">
+                <span class="fa fa-remove"></span>
+                Remove profile
+            </button>
+            <a class="btn btn-danger" href="logout">
+                <span class="fa fa-sign-out"></span>
+                Sign out
+            </a>
+        </div>
+        <br/>
+        <br/>
+
+        <div class="row align-items-start">
+            <div class="col">
+                <div class="card">
+                    <img class="card-img-top" id="image" src="" alt="userpic" >
+                    <div class="card-body">
+                        <form id="imageForm" enctype="multipart/form-data">
+                            <div class="form-group mb-2">
+                                <div class="custom-file">
+                                    <input id="imageFile" name="image" type="file" class="custom-file-input">
+                                    <label class="custom-file-label" for="imageFile">Choose file</label>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary mb-2" type="button" onclick="saveImage()">Upload image</button>
+                            <button class="btn btn-danger mb-2" type="button" onclick="deleteImage()">Delete image</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6">
+
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <td class=""><b>Login:</b></td>
+                                <td id="profileLogin"></td>
+
+                            </tr>
+                            <tr>
+                                <td class=""><b>Name:</b></td>
+                                <td id="username"></td>
+                            </tr>
+                            <tr>
+                                <td class=""><b>Created:</b></td>
+                                <td id="profileCreated"></td>
+                            </tr>
+                            <tr>
+                                <td class=""><b>Role:</b></td>
+                                <td id="profileRole"></td>
+                            </tr>
+                            <tr>
+                                <td class=""><b>Enabled:</b></td>
+                                <td id="profileEnabled"></td>
+                            </tr>
+                            <tr>
+                                <td class=""><b>City:</b></td>
+                                <td id="profileCity"></td>
+                            </tr>
+                            <tr>
+                                <td class=""><b>Country:</b></td>
+                                <td id="profileCountry"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    const profileId = "${param.id}";
+    const isAdmin = "${sessionScope.authUser.role}" === "ADMIN";
+</script>
+
+<jsp:include page="fragments/form.jsp"/>
+
 </body>
 </html>

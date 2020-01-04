@@ -2,15 +2,19 @@ package ru.job4j.ee.store.web.auth;
 
 import ru.job4j.ee.store.model.User;
 import ru.job4j.ee.store.service.SecurityService;
-import ru.job4j.ee.store.web.DispatcherServlet;
+import ru.job4j.ee.store.web.ActionDispatcherServlet;
+import ru.job4j.ee.store.web.json.JsonUtil;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static ru.job4j.ee.store.service.SecurityService.getSecurityService;
+import static ru.job4j.ee.store.util.ServletUtil.forwardToJsp;
 import static ru.job4j.ee.store.web.Action.empty;
 import static ru.job4j.ee.store.web.auth.AuthUtil.*;
+import static ru.job4j.ee.store.web.json.JsonUtil.fromJson;
 
 /**
  * Represents web layer of the app that serves user sign in operations
@@ -19,7 +23,7 @@ import static ru.job4j.ee.store.web.auth.AuthUtil.*;
  * @version 1.0
  * @since 2019-11-11
  */
-public class LoginServlet extends DispatcherServlet {
+public class LoginServlet extends ActionDispatcherServlet {
     private final SecurityService service = getSecurityService();
 
     @Override
@@ -32,25 +36,20 @@ public class LoginServlet extends DispatcherServlet {
         submitPostAction(empty, this::doLogin);
     }
 
-    @Override
-    public void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        redirectToMain(request, response);
+    private void getLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        var authUser = getAuthUser(request, false);
+        if (authUser != null) {
+            redirectToMain(request, response);
+        } else {
+            setUnauthorizedUser(request);
+            forwardToJsp("login", request, response);
+        }
     }
 
-    private String getLogin(HttpServletRequest request) {
-        setUnauthorizedUser(request);
-        return "login";
-    }
-
-    private void doLogin(HttpServletRequest request) {
-        var credentials = createCredentialsModel(request);
+    private void doLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        var credentials = fromJson(request.getReader(), User.class);
         var authUser = service.find(credentials);
         setAuthorizedUser(request, authUser);
-    }
-
-    private User createCredentialsModel(HttpServletRequest request) {
-        return new User(null, null,
-                request.getParameter("login"), request.getParameter("password"),
-                null, null, true, null);
+        JsonUtil.asJsonToResponse(response, "redirection", redirectTo(request));
     }
 }

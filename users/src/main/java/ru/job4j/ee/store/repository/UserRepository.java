@@ -26,4 +26,9 @@ public interface UserRepository extends Repository<User> {
      * @param enabled enable/disable point
      */
     boolean enable(int id, boolean enabled);
+
+    @Override
+    default int clear() {
+        throw new UnsupportedOperationException("not implemented");
+    }
 }

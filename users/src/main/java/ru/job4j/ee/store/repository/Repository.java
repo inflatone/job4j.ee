@@ -40,4 +40,11 @@ public interface Repository<T> {
      * @return list of all the stored entities (empty list if not present any)
      */
     List<T> findAll();
+
+    /**
+     * Clears unused entries
+     *
+     * @return rows affected
+     */
+    int clear();
 }

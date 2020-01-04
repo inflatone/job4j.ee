@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static ru.job4j.ee.store.web.auth.AuthUtil.getAuthUser;
 
 /**
@@ -20,7 +21,8 @@ public class UnauthorizedUserFilter extends AbstractRequestFilter {
 
     // empty set if no action required
     private static final Map<String, Set<String>> ALLOWED_PATHS_WITH_ACTIONS = Map.of(
-            "/profile", Set.of("create"),
+            "/profile", Set.of("save"),
+            "/ajax", Set.of(""), // empty action only
             "/login", Set.of(),
             "/resources", Set.of()
     );
@@ -39,7 +41,7 @@ public class UnauthorizedUserFilter extends AbstractRequestFilter {
 
     private static boolean isForbiddenPath(HttpServletRequest request) {
         var requestPath = request.getRequestURI();
-        var action = request.getParameter("action");
+        var action = nullToEmpty(request.getParameter("action"));
         return ALLOWED_PATHS_WITH_ACTIONS.entrySet().stream()
                 .noneMatch(entry -> requestPath.contains(entry.getKey()) && checkActionIfRequired(action, entry.getValue()));
     }
@@ -47,6 +49,6 @@ public class UnauthorizedUserFilter extends AbstractRequestFilter {
 
     private static boolean checkActionIfRequired(String action, Set<String> actions) {
         return actions.isEmpty() // filter path set is empty or action parameter is required
-                || action != null && actions.contains(action); // contains() throws NPE if null given
+                || actions.contains(action);
     }
 }

@@ -26,11 +26,8 @@ public class JdbiUserImageRepository implements UserImageRepository {
 
     @Override
     public boolean save(UserImage image) {
-        if (image.isNew()) {
-            dao.save(image);
-            return true;
-        }
-        return false; // senselessly to update
+        // senselessly to update
+        return image.isNew() && dao.save(image, null);
     }
 
     @Override
@@ -44,7 +41,17 @@ public class JdbiUserImageRepository implements UserImageRepository {
     }
 
     @Override
+    public boolean addToUser(UserImage image, int userId) {
+        return image.isNew() ? dao.save(image, userId) : dao.updateBind(image.getId(), userId);
+    }
+
+    @Override
     public UserImage find(int id) {
         return dao.findById(id);
+    }
+
+    @Override
+    public int clear() {
+        return dao.clearUnused();
     }
 }

@@ -1,5 +1,7 @@
 package ru.job4j.ee.store.web;
 
+import ru.job4j.ee.store.util.ServletUtil;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -9,10 +11,9 @@ import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static ru.job4j.ee.store.util.ServletUtil.createRedirection;
-import static ru.job4j.ee.store.util.ServletUtil.forwardToJsp;
+import static ru.job4j.ee.store.util.ServletUtil.suppressException;
 import static ru.job4j.ee.store.web.auth.AuthUtil.getRootCause;
+import static ru.job4j.ee.store.web.json.JsonUtil.errorAsJsonToResponse;
 
 /**
  * Represents the template class to implement servlet-handlers to dispatch http GET/POST requests
@@ -21,16 +22,28 @@ import static ru.job4j.ee.store.web.auth.AuthUtil.getRootCause;
  * @version 1.0
  * @since 2019-11-07
  */
-public abstract class DispatcherServlet extends HttpServlet {
+public abstract class DispatcherServlet<T extends Enum<T>> extends HttpServlet {
+    private final Class<T> enumClass;
+    private final String dispatchParameter;
+    private final T emptyAction;
     /**
      * Stores available actions on GET requests executing
      */
-    private final Map<Action, RequestRedirector> getActions = new EnumMap<>(Action.class);
+    private final Map<T, RequestProcessor> getActions;
 
     /**
      * Stores available actions on POST requests executing
      */
-    private final Map<Action, RequestProcessor> postActions = new EnumMap<>(Action.class);
+    private final Map<T, RequestProcessor> postActions;
+
+    public DispatcherServlet(Class<T> enumClass, T emptyAction) {
+        this.enumClass = enumClass;
+        this.emptyAction = emptyAction;
+
+        dispatchParameter = enumClass.getSimpleName().toLowerCase();
+        getActions = new EnumMap<>(enumClass);
+        postActions = new EnumMap<>(enumClass);
+    }
 
     /**
      * Must contain the logic of filling of GET requests executors map
@@ -43,30 +56,22 @@ public abstract class DispatcherServlet extends HttpServlet {
     protected abstract void fillPostActions();
 
     /**
-     * Must contain the logic of redirecting to certain page after POST requests completing
-     *
-     * @param request  request
-     * @param response response
-     */
-    protected abstract void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException;
-
-    /**
      * Adds a new action to the GET requests executors map
      *
-     * @param action     action type
-     * @param redirector action executor (redirector to JSP) bonded to the action
+     * @param action    action type
+     * @param processor action executor bonded to the action
      */
-    protected void submitGetAction(Action action, RequestRedirector redirector) {
-        getActions.put(action, redirector);
+    protected void submitGetAction(T action, RequestProcessor processor) {
+        getActions.put(action, processor);
     }
 
     /**
      * Adds a new action to the POST request executors map
      *
      * @param action    action type
-     * @param processor action executor (form processor) bonded to the action
+     * @param processor action executor bonded to the action
      */
-    protected void submitPostAction(Action action, RequestProcessor processor) {
+    protected void submitPostAction(T action, RequestProcessor processor) {
         postActions.put(action, processor);
     }
 
@@ -79,40 +84,29 @@ public abstract class DispatcherServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setCharacterEncoding(UTF_8.name());
-        var action = defineAction(request);
-        var jspName = getActions.getOrDefault(action, this::getError).path(request);
-        forwardToJsp(jspName, request, response);
+        requestProcessorWrapper(getActions, request, response);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        var action = defineAction(request);
-        var processor = postActions.get(action);
-        if (processor == null) {
-            postError(request, response);
-        } else {
-            requestProcessorWrapper(processor, request, response);
-        }
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        requestProcessorWrapper(postActions, request, response);
     }
 
     /**
      * Wraps request processor execution and app's exception handling,
-     * which sets error attribute from the thrown exception to the request context to be retrieved on JSP side
+     * writes error message from the thrown exception to the response to be shown on the client side
      *
-     * @param processor request processor
-     * @param request   request
-     * @param response  response
+     * @param processors request processors to choose on depend on action from the given request
+     * @param request    request
+     * @param response   response
      */
-    private void requestProcessorWrapper(RequestProcessor processor, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    private void requestProcessorWrapper(Map<T, RequestProcessor> processors, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         try {
-            processor.process(request);
-            sendRedirect(request, response);
+            processAction(request, response, processors);
         } catch (RuntimeException e) {
             var root = getRootCause(e);
             var message = root.getMessage();
-            request.setAttribute("error", message != null ? message : root.getClass().getSimpleName());
-            doGet(request, response);
+            errorAsJsonToResponse(response, message != null ? message : root.getClass().getSimpleName());
         }
     }
 
@@ -122,21 +116,9 @@ public abstract class DispatcherServlet extends HttpServlet {
      * @param request request
      * @return action
      */
-    Action defineAction(HttpServletRequest request) {
-        var action = request.getParameter("action");
-        return Action.defineAction(action);
-    }
-
-    /**
-     * Composes the error page path to redirect in case of app error
-     * May contain the logic of putting into ctx some error object to access from JSP in future
-     *
-     * @param request can be used to extract additional info to compose the message showing on error page
-     * @return error JSP path to redirect in case of app error
-     */
-    String getError(HttpServletRequest request) {
-        request.setAttribute("error", "Wrong action, please try again");
-        return createRedirection("error");
+    T defineDispatchParam(HttpServletRequest request) {
+        T result = ServletUtil.getParameter(request, dispatchParameter, false, s -> T.valueOf(enumClass, s));
+        return result == null ? emptyAction : result;
     }
 
     /**
@@ -145,17 +127,20 @@ public abstract class DispatcherServlet extends HttpServlet {
      * @param request  request
      * @param response response
      */
-    void postError(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("error", "Wrong action, please try again");
-        forwardToJsp("error", request, response);
+    private void handleError(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong action has been chosen, please try again");
     }
 
     /**
-     * HttpServletRequest redirector (function mapping requests to JSP paths)
+     * Generalizes the logic of the mapping the given request to relevant action executor and its launch then
+     *
+     * @param request  request
+     * @param response response
+     * @param actions  action resolver map
      */
-    @FunctionalInterface
-    public interface RequestRedirector {
-        String path(HttpServletRequest request);
+    private void processAction(HttpServletRequest request, HttpServletResponse response, Map<T, RequestProcessor> actions) throws ServletException, IOException {
+        var action = suppressException(() -> defineDispatchParam(request), null);
+        actions.getOrDefault(action, this::handleError).process(request, response);
     }
 
     /**
@@ -163,6 +148,6 @@ public abstract class DispatcherServlet extends HttpServlet {
      */
     @FunctionalInterface
     public interface RequestProcessor {
-        void process(HttpServletRequest request) throws IOException, ServletException;
+        void process(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException;
     }
 }
