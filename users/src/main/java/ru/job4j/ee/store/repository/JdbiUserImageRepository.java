@@ -1,7 +1,7 @@
 package ru.job4j.ee.store.repository;
 
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.UserImage;
-import ru.job4j.ee.store.repository.dbi.JdbiProvider;
 import ru.job4j.ee.store.repository.dbi.UserImageDao;
 
 /**
@@ -12,17 +12,8 @@ import ru.job4j.ee.store.repository.dbi.UserImageDao;
  * @since 2019-11-10
  */
 public class JdbiUserImageRepository implements UserImageRepository {
-    private static final UserImageRepository INSTANCE_HOLDER = new JdbiUserImageRepository();
-
-    private final UserImageDao dao;
-
-    public static UserImageRepository getUserImageRepository() {
-        return INSTANCE_HOLDER;
-    }
-
-    private JdbiUserImageRepository() {
-        this.dao = JdbiProvider.getUserImageDao();
-    }
+    @Inject
+    private UserImageDao dao;
 
     @Override
     public boolean save(UserImage image) {

@@ -1,5 +1,8 @@
 package ru.job4j.ee.store.web;
 
+import com.google.inject.Inject;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 import org.slf4j.Logger;
 import ru.job4j.ee.store.model.UserImage;
 import ru.job4j.ee.store.service.UserImageService;
@@ -10,8 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static ru.job4j.ee.store.service.UserImageService.getUserImageService;
-import static ru.job4j.ee.store.util.ServletUtil.*;
+import static ru.job4j.ee.store.util.ServletUtil.getId;
+import static ru.job4j.ee.store.util.ServletUtil.getRequiredId;
 import static ru.job4j.ee.store.web.Action.*;
 import static ru.job4j.ee.store.web.auth.AuthUtil.getAuthUser;
 import static ru.job4j.ee.store.web.auth.AuthUtil.retrieveIfAdminOrCheckSession;
@@ -27,7 +30,8 @@ import static ru.job4j.ee.store.web.json.JsonUtil.asJsonToResponse;
 public class UserImageServlet extends ActionDispatcherServlet {
     private static final Logger log = getLogger(UserImageServlet.class);
 
-    private final UserImageService service = getUserImageService();
+    @Inject
+    private UserImageService service;
 
     @Override
     protected void fillPostActions() {
@@ -127,7 +131,7 @@ public class UserImageServlet extends ActionDispatcherServlet {
      * @param request  request
      * @param response response
      */
-    void doSave(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    void doSave(HttpServletRequest request, HttpServletResponse response) throws IOException {
         var userId = getRequiredUserId(request);
         var image = extractUserImage(request);
         log.info("Save new image of user with id {}", userId);
@@ -142,10 +146,21 @@ public class UserImageServlet extends ActionDispatcherServlet {
      * @param request request
      * @return image data
      */
-    private UserImage extractUserImage(HttpServletRequest request) throws IOException, ServletException {
-        var part = request.getPart("image");
-        return part == null || part.getSize() == 0 ? null
-                : new UserImage(part.getSubmittedFileName(), part.getContentType(), part.getSize(), part.getInputStream());
+    private UserImage extractUserImage(HttpServletRequest request) throws IOException {
+        final var upload = new ServletFileUpload();
+        // https://commons.apache.org/proper/commons-fileupload/streaming.html
+        try {
+            final var itemIterator = upload.getItemIterator(request);
+            while (itemIterator.hasNext()) {
+                var fileItemStream = itemIterator.next();
+                if (!fileItemStream.isFormField() && "image".equals(fileItemStream.getFieldName())) {
+                    return new UserImage(fileItemStream.getName(), fileItemStream.getContentType(), 0, fileItemStream.openStream());
+                }
+            }
+        } catch (FileUploadException e) {
+            throw new IllegalStateException("Cannot upload image", e);
+        }
+        return null;
     }
 
     /**

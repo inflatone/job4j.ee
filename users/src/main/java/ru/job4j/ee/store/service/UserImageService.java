@@ -1,10 +1,10 @@
 package ru.job4j.ee.store.service;
 
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.UserImage;
 import ru.job4j.ee.store.repository.UserImageRepository;
 
 import static java.util.Objects.requireNonNull;
-import static ru.job4j.ee.store.repository.JdbiUserImageRepository.getUserImageRepository;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFound;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
 
@@ -16,13 +16,8 @@ import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
  * @since 2019-11-10
  */
 public class UserImageService {
-    private static final UserImageService INSTANCE_HOLDER = new UserImageService();
-
-    public static UserImageService getUserImageService() {
-        return INSTANCE_HOLDER;
-    }
-
-    private final UserImageRepository repository = getUserImageRepository();
+    @Inject
+    private UserImageRepository repository;
 
     /**
      * Asks the store to find the image entity associated with the given user id

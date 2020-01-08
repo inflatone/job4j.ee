@@ -1,5 +1,6 @@
 package ru.job4j.ee.store.service;
 
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.User;
 import ru.job4j.ee.store.repository.CityRepository;
 import ru.job4j.ee.store.repository.UserRepository;
@@ -7,8 +8,6 @@ import ru.job4j.ee.store.repository.UserRepository;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
-import static ru.job4j.ee.store.repository.JdbiCityRepository.getCityRepository;
-import static ru.job4j.ee.store.repository.JdbiUserRepository.getUserRepository;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
 
 /**
@@ -19,18 +18,11 @@ import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
  * @since 2019-11-05
  */
 public class UserService {
-    private static final UserService INSTANCE_HOLDER = new UserService();
+    @Inject
+    private UserRepository repository;
 
-    public static UserService getUserService() {
-        return INSTANCE_HOLDER;
-    }
-
-    private final UserRepository repository = getUserRepository();
-
-    private final CityRepository cityRepository = getCityRepository();
-
-    private UserService() {
-    }
+    @Inject
+    private CityRepository cityRepository;
 
     /**
      * Asks the store to create the given entity, checks non-nullity of it

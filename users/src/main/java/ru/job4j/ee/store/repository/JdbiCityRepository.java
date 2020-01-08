@@ -1,9 +1,9 @@
 package ru.job4j.ee.store.repository;
 
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.City;
 import ru.job4j.ee.store.model.Country;
 import ru.job4j.ee.store.repository.dbi.CityDao;
-import ru.job4j.ee.store.repository.dbi.JdbiProvider;
 
 import java.util.List;
 
@@ -15,17 +15,8 @@ import java.util.List;
  * @since 2019-11-13
  */
 public class JdbiCityRepository implements CityRepository {
-    private static final CityRepository INSTANCE_HOLDER = new JdbiCityRepository();
-
-    private final CityDao dao;
-
-    public static CityRepository getCityRepository() {
-        return INSTANCE_HOLDER;
-    }
-
-    public JdbiCityRepository() {
-        this.dao = JdbiProvider.getCityDao();
-    }
+    @Inject
+    private CityDao dao;
 
     @Override
     public boolean save(City city) {

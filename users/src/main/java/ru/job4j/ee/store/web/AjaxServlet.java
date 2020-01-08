@@ -6,6 +6,7 @@ import ru.job4j.ee.store.model.Country;
 import ru.job4j.ee.store.service.CityService;
 import ru.job4j.ee.store.util.ServletUtil;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.function.Function;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static ru.job4j.ee.store.service.CityService.getCityService;
 import static ru.job4j.ee.store.web.AjaxServlet.Data;
 import static ru.job4j.ee.store.web.AjaxServlet.Data.*;
 import static ru.job4j.ee.store.web.auth.AuthUtil.composeAvailableRoles;
@@ -29,7 +29,8 @@ import static ru.job4j.ee.store.web.json.JsonUtil.*;
 public class AjaxServlet extends DispatcherServlet<Data> {
     private static final Logger log = getLogger(AjaxServlet.class);
 
-    private CityService cityService = getCityService();
+    @Inject
+    private CityService cityService;
 
     public AjaxServlet() {
         super(Data.class, null);

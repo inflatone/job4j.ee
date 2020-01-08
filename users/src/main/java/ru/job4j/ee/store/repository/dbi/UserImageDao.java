@@ -119,7 +119,8 @@ public interface UserImageDao extends Transactional<UserImageDao> {
              var out = obj.getOutputStream();
              var in = image.getData()
         ) {
-            in.transferTo(out);
+            long size = in.transferTo(out);
+            image.setSize(size);
             int imageId = insertAndReturnId(image);
             image.setId(imageId);
         }
