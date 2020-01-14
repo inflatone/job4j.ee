@@ -1,22 +1,22 @@
 package ru.job4j.vacancy;
 
+import com.google.common.collect.ImmutableMap;
 import one.util.streamex.StreamEx;
-import org.quartz.Job;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.slf4j.Logger;
+import ru.job4j.vacancy.job.ExecutorJob;
 import ru.job4j.vacancy.job.VacancyCollectorJob;
+import ru.job4j.vacancy.jsoup.JsoupProcessor;
+import ru.job4j.vacancy.jsoup.ParserUtil;
+import ru.job4j.vacancy.sql.SQLProcessor;
+import ru.job4j.vacancy.util.TimeUtil;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static java.util.Arrays.asList;
+import static ru.job4j.vacancy.job.VacancyCollectorJob.VACANCY_KEYWORD;
 
 /**
  * Starter class to execute Job implemented tasks
@@ -26,23 +26,21 @@ import static java.util.Arrays.asList;
  * @since 2019-07-27
  */
 public class VacancyCollector {
-    private static final Map<Class<? extends Job>, List<String>> REQUIRED_KEYS
-            = Map.of(VacancyCollectorJob.class, List.of("db.driver", "db.url", "db.username", "db.password"));
+    private static final String DEFAULT_SEARCH_KEY = "java";
 
-    private static final Map<Class<? extends Job>, List<String>> ADDITIONAL_KEYS
-            = Map.of(VacancyCollectorJob.class, List.of("vacancy.site", "vacancy.filter"));
+    public static final String CRON_EXPRESSION_KEY = "cron.expression";
+    public static final String NEXT_LAUNCH_KEY = "next.launch";
 
     private static final String DEBUG = "-debug";
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d.MM.yyyy H:mm:ss");
 
-    private final List<String> properties;
+    private final Set<String> params;
     private final boolean isDebug;
 
     private JobExecutor jobExecutor;
 
-    public VacancyCollector(String[] properties) {
-        this.properties = asList(properties);
-        isDebug = this.properties.contains(DEBUG);
+    public VacancyCollector(String... params) {
+        this.params = Set.of(params);
+        isDebug = this.params.contains(DEBUG);
     }
 
     /**
@@ -50,7 +48,6 @@ public class VacancyCollector {
      *
      * @param waitForJobsToComplete if started jobs need to wait
      * @return if executor was stopped
-     * @throws SchedulerException if an error occurs due to terminate the scheduler
      */
     public boolean shutdown(boolean waitForJobsToComplete) throws SchedulerException {
         var result = false;
@@ -75,32 +72,79 @@ public class VacancyCollector {
     }
 
     /**
-     * Checks given program arguments and starts main program logic class if okay
+     * Starts vacancy parsing executor with default job object
+     *
+     * @return vacancy collector job trigger
      */
-    public String start(Class<? extends Job> jobClass) throws SchedulerException, IOException {
-        startExecutor();
-        Date startDate = jobExecutor.execute(jobClass, REQUIRED_KEYS.getOrDefault(jobClass, List.of()),
-                ADDITIONAL_KEYS.getOrDefault(jobClass, List.of()));
-        String formattedDateTime = LocalDateTime.ofInstant(
-                startDate.toInstant(), ZoneId.systemDefault()
-        ).format(FORMATTER);
-        return "The next vacancy scan has been scheduled on " + formattedDateTime;
+    public Trigger start() throws IOException, SchedulerException {
+        return start(new VacancyCollectorJob());
     }
 
-    private void startExecutor() throws SchedulerException, IOException {
+    /**
+     * Checks given program arguments and starts main program logic class if okay
+     *
+     * @param job job
+     * @return new job's trigger
+     */
+    public Trigger start(ExecutorJob job) throws IOException, SchedulerException {
+        startExecutor();
+        var jobProperties = createAppProperties();
+        var nextStart = (String) jobProperties.get(NEXT_LAUNCH_KEY);
+        var cronExpression = (String) jobProperties.get(CRON_EXPRESSION_KEY);
+        return jobExecutor.schedule(job, VacancyCollectorJob.class.getSimpleName(),
+                nextStart == null ? null : TimeUtil.toDate(nextStart),
+                cronExpression, jobProperties);
+    }
+
+    /**
+     * Composes necessary app properties based on the given start keys
+     *
+     * @return app properties
+     */
+    private Map<String, Object> createAppProperties() throws IOException {
+        Properties properties = collectAppProperties();
+        var jobPropertiesBuilder = ImmutableMap.<String, Object>builder()
+                .put(JsoupProcessor.class.getSimpleName(), ParserUtil.createJsoupProcessor(properties))
+                .put(SQLProcessor.class.getSimpleName(), ParserUtil.createSQLProcessor(properties))
+                .put(VACANCY_KEYWORD, properties.getOrDefault(VACANCY_KEYWORD, DEFAULT_SEARCH_KEY));
+
+        properties.remove(VACANCY_KEYWORD);
+        for (Enumeration<?> e = properties.propertyNames(); e.hasMoreElements(); ) {
+            String key = (String) e.nextElement();
+            jobPropertiesBuilder.put(key, properties.getProperty(key));
+        }
+        return jobPropertiesBuilder.build();
+    }
+
+    private void startExecutor() throws SchedulerException {
         if (jobExecutor == null) {
             jobExecutor = new JobExecutor();
             jobExecutor.start();
-            for (String propertyPath : getAppProperties()) {
-                try (InputStream in = new FileInputStream(propertyPath)) {
-                    jobExecutor.loadProperties(in);
-                }
-            }
         }
     }
 
+    /**
+     * Collects properties from the given file paths that were received during object initialization
+     *
+     * @return properties
+     */
+    private Properties collectAppProperties() throws IOException {
+        var buffer = new Properties();
+        for (String propertyPath : getAppProperties()) {
+            try (var in = new FileInputStream(propertyPath)) {
+                buffer.load(in);
+            }
+        }
+        return buffer;
+    }
+
+    /**
+     * Retrieves the *.properties paths from the app args
+     *
+     * @return property file paths
+     */
     private List<String> getAppProperties() {
-        List<String> propertiesFiles = StreamEx.of(this.properties).filter(p -> p.endsWith(".properties")).toList();
+        List<String> propertiesFiles = StreamEx.of(this.params).filter(p -> p.endsWith(".properties")).toList();
         if (propertiesFiles.isEmpty()) {
             throw new IllegalArgumentException("need single *.properties file path at least");
         }

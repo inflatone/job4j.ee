@@ -8,11 +8,8 @@ import ru.job4j.vacancy.model.VacancyData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-
-import static ru.job4j.vacancy.util.Util.firstDayOfYear;
 
 /**
  * Represents program logic of storing parsed data from sql.ru
@@ -23,7 +20,7 @@ import static ru.job4j.vacancy.util.Util.firstDayOfYear;
  * @since 2019-07-29
  */
 public class SQLProcessor {
-    private static final Logger LOG = LoggerFactory.getLogger(SQLProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(SQLProcessor.class);
     private final ConnectionFactory connectionFactory;
 
     public SQLProcessor(ConnectionFactory connectionFactory) {
@@ -33,19 +30,18 @@ public class SQLProcessor {
     /**
      * Gets from the DB the date of the last vacancy collecting
      *
-     * @return last date
+     * @return last date or null if not presented
      */
-    public ZonedDateTime lastExecuteDate() {
-        ZonedDateTime result = firstDayOfYear();
+    public Timestamp retrieveLastDate() {
+        Timestamp result = null;
         try (var connection = connectionFactory.getConnection();
              var statement = connection.createStatement();
              var resultSet = statement.executeQuery("SELECT MAX(date) FROM log")
         ) {
             resultSet.next();
-            var date = resultSet.getTimestamp("max");
-            result = date != null ? ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()) : result;
+            result = resultSet.getTimestamp("max");
         } catch (SQLException e) {
-            LOG.error("error due to get database update last date", e);
+            log.error("error due to get database update last date", e);
         }
         return result;
     }
@@ -56,7 +52,7 @@ public class SQLProcessor {
      * @param vacancies parsed vacancies
      * @return number of vacancies that have been added
      */
-    public int addAll(List<VacancyData> vacancies, ZonedDateTime now) {
+    public int saveAll(List<VacancyData> vacancies, ZonedDateTime now) {
         int vacancyAmount = 0;
         try (var connection = connectionFactory.getConnection();
              var vacancyStatement = connection.prepareStatement(
@@ -76,14 +72,13 @@ public class SQLProcessor {
                 timeCheckStatement.execute();
 
                 connection.commit();
-                LOG.info("add to db {} new vacancies", vacancyAmount);
             } catch (SQLException e) {
                 connection.rollback();
                 vacancyAmount = 0;
-                LOG.error("error due to update database", e);
+                log.error("error due to update database", e);
             }
         } catch (SQLException e) {
-            LOG.error("error due to create a connection to database", e);
+            log.error("error due to create a connection to database", e);
         }
         return vacancyAmount;
     }
