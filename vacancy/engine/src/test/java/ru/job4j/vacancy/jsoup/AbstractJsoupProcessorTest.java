@@ -7,6 +7,7 @@ import ru.job4j.vacancy.util.JsoupHelper.Filters;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -62,7 +63,7 @@ public abstract class AbstractJsoupProcessorTest {
     @Test
     public void processRowDateLimited() throws IOException {
         ArrayList<VacancyData> buffer = new ArrayList<>();
-        boolean continued = processor.processRow(buffer, mockRow(), LocalDateTime.MAX);
+        boolean continued = processor.processRow(buffer, mockRow(), LocalDateTime.MAX.atZone(ZoneId.systemDefault()));
         assertFalse(continued);
         assertTrue(buffer.isEmpty());
     }

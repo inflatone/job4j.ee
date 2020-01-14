@@ -8,7 +8,8 @@ import ru.job4j.vacancy.model.VacancyData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static ru.job4j.vacancy.util.Util.firstDayOfYear;
@@ -34,16 +35,15 @@ public class SQLProcessor {
      *
      * @return last date
      */
-    public LocalDateTime lastExecuteDate() {
-        LocalDateTime result = firstDayOfYear();
+    public ZonedDateTime lastExecuteDate() {
+        ZonedDateTime result = firstDayOfYear();
         try (var connection = connectionFactory.getConnection();
              var statement = connection.createStatement();
              var resultSet = statement.executeQuery("SELECT MAX(date) FROM log")
         ) {
             resultSet.next();
             var date = resultSet.getTimestamp("max");
-            result = date != null ? date.toLocalDateTime() : result;
-
+            result = date != null ? ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()) : result;
         } catch (SQLException e) {
             LOG.error("error due to get database update last date", e);
         }
@@ -56,7 +56,7 @@ public class SQLProcessor {
      * @param vacancies parsed vacancies
      * @return number of vacancies that have been added
      */
-    public int addAll(List<VacancyData> vacancies, LocalDateTime now) {
+    public int addAll(List<VacancyData> vacancies, ZonedDateTime now) {
         int vacancyAmount = 0;
         try (var connection = connectionFactory.getConnection();
              var vacancyStatement = connection.prepareStatement(
@@ -71,7 +71,7 @@ public class SQLProcessor {
                 var ints = vacancyStatement.executeBatch();
                 vacancyAmount = IntStreamEx.of(ints).sum();
 
-                timeCheckStatement.setTimestamp(1, Timestamp.valueOf(now));
+                timeCheckStatement.setTimestamp(1, Timestamp.from(now.toInstant()));
                 timeCheckStatement.setInt(2, vacancyAmount);
                 timeCheckStatement.execute();
 
@@ -100,7 +100,7 @@ public class SQLProcessor {
             statement.setString(1, vac.getTitle());
             statement.setString(2, vac.getDescription());
             statement.setString(3, vac.getUrl());
-            statement.setTimestamp(4, Timestamp.valueOf(vac.getDateTime()));
+            statement.setTimestamp(4, Timestamp.from(vac.getDateTime().toInstant()));
             statement.addBatch();
         }
     }

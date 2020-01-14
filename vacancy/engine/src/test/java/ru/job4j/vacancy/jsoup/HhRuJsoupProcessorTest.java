@@ -8,16 +8,17 @@ import ru.job4j.vacancy.model.VacancyData;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Month;
 
 import static java.time.LocalDate.now;
 import static org.mockito.Mockito.doAnswer;
+import static ru.job4j.vacancy.TestUtil.of;
 import static ru.job4j.vacancy.jsoup.HhRuJsoupProcessor.FORMATTER;
 
 public class HhRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     private static final VacancyData EXPECTED_VACANCY_HH_RU = new VacancyData(
             "Требуется программист (Москва, Сбербанк)", "hh.ru/topic.mock.url", "test description\ntest details",
-            LocalDateTime.of(2019, 8, 12, 0, 0));
+            of(2019, Month.AUGUST, 12));
 
     private static final Document EMPTY_MOCK_PAGE_HH_RU = Jsoup.parse(
             "<div><div class=\"vacancy-serp\"></div></div>");

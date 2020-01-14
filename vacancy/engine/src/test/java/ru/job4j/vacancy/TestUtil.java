@@ -12,12 +12,12 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.io.Resources.getResource;
-import static java.time.LocalDateTime.of;
 import static java.time.Month.JULY;
 import static java.time.Month.JUNE;
 import static ru.job4j.vacancy.util.Util.now;
@@ -32,7 +32,15 @@ public class TestUtil {
 
     public static final List<VacancyData> UPDATED_VACANCIES = List.of(NEW_VACANCY, VACANCY1, VACANCY2, VACANCY3);
 
-    public static final LocalDateTime LIMIT_DATE = LocalDateTime.of(2019, JULY, 25, 16, 0, 0);
+    public static final ZonedDateTime LIMIT_DATE = of(2019, JULY, 25, 16, 0);
+
+    public static ZonedDateTime of(int year, Month month, int dayOfMonth, int hour, int minute) {
+        return ZonedDateTime.of(LocalDateTime.of(year, month, dayOfMonth, hour, minute), ZoneId.systemDefault());
+    }
+
+    public static ZonedDateTime of(int year, Month month, int dayOfMonth) {
+        return ZonedDateTime.of(LocalDate.of(year, month, dayOfMonth), LocalTime.now(), ZoneId.systemDefault()).truncatedTo(ChronoUnit.MINUTES);
+    }
 
     public static VacancyData getDuplicate(VacancyData vacancy) {
         return new VacancyData(vacancy.getTitle(), "new_" + vacancy.getUrl(), "new_" + vacancy.getDescription(), now());
@@ -59,7 +67,7 @@ public class TestUtil {
                 resultSet.getString("title"),
                 resultSet.getString("link"),
                 resultSet.getString("description"),
-                resultSet.getTimestamp("date").toLocalDateTime()
+                resultSet.getTimestamp("date").toInstant().atZone(ZoneId.systemDefault())
         );
     }
 

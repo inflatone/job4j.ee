@@ -2,7 +2,7 @@ package ru.job4j.vacancy.jsoup;
 
 import ru.job4j.vacancy.model.VacancyData;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -20,7 +20,7 @@ public interface JsoupProcessor {
      * @param dateLimit date limiter
      * @return parsed vacancies
      */
-    List<VacancyData> parseVacancies(LocalDateTime dateLimit);
+    List<VacancyData> parseVacancies(ZonedDateTime dateLimit);
 
     /**
      * Sets vacancy filter as string predicate
@@ -31,6 +31,7 @@ public interface JsoupProcessor {
 
     /**
      * Appends in link line the given word
+     *
      * @param word word
      */
     void submitSearchWord(String word);

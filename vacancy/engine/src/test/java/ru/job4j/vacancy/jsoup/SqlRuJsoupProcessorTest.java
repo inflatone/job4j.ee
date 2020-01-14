@@ -9,16 +9,17 @@ import ru.job4j.vacancy.model.VacancyData;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 
 import static java.time.LocalDate.now;
 import static org.mockito.Mockito.doAnswer;
+import static ru.job4j.vacancy.TestUtil.of;
 
 public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     private static final VacancyData EXPECTED_VACANCY_SQL_RU = new VacancyData(
             "Требуется программист (Москва, Сбербанк)", "sql.ru/topic.mock.url", "test description\ntest details",
-            LocalDateTime.of(2019, 8, 12, 21, 17));
+            of(2019, Month.AUGUST, 12, 21, 17));
 
     private static final Document EMPTY_MOCK_PAGE_SQL_RU = Jsoup.parse(
             "<table class=\"forumTable\">"

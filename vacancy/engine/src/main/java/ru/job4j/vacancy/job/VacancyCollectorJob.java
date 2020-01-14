@@ -5,7 +5,7 @@ import org.quartz.JobExecutionContext;
 import ru.job4j.vacancy.model.VacancyData;
 import ru.job4j.vacancy.sql.SQLProcessor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static ru.job4j.vacancy.util.JsoupHelper.specifyJsoupProcessor;
@@ -31,7 +31,7 @@ public class VacancyCollectorJob implements Job {
     @Override
     public void execute(JobExecutionContext context) {
         // inits on method start to prevent program from skipping new vacancies which would be added during the DB update
-        LocalDateTime now = now();
+        ZonedDateTime now = now();
         SQLProcessor sqlProcessor = new SQLProcessor(getConnectionFactory(context));
         var dateLimit = sqlProcessor.lastExecuteDate();
         List<VacancyData> vacancies = specifyJsoupProcessor(context).parseVacancies(dateLimit);

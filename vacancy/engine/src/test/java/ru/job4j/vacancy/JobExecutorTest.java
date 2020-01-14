@@ -7,8 +7,8 @@ import ru.job4j.vacancy.TestUtil.JobExample;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
@@ -33,7 +33,7 @@ public class JobExecutorTest {
             executor.loadProperties(in);
         }
         executor.start();
-        LocalDateTime expected = now().plusMinutes(1);
+        ZonedDateTime expected = now().plusMinutes(1);
         Date actual = executor.execute(JobExample.class, List.of("db.username", "db.password"), List.of());
         assertMatch(actual, expected);
 
@@ -60,14 +60,15 @@ public class JobExecutorTest {
             executor.loadProperties(in);
         }
         executor.start();
-        LocalDateTime expected = now();
+        ZonedDateTime expected = now();
         Date actual = executor.execute(JobExample.class, List.of(), List.of());
         assertMatch(actual, expected);
         executor.shutdown(false);
     }
 
-    private void assertMatch(Date actualDate, LocalDateTime expected) {
-        LocalDateTime actual = LocalDateTime.ofInstant(actualDate.toInstant(), ZoneId.systemDefault()).truncatedTo(MINUTES);
+    private void assertMatch(Date actualDate, ZonedDateTime expected) {
+        actualDate.toInstant();
+        ZonedDateTime actual = ZonedDateTime.ofInstant(actualDate.toInstant(), ZoneId.systemDefault()).truncatedTo(MINUTES);
         assertEquals(expected, actual);
     }
 }
