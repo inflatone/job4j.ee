@@ -13,14 +13,18 @@ import java.time.Month;
 import static org.mockito.Mockito.doAnswer;
 import static ru.job4j.vacancy.TestUtil.of;
 
-public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
-    private static final VacancyData EXPECTED_VACANCY = new VacancyData(
-            "Требуется программист (Москва, Сбербанк)", "https://moikrug.ru/mock.url", "test description\ntest details",
+class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
+    private static final VacancyData AUGUST_VACANCY = new VacancyData(
+            "Требуется программист (Москва, Сбербанк)", "https://career.habr.com/mock.url", "test description\ntest details",
             of(2019, Month.AUGUST, 12));
 
-    private static final Document EMPTY_MOCK_PAGE_MOIKRUG_RU = Jsoup.parse("<div class=\"jobs show_marked\" id=\"jobs_list\"></div>");
+    private static final VacancyData JUNE_VACANCY = new VacancyData(
+            "Требуется уборщица (Москва, Сбербанк)", "https://career.habr.com/mock.url", "test description\ntest details",
+            of(2019, Month.JUNE, 20));
 
-    private static final Document MOCK_PAGE_MOIKRUG_RU = Jsoup.parse("<div class=\"jobs show_marked\" id=\"jobs_list\">"
+    private static final Document EMPTY_MOCK_PAGE_HABR_CAREER = Jsoup.parse("<div class=\"jobs show_marked\" id=\"jobs_list\"></div>");
+
+    private static final Document MOCK_PAGE_HABR_CAREER = Jsoup.parse("<div class=\"jobs show_marked\" id=\"jobs_list\">"
             + "    <div class=\"job  \" id=\"job_1000012345\">"
             + "        <a class=\"job_icon\" href=\"/mock.url\"></a>"
             + "        <span class=\"date\">12 августа 2019</span>"
@@ -37,7 +41,7 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
             + "    </div>"
             + "    <div class=\"job  \" id=\"job_1000012346\">"
             + "        <a class=\"job_icon\" href=\"/mock.url\"></a>"
-            + "        <span class=\"date\">20 июля 2019</span>"
+            + "        <span class=\"date\">20 июня 2019</span>"
             + "        <div class=\"info\">"
             + "            <div class=\"title\" title=\"Middle Java developer\"><a href=\"/mock.url\">Требуется уборщица</a></div>"
             + "            <div class=\"skills\">"
@@ -51,33 +55,34 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
             + "    </div>"
             + "</div>");
 
-    public HabrCareerJsoupProcessorTest() {
-        super(new HabrCareerJsoupProcessor(), EXPECTED_VACANCY);
+    HabrCareerJsoupProcessorTest() {
+        super(new HabrCareerJsoupProcessor(), AUGUST_VACANCY, JUNE_VACANCY);
     }
 
     @Override
     Element mockRow() {
-        return MOCK_PAGE_MOIKRUG_RU.getElementsByClass("job").first();
+        return MOCK_PAGE_HABR_CAREER.getElementsByClass("job").first();
     }
 
     @Override
-    void mockDocument() throws IOException {
-        doAnswer(invocation -> MOCK_PAGE_MOIKRUG_RU)
+    void mockDocument(ParseParameters params) throws IOException {
+        doAnswer(invocation -> MOCK_PAGE_HABR_CAREER)
                 .when(processor)
-                .buildDocument("https://moikrug.ru/vacancies?q=&page=1&sort=date");
+                .buildDocument(String.format("https://career.habr.com/vacancies?q=%s&page=1&sort=date",
+                        params.getKeyword() + (params.getCity() == null ? "" : '+' + params.getCity())));
     }
 
     @Override
     void mockEmptyDocument() throws IOException {
-        doAnswer(invocation -> EMPTY_MOCK_PAGE_MOIKRUG_RU)
+        doAnswer(invocation -> EMPTY_MOCK_PAGE_HABR_CAREER)
                 .when(processor)
-                .buildDocument("https://moikrug.ru/vacancies?q=&page=1&sort=date");
+                .buildDocument("https://career.habr.com/vacancies?q=&page=1&sort=date");
     }
 
     // unit tests
 
     @Test
-    public void getAllVacancyRowsOnPage() {
+    void getAllVacancyRowsOnPage() {
         Document rows = Jsoup.parse(
                 "<div class=\"jobs show_marked\" id=\"jobs_list\">"
                         + "    <div class=\"job  \" id=\"job_1000052834\"></div>"
@@ -87,24 +92,18 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void mainLoopCountCircles() throws IOException {
+    void mainLoopCountCircles() throws IOException {
         tester.mainLoopCountCircles(1000, i -> i < 1000); // nothing could stop the main loop iterations
     }
 
     @Test
-    public void buildPageLink() {
-        var expected = "https://moikrug.ru/vacancies?q=test&page=10&sort=date";
+    void buildPageLink() {
+        var expected = "https://career.habr.com/vacancies?q=test&page=10&sort=date";
         tester.buildPageLink(expected, "test", 10);
     }
 
     @Test
-    public void buildPageLinkNullSearchWord() {
-        var expected = "https://moikrug.ru/vacancies?q=&page=5&sort=date";
-        tester.buildPageLink(expected, null, 5);
-    }
-
-    @Test
-    public void composeTitle() {
+    void composeTitle() {
         Document row = Jsoup.parse("<div class=\"info\">"
                 + "            <div class=\"title\" title=\"Middle Java developer\">"
                 + "                <a href=\"/mock.url\">Java Developer</a>"
@@ -118,30 +117,10 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void composeTitleTestSearchWordSkills() {
+    void composeTitleTestSkills() {
         Document row = Jsoup.parse("<div class=\"info\">"
                 + "            <div class=\"title\" title=\"Middle Java\">"
-                + "                <a href=\"/mock.url\">Programmer</a>"
-                + "            </div>"
-                + "            <div class=\"skills\">"
-                + "                <a class=\"skill\" href=\"\">SQL</a>"
-                + "                <a class=\"skill\" href=\"\">Java</a>"
-                + "                <a class=\"skill\" href=\"\">REST</a>"
-                + "            </div>"
-                + "            <div class=\"meta v2\">"
-                + "                <span class=\"company_name\"><a href=\"\">Company</a></span>"
-                + "                <span class=\"location\"><a href=\"\">City</a></span>"
-                + "            </div>"
-                + "        </div>");
-        tester.submitSearchWord("java");
-        tester.composeTitle("[java] Programmer (City, Company)", row);
-    }
-
-    @Test
-    public void composeTitleTestNoSearchWordSkills() {
-        Document row = Jsoup.parse("<div class=\"info\">"
-                + "            <div class=\"title\" title=\"Middle Java\">"
-                + "                <a href=\"/mock.url\">Programmer</a>"
+                + "                <a href=\"/mock.url\">Java Programmer</a>"
                 + "            </div>"
                 + "            <div class=\"skills\">"
                 + "                <a class=\"skill\" href=\"\">SQL</a>"
@@ -152,12 +131,11 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
                 + "                <span class=\"location\"><a href=\"\">City</a></span>"
                 + "            </div>"
                 + "        </div>");
-        tester.submitSearchWord("java");
-        tester.composeTitle("Programmer (City, Company)", row);
+        tester.composeTitle("Java Programmer (City, Company)", row);
     }
 
     @Test
-    public void composeTitleWithoutCity() {
+    void composeTitleWithoutCity() {
         Document row = Jsoup.parse("<div class=\"info\">"
                 + "            <div class=\"title\" title=\"Middle Java developer\">"
                 + "                <a href=\"/mock.url\">Java Developer</a>"
@@ -170,7 +148,7 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void composeTitleWithoutCityAndCompany() {
+    void composeTitleWithoutCityAndCompany() {
         Document row = Jsoup.parse("<div class=\"info\">"
                 + "            <div class=\"title\" title=\"Middle Java\">"
                 + "                <a href=\"/mock.url\">Programmer</a>"
@@ -183,12 +161,11 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
                 + "            <div class=\"meta v2\">"
                 + "            </div>"
                 + "        </div>");
-        tester.submitSearchWord("java");
         tester.composeTitle("[java] Programmer", row);
     }
 
     @Test
-    public void grabDateTime() {
+    void grabDateTime() {
         var row = Jsoup.parse("<div class=\"inner\">"
                 + "    <a class=\"job_icon\" href=\"/mock.url\"></a>"
                 + "    <span class=\"date\">test_date</span>"
@@ -198,13 +175,13 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void parseDateTime() {
+    void parseDateTime() {
         tester.parseDate(LocalDate.of(2015, 8, 3),
                 "3 августа 2015");
     }
 
     @Test
-    public void grabLink() {
+    void grabLink() {
         var row = Jsoup.parse("<div class=\"inner\">"
                 + "    <a class=\"job_icon\" href=\"//mock.url\"></a>"
                 + "    <span class=\"date\">test_date</span>"
@@ -212,11 +189,11 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
                 + "        <div class=\"title\" title=\"Developer\"><a href=\"/wrong./mock.url\">Java developer</a></div>"
                 + "    </div>"
                 + "</div>");
-        tester.grabLink("https://moikrug.ru//mock.url", row);
+        tester.grabLink("https://career.habr.com//mock.url", row);
     }
 
     @Test
-    public void grabDescription() throws IOException {
+    void grabDescription() throws IOException {
         Document row = Jsoup.parse("<div class=\"info\">"
                 + "            <div class=\"title\" title=\"Middle Java\">"
                 + "                <a href=\"/mock.url\">Programmer</a>"

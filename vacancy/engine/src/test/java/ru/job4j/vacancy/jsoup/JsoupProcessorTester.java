@@ -5,6 +5,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.mockito.invocation.InvocationOnMock;
 import ru.job4j.vacancy.model.VacancyData;
+import ru.job4j.vacancy.util.TimeUtil;
 
 import java.io.IOException;
 import java.time.*;
@@ -16,16 +17,13 @@ import java.util.function.Predicate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static ru.job4j.vacancy.TestUtil.JAVA_DEFAULT_PARAMS;
 
-public class JsoupProcessorTester {
+class JsoupProcessorTester {
     private final AbstractJsoupProcessor processor;
 
     JsoupProcessorTester(AbstractJsoupProcessor processor) {
         this.processor = processor;
-    }
-
-    void submitSearchWord(String searhword) {
-        processor.submitSearchWord(searhword);
     }
 
     void getAllVacancyRowsOnPage(int expectedRowCount, Document doc) {
@@ -35,7 +33,6 @@ public class JsoupProcessorTester {
 
     void mainLoopCountCircles(int expectedCount, Predicate<Integer> iterationEscape) throws IOException {
         List<VacancyData> vacancies = new ArrayList<>();
-        ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.systemDefault());
         AbstractJsoupProcessor mockProcessor = mock(processor.getClass());
         final int[] counter = {0};
         when(mockProcessor.processPage(anyList(), anyInt(), any())).thenAnswer(invocation -> {
@@ -48,18 +45,17 @@ public class JsoupProcessorTester {
                 .when(mockProcessor).mainLoop(anyList(), any());
         doAnswer(InvocationOnMock::callRealMethod)
                 .when(mockProcessor).anyMorePages(anyInt());
-        mockProcessor.mainLoop(vacancies, now);
+        mockProcessor.mainLoop(vacancies, ParseParameters.of("", null, LocalDateTime.now().atZone(ZoneId.systemDefault())));
         assertEquals(expectedCount, counter[0]);
     }
 
     void buildPageLink(String expected, String searchWord, int pageNum) {
-        processor.submitSearchWord(searchWord);
-        var url = processor.buildPageLink(pageNum);
+        var url = processor.buildPageLink(pageNum, ParseParameters.of(searchWord, TimeUtil.now()));
         assertEquals(expected, url);
     }
 
     void composeTitle(String expected, Element row) {
-        var title = processor.composeTitle(row);
+        var title = processor.checkAndComposeTitle(row, JAVA_DEFAULT_PARAMS);
         assertEquals(expected, title);
     }
 

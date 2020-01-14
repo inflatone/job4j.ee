@@ -2,63 +2,60 @@ package ru.job4j.vacancy.jsoup;
 
 import org.junit.jupiter.api.Test;
 import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import ru.job4j.vacancy.util.JsoupHelper.Filters;
+import ru.job4j.vacancy.TestUtil;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
 import static java.time.LocalDateTime.of;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static ru.job4j.vacancy.util.JsoupHelper.specifyJsoupProcessor;
-import static ru.job4j.vacancy.util.Util.isNotBefore;
+import static ru.job4j.vacancy.jsoup.ParserUtil.createJsoupProcessor;
 
-public class JsoupHelperTest {
+class ParserUtilTest {
+
     @Test
-    public void specifySqlRuJsoupProcessor() {
+    void specifySqlRuJsoupProcessor() {
         Map<String, Object> properties = Map.of(
-                "vacancy.site", "sql.ru",
-                "vacancy.filter", "java"
+                "vacancy.source", "sql.ru",
+                "vacancy.keyword", "java"
         );
         checkClassOfJsoupProcessor(SqlRuJsoupProcessor.class, properties);
     }
 
     @Test
-    public void specifyHhRuJsoupProcessor() {
+    void specifyHhRuJsoupProcessor() {
         Map<String, Object> properties = Map.of(
-                "vacancy.site", "hh.ru",
-                "vacancy.filter", "java"
+                "vacancy.source", "hh.ru",
+                "vacancy.keyword", "java"
         );
         checkClassOfJsoupProcessor(HhRuJsoupProcessor.class, properties);
     }
 
     @Test
-    public void specifyMoiKrugJsoupProcessor() {
+    void specifyHabrCareerJsoupProcessor() {
         Map<String, Object> properties = Map.of(
-                "vacancy.site", "moikrug.ru",
-                "vacancy.filter", "java"
+                "vacancy.source", "habr.com",
+                "vacancy.keyword", "java"
         );
         checkClassOfJsoupProcessor(HabrCareerJsoupProcessor.class, properties);
     }
 
     @Test
-    public void specifySqlRuJsoupProcessorEmptyProperties() {
+    void specifySqlRuJsoupProcessorEmptyProperties() {
         Map<String, Object> properties = Map.of();
         checkClassOfJsoupProcessor(SqlRuJsoupProcessor.class, properties);
     }
 
 
     @Test
-    public void specifySqlRuJsoupProcessorInvalidProperties() {
-        Map<String, Object> properties = Map.of("vacancy.site", "vk.ru");
-        checkClassOfJsoupProcessor(SqlRuJsoupProcessor.class, properties);
+    void specifySqlRuJsoupProcessorInvalidProperties() {
+        Map<String, Object> properties = Map.of("vacancy.source", "vk.ru");
+        var thrown = assertThrows(IllegalArgumentException.class, () -> createJsoupProcessor(new JobDataMap(properties)));
+        assertEquals("'vacancy.source' is missing or incorrect", thrown.getMessage());
     }
 
     @Test
-    public void javaFilterTrue() {
+    void javaFilterTrue() {
         matchTrue("java");
         matchTrue("java developer");
         matchTrue("[java] programmer");
@@ -71,7 +68,7 @@ public class JsoupHelperTest {
     }
 
     @Test
-    public void javaFilterFalse() {
+    void javaFilterFalse() {
         matchFalse("");
         matchFalse("developer");
         matchFalse("[jav] programmer");
@@ -80,7 +77,7 @@ public class JsoupHelperTest {
     }
 
     @Test
-    public void isNotBeforeUtil() {
+    void isNotBeforeUtil() {
         matchNotBefore(of(2015, 4, 3, 2, 1, 1));
         matchNotBefore(of(2015, 4, 3, 2, 1, 0));
         matchNotBefore(of(2015, 4, 3, 2, 1));
@@ -90,11 +87,7 @@ public class JsoupHelperTest {
     }
 
     private void checkClassOfJsoupProcessor(Class<? extends JsoupProcessor> expectedClass, Map<String, Object> properties) {
-        JobExecutionContext mockCtx = mock(JobExecutionContext.class);
-        JobDetail mockJob = mock(JobDetail.class);
-        when(mockJob.getJobDataMap()).thenReturn(new JobDataMap(properties));
-        when(mockCtx.getJobDetail()).thenReturn(mockJob);
-        var processor = specifyJsoupProcessor(mockCtx);
+        var processor = createJsoupProcessor(new JobDataMap(properties));
         assertEquals(expectedClass, processor.getClass());
     }
 
@@ -108,12 +101,20 @@ public class JsoupHelperTest {
         assertFalse(isNotBefore(dateTime, limit));
     }
 
-
-    private void matchTrue(String line) {
-        assertTrue(Filters.javaFilter(line));
+    private static boolean isNotBefore(LocalDateTime checked, LocalDateTime limit) {
+        return checked.compareTo(limit) >= 0;
     }
 
-    private void matchFalse(String line) {
-        assertFalse(Filters.javaFilter(line));
+    private static void matchTrue(String line) {
+        assertTrue(match(line));
+    }
+
+    private static void matchFalse(String line) {
+        assertFalse(match(line));
+    }
+
+    private static boolean match(String line) {
+        var javaFilter = TestUtil.JAVA_DEFAULT_PARAMS.getTitleFilter();
+        return javaFilter.test(line);
     }
 }

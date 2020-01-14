@@ -16,10 +16,14 @@ import static java.time.LocalDate.now;
 import static org.mockito.Mockito.doAnswer;
 import static ru.job4j.vacancy.TestUtil.of;
 
-public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
-    private static final VacancyData EXPECTED_VACANCY_SQL_RU = new VacancyData(
+class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
+    private static final VacancyData AUGUST_VACANCY = new VacancyData(
             "Требуется программист (Москва, Сбербанк)", "sql.ru/topic.mock.url", "test description\ntest details",
             of(2019, Month.AUGUST, 12, 21, 17));
+
+    private static final VacancyData JUNE_VACANCY = new VacancyData(
+            "Требуется уборщица (Москва, Сбербанк)", "sql.ru/topic.mock.url", "test description\ntest details",
+            of(2019, Month.JUNE, 20, 10, 10));
 
     private static final Document EMPTY_MOCK_PAGE_SQL_RU = Jsoup.parse(
             "<table class=\"forumTable\">"
@@ -42,7 +46,7 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
             + "     <td class=\"altCol\"></td>"
             + "     <td>56</td>"
             + "     <td>1514</td>"
-            + "     <td class=\"altCol\">20 июл 19, 10:10</td>"
+            + "     <td class=\"altCol\">20 июн 19, 10:10</td>"
             + "</tr>"
             + "</table>");
 
@@ -69,14 +73,14 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
             + "</body>"
             + "</html>");
 
-    public SqlRuJsoupProcessorTest() {
-        super(new SqlRuJsoupProcessor(), EXPECTED_VACANCY_SQL_RU);
+    SqlRuJsoupProcessorTest() {
+        super(new SqlRuJsoupProcessor(), AUGUST_VACANCY, JUNE_VACANCY);
     }
 
     // template methods for integration tests in superclass
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         doAnswer(invocation -> MOCK_TOPIC_PAGE_SQL_RU)
                 .when(processor)
                 .buildDocument("sql.ru/topic.mock.url");
@@ -88,7 +92,7 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Override
-    void mockDocument() throws IOException {
+    void mockDocument(ParseParameters params) throws IOException {
         doAnswer(invocation -> MOCK_PAGE_SQL_RU)
                 .when(processor)
                 .buildDocument("https://www.sql.ru/forum/job-offers/1");
@@ -104,7 +108,7 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     // unit tests
 
     @Test
-    public void getAllVacancyRowsOnPage() {
+    void getAllVacancyRowsOnPage() {
         Document rows = Jsoup.parse(
                 "<table class=\"forumTable\">"
                         + "    <tr><th>Header</th></tr>"
@@ -122,41 +126,41 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void mainLoopCountCircles() throws IOException {
+    void mainLoopCountCircles() throws IOException {
         tester.mainLoopCountCircles(1000, i -> i < 1000); // nothing could stop the main loop iterations
     }
 
     @Test
-    public void buildPageLink() {
+    void buildPageLink() {
         var expected = "https://www.sql.ru/forum/job-offers/10";
-        tester.buildPageLink(expected, null, 10);
+        tester.buildPageLink(expected, "anyway_ignored", 10);
     }
 
     @Test
-    public void buildPageLinkSearchWordWasIgnored() {
+    void buildPageLinkSearchWordWasIgnored() {
         var expected = "https://www.sql.ru/forum/job-offers/100";
         tester.buildPageLink(expected, "searchtest", 100);
     }
 
     @Test
-    public void composeTitle() {
+    void composeTitle() {
         var row = Jsoup.parse("<table>"
                 + "<tr>"
-                + "     <td class=\"postslisttopic\"><a href=\"\">Требуется программист</a></td>"
+                + "     <td class=\"postslisttopic\"><a href=\"\">Требуется Java программист</a></td>"
                 + "     <td class=\"altCol\"></td>"
                 + "     <td>56</td>"
                 + "     <td>1514</td>"
                 + "     <td class=\"altCol\">сегодня, 10:29</td>"
                 + "</tr>"
                 + "</table>");
-        tester.composeTitle("Требуется программист", row);
+        tester.composeTitle("Требуется Java программист", row);
     }
 
     @Test
-    public void grabDateTime() {
+    void grabDateTime() {
         var row = Jsoup.parse("<table>"
                 + "<tr>"
-                + "     <td class=\"postslisttopic\"><a href=\"\">Требуется программист</a></td>"
+                + "     <td class=\"postslisttopic\"><a href=\"\">Требуется Java программист</a></td>"
                 + "     <td class=\"altCol\"></td>"
                 + "     <td>56</td>"
                 + "     <td>1514</td>"
@@ -167,25 +171,25 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void parseDateTime() {
+    void parseDateTime() {
         tester.parseDateTime(LocalDate.of(2019, 8, 12), LocalTime.of(14, 11),
                 "12 авг 19, 14:11");
     }
 
     @Test
-    public void parseDateTimeToday() {
+    void parseDateTimeToday() {
         tester.parseDateTime(now(), LocalTime.of(8, 11),
                 "сегодня, 08:11");
     }
 
     @Test
-    public void parseDateTimeYesterday() {
+    void parseDateTimeYesterday() {
         tester.parseDateTime(now().minusDays(1), LocalTime.of(23, 59),
                 "вчера, 23:59");
     }
 
     @Test
-    public void grabLink() {
+    void grabLink() {
         var row = Jsoup.parse("<table>"
                 + "<tr>"
                 + "     <td class=\"postslisttopic\"><a href=\"http://mock.url\">Требуется программист</a></td>"
@@ -199,7 +203,7 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void grabDescription() throws IOException {
+    void grabDescription() throws IOException {
         var row = Jsoup.parse("<table>"
                 + "<tr>"
                 + "     <td class=\"postslisttopic\"><a href=\"sql.ru/topic.mock.url\">Требуется программист</a></td>"
