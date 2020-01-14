@@ -3,15 +3,14 @@ package ru.job4j.vacancy.jsoup;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.job4j.vacancy.model.VacancyData;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.mockito.BDDMockito.given;
-import static ru.job4j.vacancy.util.JsoupHelper.buildDocument;
+import static org.mockito.Mockito.doAnswer;
 
 public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
     private static final VacancyData EXPECTED_VACANCY = new VacancyData(
@@ -62,14 +61,16 @@ public class HabrCareerJsoupProcessorTest extends AbstractJsoupProcessorTest {
 
     @Override
     void mockDocument() throws IOException {
-        given(buildDocument("https://moikrug.ru/vacancies?q=&page=1&sort=date"))
-                .willReturn(MOCK_PAGE_MOIKRUG_RU);
+        doAnswer(invocation -> MOCK_PAGE_MOIKRUG_RU)
+                .when(processor)
+                .buildDocument("https://moikrug.ru/vacancies?q=&page=1&sort=date");
     }
 
     @Override
     void mockEmptyDocument() throws IOException {
-        given(buildDocument("https://moikrug.ru/vacancies?q=&page=1&sort=date"))
-                .willReturn(EMPTY_MOCK_PAGE_MOIKRUG_RU);
+        doAnswer(invocation -> EMPTY_MOCK_PAGE_MOIKRUG_RU)
+                .when(processor)
+                .buildDocument("https://moikrug.ru/vacancies?q=&page=1&sort=date");
     }
 
     // unit tests

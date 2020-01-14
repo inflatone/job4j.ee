@@ -24,8 +24,7 @@ public class HabrCareerJsoupProcessor extends AbstractJsoupProcessor {
     private static final String SITE_NAME = "https://moikrug.ru";
     private static final String URL_TEMPLATE = "https://moikrug.ru/vacancies?q=%s&page=%d&sort=date";
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy")
-            .localizedBy(Locale.forLanguageTag("ru"));
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("ru"));
 
     @Override
     String buildPageLink(int page) {
@@ -61,7 +60,6 @@ public class HabrCareerJsoupProcessor extends AbstractJsoupProcessor {
 
     @Override
     LocalDateTime parseDateTime(String dateLine) {
-
         return LocalDateTime.of(LocalDate.parse(dateLine, FORMATTER), LocalTime.MIN);
     }
 

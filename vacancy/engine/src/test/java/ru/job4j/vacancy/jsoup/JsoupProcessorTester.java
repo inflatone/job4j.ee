@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -25,8 +25,8 @@ public class JsoupProcessorTester {
         this.processor = processor;
     }
 
-    void submitSearchWord(String searhWord) {
-        processor.submitSearchWord(searhWord);
+    void submitSearchWord(String searhword) {
+        processor.submitSearchWord(searhword);
     }
 
     void getAllVacancyRowsOnPage(int expectedRowCount, Document doc) {

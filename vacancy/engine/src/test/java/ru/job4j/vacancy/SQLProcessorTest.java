@@ -1,6 +1,6 @@
 package ru.job4j.vacancy;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.job4j.vacancy.model.VacancyData;
 import ru.job4j.vacancy.sql.SQLProcessor;
 
@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static ru.job4j.vacancy.TestUtil.*;
 import static ru.job4j.vacancy.util.Util.firstDayOfYear;
 import static ru.job4j.vacancy.util.Util.now;

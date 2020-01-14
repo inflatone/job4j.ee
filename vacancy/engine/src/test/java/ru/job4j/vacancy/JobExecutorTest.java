@@ -1,6 +1,6 @@
 package ru.job4j.vacancy;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobDataMap;
 import org.quartz.JobKey;
 import ru.job4j.vacancy.TestUtil.JobExample;
@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static ru.job4j.vacancy.util.Util.now;
 
 public class JobExecutorTest {

@@ -1,6 +1,6 @@
 package ru.job4j.vacancy.jsoup;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -10,9 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static java.time.LocalDateTime.of;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static ru.job4j.vacancy.util.JsoupHelper.specifyJsoupProcessor;
@@ -84,7 +82,7 @@ public class JsoupHelperTest {
     @Test
     public void isNotBeforeUtil() {
         matchNotBefore(of(2015, 4, 3, 2, 1, 1));
-        matchNotBefore(of(2015, 4, 3, 2, 1,  0));
+        matchNotBefore(of(2015, 4, 3, 2, 1, 0));
         matchNotBefore(of(2015, 4, 3, 2, 1));
 
         matchBefore(of(2015, 4, 3, 2, 0, 59));

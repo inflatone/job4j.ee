@@ -3,8 +3,8 @@ package ru.job4j.vacancy.jsoup;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import ru.job4j.vacancy.model.VacancyData;
 
 import java.io.IOException;
@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import static java.time.LocalDate.now;
-import static org.mockito.BDDMockito.given;
-import static ru.job4j.vacancy.util.JsoupHelper.buildDocument;
+import static org.mockito.Mockito.doAnswer;
 
 public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     private static final VacancyData EXPECTED_VACANCY_SQL_RU = new VacancyData(
@@ -75,12 +74,11 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
 
     // template methods for integration tests in superclass
 
-    @Before
-    @Override
+    @BeforeEach
     public void setUp() throws IOException {
-        super.setUp();
-        given(buildDocument("sql.ru/topic.mock.url"))
-                .willReturn(MOCK_TOPIC_PAGE_SQL_RU); // on sql.ru vac's description would be grabbed from the (another) topic page — had to mock it
+        doAnswer(invocation -> MOCK_TOPIC_PAGE_SQL_RU)
+                .when(processor)
+                .buildDocument("sql.ru/topic.mock.url");
     }
 
     @Override
@@ -90,14 +88,16 @@ public class SqlRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
 
     @Override
     void mockDocument() throws IOException {
-        given(buildDocument("https://www.sql.ru/forum/job-offers/1"))
-                .willReturn(MOCK_PAGE_SQL_RU);
+        doAnswer(invocation -> MOCK_PAGE_SQL_RU)
+                .when(processor)
+                .buildDocument("https://www.sql.ru/forum/job-offers/1");
     }
 
     @Override
     void mockEmptyDocument() throws IOException {
-        given(buildDocument("https://www.sql.ru/forum/job-offers/1"))
-                .willReturn(EMPTY_MOCK_PAGE_SQL_RU);
+        doAnswer(invocation -> EMPTY_MOCK_PAGE_SQL_RU)
+                .when(processor)
+                .buildDocument("https://www.sql.ru/forum/job-offers/1");
     }
 
     // unit tests
