@@ -1,0 +1,32 @@
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+th, td {
+    vertical-align: central;
+}
+
+tr[highlighted="true"] {
+    color: green;
+}
+
+.fa {
+    cursor: pointer;
+}
+
+/*https://getbootstrap.com/docs/4.0/examples/sticky-footer/sticky-footer.css*/
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px; /* Margin bottom by footer height */
+}
+
+/* Noty settings*/
+
+/*https://stackoverflow.com/a/53855189/548473*/
+#noty_layout__bottomRight {
+    width: 385px !important;
+}
