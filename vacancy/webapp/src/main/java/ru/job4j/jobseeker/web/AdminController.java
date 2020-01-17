@@ -3,25 +3,20 @@ package ru.job4j.jobseeker.web;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.slf4j.Logger;
-import ru.job4j.jobseeker.model.Role;
 import ru.job4j.jobseeker.model.User;
+import ru.job4j.jobseeker.service.UserService;
 import ru.job4j.jobseeker.web.security.AuthManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.job4j.jobseeker.web.Action.*;
 import static ru.job4j.jobseeker.web.WebHelper.*;
 import static ru.job4j.jobseeker.web.json.JsonHelper.fromJson;
-
 
 /**
  * Represents web layer of the app that serves user data requests (from ADMIN role users)
@@ -33,22 +28,13 @@ import static ru.job4j.jobseeker.web.json.JsonHelper.fromJson;
 public class AdminController extends ActionDispatcherServlet {
     private static final Logger log = getLogger(AdminController.class);
 
-    public static final Map<Integer, User> USERS = new ConcurrentHashMap<>();
-
-    public static final AtomicInteger SEQ = new AtomicInteger(100000);
-
-    static {
-        USERS.put(SEQ.incrementAndGet(), new User(SEQ.get(), "user", "password", new Date(), Role.USER));
-        USERS.put(SEQ.incrementAndGet(), new User(SEQ.get(), "admin", "admin", new Date(), Role.ADMIN));
-        USERS.put(SEQ.incrementAndGet(), new User(SEQ.get(), "test", "password", new Date(), Role.USER));
-        USERS.put(SEQ.incrementAndGet(), new User(SEQ.get(), "simple", "simple", new Date(), Role.USER));
-        USERS.put(SEQ.incrementAndGet(), new User(SEQ.get(), "supervisor", "bingo", new Date(), Role.ADMIN));
-    }
-
     final Provider<AuthManager> authManagerProvider;
 
+    final UserService service;
+
     @Inject
-    public AdminController(Provider<AuthManager> managerProvider) {
+    public AdminController(UserService service, Provider<AuthManager> managerProvider) {
+        this.service = service;
         this.authManagerProvider = managerProvider;
     }
 
@@ -91,10 +77,7 @@ public class AdminController extends ActionDispatcherServlet {
      */
     private void doCreate(User user) {
         log.info("Create {}", user);
-        //service.create(user);
-        user.setId(SEQ.incrementAndGet());
-        user.setRegistered(new Date());
-        USERS.put(user.getId(), user);
+        service.create(user);
     }
 
     /**
@@ -104,15 +87,7 @@ public class AdminController extends ActionDispatcherServlet {
      */
     private void doUpdate(User user) {
         log.info("Update {}", user);
-
-        USERS.computeIfPresent(user.getId(), (k, v) -> {
-            v.setLogin(user.getLogin());
-            v.setPassword(user.getPassword());
-            v.setRole(user.getRole());
-            return v;
-        });
-
-        //service.update(user);
+        service.update(user);
     }
 
     /**
@@ -124,10 +99,7 @@ public class AdminController extends ActionDispatcherServlet {
     private void doRemove(HttpServletRequest request, HttpServletResponse response) {
         int id = getRequiredId(request);
         log.info("Delete {}", id);
-
-        USERS.remove(id);
-        //service.delete(id);
-
+        service.delete(id);
         authManagerProvider.get().removeAuth(id);
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
@@ -141,12 +113,12 @@ public class AdminController extends ActionDispatcherServlet {
     void find(HttpServletRequest request, HttpServletResponse response) throws IOException {
         var id = getParameter(request, "id", Integer::parseInt);
         if (id == null) {
-            log.info("getALL users");
-            var users = USERS.values();
+            log.info("find all users");
+            var users = service.findAll();
             asJsonToResponse(response, users);
         } else {
-            log.info("get users with id={}", id);
-            var user = USERS.get(id);
+            log.info("find user with id={}", id);
+            var user = service.find(id);
             asJsonToResponse(response, user);
         }
     }

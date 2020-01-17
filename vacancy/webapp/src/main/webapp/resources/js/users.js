@@ -20,9 +20,6 @@ const datatableOpts = {
             "data": "login"
         },
         {
-            "data": "password"
-        },
-        {
             "data": "registered"
         },
         {

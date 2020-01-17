@@ -5,9 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.jdbi.v3.core.mapper.reflect.ColumnName;
+import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
 import java.util.Date;
 
+import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 import static ru.job4j.vacancy.util.ExceptionUtil.nullSafely;
 
 /**
@@ -24,6 +27,7 @@ import static ru.job4j.vacancy.util.ExceptionUtil.nullSafely;
 public class User extends BaseEntity {
     private String login;
 
+    @JsonProperty(access = WRITE_ONLY)
     private String password;
 
     private Date registered;
@@ -34,7 +38,12 @@ public class User extends BaseEntity {
         this(user.getId(), user.login, user.password, user.registered, user.role);
     }
 
-    public User(Integer id, String login, String password, Date registered, Role role) {
+    @JdbiConstructor
+    public User(@ColumnName("id") Integer id,
+                @ColumnName("login") String login,
+                @ColumnName("password") String password,
+                @ColumnName("registered") Date registered,
+                @ColumnName("role") Role role) {
         super(id);
         this.login = login;
         this.password = password;

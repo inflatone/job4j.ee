@@ -31,7 +31,6 @@
             <thead class="thead-light">
             <tr>
                 <th>Login</th>
-                <th>Password</th>
                 <th>Created</th>
                 <th>Role</th>
                 <th></th>

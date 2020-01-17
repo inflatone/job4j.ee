@@ -44,10 +44,6 @@
                                 <td id="profileLogin"></td>
                             </tr>
                             <tr>
-                                <td class=""><b>Password:</b></td>
-                                <td id="profilePassword"></td>
-                            </tr>
-                            <tr>
                                 <td class=""><b>Registered:</b></td>
                                 <td id="profileRegistered"></td>
                             </tr>
