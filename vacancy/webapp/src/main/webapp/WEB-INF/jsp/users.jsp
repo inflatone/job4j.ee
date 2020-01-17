@@ -22,6 +22,10 @@
                 <span class="fa fa-user"></span>
                 Profile
             </a>
+            <a class="btn btn-danger" href="logout">
+                <span class="fa fa-sign-out"></span>
+                Sign out
+            </a>
         </div>
         <table class="table table-hover" id="table">
             <thead class="thead-light">
