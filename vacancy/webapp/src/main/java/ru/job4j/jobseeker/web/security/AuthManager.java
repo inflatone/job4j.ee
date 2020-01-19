@@ -96,11 +96,12 @@ public class AuthManager {
      * Retrieves user id parameter from the given request if only user authorized as admin
      * Otherwise returns the id of the authorized user entity, or null if auth isn't presented
      *
-     * @param request request
+     * @param request    request
+     * @param isUserPage name of user id parameter depends on it
      * @return user id
      */
-    public int getRequiredUserId(HttpServletRequest request) {
-        return requireNonNull(findAllowedId(request, "id"), "No authorized");
+    public int getRequiredUserId(HttpServletRequest request, boolean isUserPage) {
+        return requireNonNull(findAllowedId(request, isUserPage ? "id" : "userId"), "No authorized");
     }
 
     /**

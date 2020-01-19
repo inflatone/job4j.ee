@@ -43,7 +43,7 @@ public class ProfileController extends AdminController {
 
     @Override
     int getRequiredId(HttpServletRequest request) {
-        return authManagerProvider.get().getRequiredUserId(request);
+        return authManagerProvider.get().getRequiredUserId(request, true);
     }
 
     @Override

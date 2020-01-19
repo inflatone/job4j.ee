@@ -20,4 +20,9 @@ public class ScanSource extends BaseEntity {
 
     private String url;
     private String iconUrl;
+
+    public ScanSource(Integer id, SourceTitle title, String url, String iconUrl) {
+        this(title, url, iconUrl);
+        setId(id);
+    }
 }

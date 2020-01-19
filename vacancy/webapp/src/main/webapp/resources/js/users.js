@@ -1,19 +1,23 @@
 const adminUrl = "users";
 
 $(function () {
-    setContext({
+    const ctx = {
         url: adminUrl,
-        afterSuccess: function () {
-            $.get(adminUrl + '?action=find', fillTableByData)
-        },
+        tableUrl: adminUrl,
         idRequired: true,
         addUser: 'Add user',
-        editUser: 'Edit user'
-    });
+        editUser: 'Edit user',
+    };
+
+    ctx.tableUpdateUrl = ctx.tableUrl + '?action=find';
+    ctx.afterSuccess = function () {
+        $.get(ctx.tableUpdateUrl, fillTableByData)
+    };
+
+    setContext(ctx);
     makeDynamicTable();
-    $('#formUserImage').attr('hidden', false);
 });
-//<td><img src="images?id=${user.id}" alt="userpic" width="100" height="100"></td>
+
 const datatableOpts = {
     "columns": [
         {
@@ -50,24 +54,10 @@ const datatableOpts = {
     }
 };
 
-function makeDynamicTable() {
-    context.datatableApi = $("#table").DataTable(
-        // https://api.jquery.com/jquery.extend/#jQuery-extend-deep-target-object1-objectN
-        $.extend(true, datatableOpts, {
-            "ajax": {
-                "url": context.url + '?action=find',
-                "dataSrc": ""
-            },
-            "paging": false,
-            "info": true
-        })
-    );
-}
-
 function doDeleteItem(id) {
     if (confirm("Are you sure?")) {
         $.ajax({
-            url: context.url + '?action=delete&id=' + id,
+            url: context.tableUrl + '?action=delete&id=' + id,
             type: 'POST'
         }).done(function () {
             context.afterSuccess();
@@ -86,18 +76,6 @@ function renderProfileButton(data, type, row) {
     }
 }
 
-function renderEditButton(data, type, row) {
-    if (type === "display") {
-        return '<a onclick="openEditForm(' + row.id + ')"><span class="fa fa-pencil"></span></a>';
-    }
-}
-
-function renderDeleteButton(data, type, row) {
-    if (type === "display") {
-        return '<a onclick="doDeleteItem(' + row.id + ')"><span class="fa fa-remove"></span></a>';
-    }
-}
-
-function fillTableByData(data) {
-    context.datatableApi.clear().rows.add(data).draw();
+function processTableElementEdit(id) {
+    openEditForm(id);
 }

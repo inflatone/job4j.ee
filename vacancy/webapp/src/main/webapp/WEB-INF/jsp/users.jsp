@@ -8,6 +8,7 @@
 <script type="text/javascript" src="resources/js/common.js" defer></script>
 <script type="text/javascript" src="resources/js/form.js" defer></script>
 <script type="text/javascript" src="resources/js/formUser.js" defer></script>
+<script type="text/javascript" src="resources/js/list.js" defer></script>
 <script type="text/javascript" src="resources/js/users.js" defer></script>
 
 <div class="jumbotron bg-light pt-4">
