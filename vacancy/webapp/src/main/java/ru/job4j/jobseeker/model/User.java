@@ -37,6 +37,10 @@ public class User extends BaseEntity {
     public User(User user) {
         this(user.getId(), user.login, user.password, user.registered, user.role);
     }
+    
+    public User(Integer id) {
+        super(id);
+    }
 
     @JdbiConstructor
     public User(@ColumnName("id") Integer id,

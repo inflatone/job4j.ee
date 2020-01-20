@@ -15,9 +15,14 @@ public enum SourceTitle {
     habr_com("habr.com"),
     sql_ru("sql.ru");
 
-    private final String code;
+    private final String title;
 
     public String title() {
-        return code;
+        return title;
+    }
+
+    @Override
+    public String toString() {
+        return title;
     }
 }

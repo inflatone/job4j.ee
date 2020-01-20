@@ -4,7 +4,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import ru.job4j.jobseeker.dao.JdbiConfigurator;
+import ru.job4j.jobseeker.dao.TaskDao;
 import ru.job4j.jobseeker.dao.UserDao;
+import ru.job4j.jobseeker.dao.VacancyDao;
 
 import javax.inject.Singleton;
 import javax.naming.InitialContext;
@@ -31,5 +33,17 @@ public class DaoModule extends AbstractModule {
     @Singleton
     public UserDao provideUserDao(JdbiConfigurator configurator) {
         return configurator.getDao(UserDao.class);
+    }
+
+    @Provides
+    @Singleton
+    public TaskDao provideTaskDao(JdbiConfigurator configurator) {
+        return configurator.getDao(TaskDao.class);
+    }
+
+    @Provides
+    @Singleton
+    public VacancyDao provideVacancyDao(JdbiConfigurator configurator) {
+        return configurator.getDao(VacancyDao.class);
     }
 }
