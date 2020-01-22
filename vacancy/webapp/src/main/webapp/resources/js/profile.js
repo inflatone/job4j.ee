@@ -89,7 +89,7 @@ const datatableOpts = {
             "render": renderViewButton
         },
         {
-            "defaultContent": "Update",
+            "defaultContent": "Start",
             "orderable": false,
             "render": renderUpdateButton
         },
@@ -138,9 +138,13 @@ function processTableElementEdit(id) {
     openEditTaskForm(id);
 }
 
+function openTaskPage(id) {
+    window.location.href = 'task?id=' + id + (profileId ? '&userId=' + profileId : '');
+}
+
 function renderViewButton(data, type, row) {
     if (type === 'display') {
-        return '<a onclick="processTableElementEdit(' + row.id + ')"><span class="fa fa-list" aria-hidden="true"></span></a>';
+        return '<a onclick="openTaskPage(' + row.id + ')"><span class="fa fa-list" aria-hidden="true"></span></a>';
     }
 }
 

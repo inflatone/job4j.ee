@@ -7,6 +7,7 @@ import ru.job4j.jobseeker.service.TaskService;
 import ru.job4j.jobseeker.web.security.AuthManager;
 
 import javax.inject.Inject;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -39,12 +40,23 @@ public class TaskController extends ActionDispatcherServlet {
     @Override
     protected void fillGetActions() {
         submitGetAction(find, this::find);
+        submitGetAction(empty, this::view);
     }
 
     @Override
     protected void fillPostActions() {
         submitPostAction(save, this::doSave);
         submitPostAction(delete, this::doRemove);
+    }
+
+    /**
+     * Represents TASK VACANCIES LIST page redirector
+     *
+     * @param request  request
+     * @param response response
+     */
+    void view(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        forwardToJsp("task", request, response);
     }
 
     /**

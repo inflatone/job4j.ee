@@ -1,4 +1,4 @@
-function makeDynamicTable(userId) {
+function makeDynamicTable(paging) {
     context.datatableApi = $("#table").DataTable(
         // https://api.jquery.com/jquery.extend/#jQuery-extend-deep-target-object1-objectN
 
@@ -7,7 +7,7 @@ function makeDynamicTable(userId) {
                 "url": context.tableUpdateUrl,
                 "dataSrc": ""
             },
-            "paging": false,
+            "paging": !!paging,
             "info": true
         })
     );

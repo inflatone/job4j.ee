@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.text.SimpleDateFormat;
 
@@ -20,6 +21,8 @@ public class JsonObjectMapper extends ObjectMapper {
     private static final ObjectMapper INSTANCE_HANDLER = new JsonObjectMapper();
 
     private JsonObjectMapper() {
+        registerModule(new JavaTimeModule());
+
         var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         setDateFormat(dateFormat);
 
