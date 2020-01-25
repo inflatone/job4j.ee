@@ -37,14 +37,22 @@ public class TaskService {
     }
 
     public Task create(Task task, int userId) {
-        return dao.create(task, userId);
+        var persisted = dao.create(task, userId);
+        // TODO schedule task
+        return persisted;
     }
 
     public void update(Task task, int userId) {
         checkNotFoundEntityWithId(dao.update(task, userId), task.getId().intValue());
+        // TODO reschedule task
+    }
+
+    public void recount(int userId) {
+        dao.recount(userId);
     }
 
     public void delete(int id, int userId) {
         checkNotFoundEntityWithId(dao.delete(id, userId), id);
+        // TODO unschedule task
     }
 }
