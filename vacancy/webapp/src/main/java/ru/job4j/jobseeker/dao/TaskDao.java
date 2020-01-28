@@ -4,8 +4,10 @@ import org.jdbi.v3.sqlobject.config.RegisterConstructorMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
+import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import org.jdbi.v3.sqlobject.transaction.Transaction;
 import ru.job4j.jobseeker.model.LaunchLog;
 import ru.job4j.jobseeker.model.ScanSource;
 import ru.job4j.jobseeker.model.Task;
@@ -35,6 +37,9 @@ public interface TaskDao {
     @SqlQuery(SELECT_ALL + " WHERE t.user_id=:userId ORDER BY t.keyword, t.city")
     List<Task> findAll(@Bind(value = "userId") int userId);
 
+    @SqlQuery(SELECT_ALL)
+    List<Task> findAll();
+
     @SqlQuery(SELECT_ALL + " WHERE t.id=:id AND t.user_id=:userId")
     Task find(@Bind(value = "id") int id, @Bind(value = "userId") int userId);
 
@@ -44,19 +49,26 @@ public interface TaskDao {
         return task;
     }
 
-    default boolean update(Task task, int userId) {
-        return update(task, task.getId(), userId);
+    @Transaction
+    default Task update(Task task, int userId) {
+        return update(task, task.getId(), userId) ? find(task.getId(), userId) : null;
     }
 
     @SqlUpdate("UPDATE task SET scan_limit=:limit, next_launch=:launch, amount=:amount WHERE id=:id")
     void innerUpdate(@BindBean Task task);
 
+    @SqlBatch("UPDATE task SET next_launch=:launch WHERE id=:id")
+    void innerUpdateAllLaunches(@BindBean List<Task> tasks);
+
+    @SqlUpdate("UPDATE task SET active=:active WHERE id=:id AND user_id=:userId")
+    boolean update(@Bind("id") int id, @Bind("userId") int userId, @Bind("active") boolean active);
+
     @GetGeneratedKeys
-    @SqlUpdate("INSERT INTO task (keyword, city, scan_limit, next_launch, repeat_rule, scan_source_id, user_id) " +
-            "        VALUES (:keyword, :city, :limit, :launch, :rule, :sourceId, :userId)")
+    @SqlUpdate("INSERT INTO task (keyword, city, scan_limit, active, next_launch, repeat_rule, scan_source_id, user_id) " +
+            "        VALUES (:keyword, :city, :limit, :active, :launch, :rule, :sourceId, :userId)")
     int insertAndReturnId(@BindBean Task task, @Bind("sourceId") int sourceId, @Bind("userId") int userId);
 
-    @SqlUpdate("UPDATE task t SET repeat_rule=:rule, next_launch=:launch WHERE t.id=:id AND t.user_id=:userId")
+    @SqlUpdate("UPDATE task t SET active=:active, repeat_rule=:rule, next_launch=:launch WHERE t.id=:id AND t.user_id=:userId")
     boolean update(@BindBean Task task, @Bind("id") int id, @Bind("userId") int userId);
 
     @SqlUpdate("INSERT INTO launch_log(date_time, found_amount, added_amount, status, task_id) VALUES (:dateTime, :foundAmount, :addedAmount, :status, :taskId)")

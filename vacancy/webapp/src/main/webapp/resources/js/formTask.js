@@ -1,4 +1,6 @@
-let taskFormElement, taskForm, nextStartCache, isUpdate;
+const taskUrl = "task";
+
+let taskFormElement, taskForm, nextLaunchCached, isUpdate;
 
 $(function () {
     taskFormElement = document.getElementById('taskForm');
@@ -25,6 +27,7 @@ function openAddTaskForm() {
 }
 
 function openEditTaskForm(id) {
+    id = id ? id : taskId;
     $("#taskModalTitle").html("Edit task");
     $.get(taskUrl + '?action=find&id=' + id + (profileId ? '&userId=' + profileId : ''), prepareTaskFields);
     $('#taskModalForm').modal();
@@ -37,7 +40,7 @@ function prepareTaskFields(data) {
     if (!data) {
         taskForm.find(':input', ':select').val('');
     } else {
-        $.each(data, function (key, value) {
+        $.each(data, function (key, value) { // pauseNextLaunchCheckbox
             switch (key) {
                 case 'ruleOrdinal':
                     taskForm.find("select[name='cronRule']").val(value);
@@ -45,15 +48,22 @@ function prepareTaskFields(data) {
                 case 'source':
                     taskForm.find("select[name='provider']").val(value.id);
                     break;
+                case 'active': {
+                    const checkbox = taskForm.find("input[name='active']");
+                    checkbox.prop('checked', !value);
+                    checkbox.click(function () {
+                        cleanNextLaunch(checkbox);
+                    });
+                    if (!value) {
+                        enableNextLaunchFieldSwitcher(false);
+                    }
+                    break;
+                }
                 default:
                     taskForm.find("input[name='" + key + "']").val(value);
             }
         });
-        nextStartCache = data.launch;
-        if (!nextStartCache) {
-            enableNextLaunchFieldSwitcher(false);
-            $('#pauseNextLaunchCheckbox').prop('checked', true);
-        }
+        nextLaunchCached = data.launch;
     }
     showTaskFields(data);
 }
@@ -70,11 +80,10 @@ function showTaskFields(data) {
 }
 
 function sendTaskForm() {
-    const isNew = !$('#taskId').val();
     $.ajax({
         type: 'POST',
         url: "task?action=save",
-        data: JSON.stringify(grabTask(isNew)),
+        data: JSON.stringify(grabTask()),
         contentType: 'application/json'
     }).done(function () {
         $("#taskModalForm").modal('hide');
@@ -84,20 +93,20 @@ function sendTaskForm() {
 }
 
 
-function grabTask(isNew) {
+function grabTask() {
     const result = {
+        id: $('#taskId').val(),
         rule: $('#taskCronRule').val(),
-        launch: $('#setNextLaunchCheckbox').is(':checked') || !isNew ? new Date($('#taskNextStart').val()).getTime() : null
+        launch: grabDate(),
+        active: !$('#pauseNextLaunchCheckbox').is(':checked')
     };
-    if (isNew) {
+    if (!isUpdate) {
         result.keyword = $('#taskKey').val();
         result.city = $('#taskCity').val();
-        result.limit = grabDateLimit();
+        result.limit = grabDateLimit().getTime();
         result.source = {
             id: $('#taskProvider').val()
         };
-    } else {
-        result.id = $('#taskId').val();
     }
     if (profileId) {
         result.user = {id: profileId};
@@ -105,22 +114,23 @@ function grabTask(isNew) {
     return result;
 }
 
+function grabDate() {
+    const line = $('#setNextLaunchCheckbox').is(':checked') ? $('#taskNextStart').val() : (isUpdate ? nextLaunchCached : null);
+    return line == null ? null : new Date(line).getTime();
+}
+
 function grabDateLimit() {
     const value = $('#taskDateLimit').val();
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    let res;
     switch (value) {
         case '1':
-            res = getMondayDate(now);
-            break;
+            return getMondayDate(now);
         case '2':
-            res = getFirstDayOfMonthDate(now);
-            break;
+            return getFirstDayOfMonthDate(now);
         default:
-            res = getFirstDayOfYearDate(now);
+            return getFirstDayOfYearDate(now);
     }
-    return res.getTime();
 }
 
 // https://stackoverflow.com/a/4156516/10375242
@@ -148,21 +158,13 @@ function showSetNextLaunchField() {
     hideFormField('taskNextStart', !checked, true);
     if (checked) {
         $('#pauseNextLaunchCheckbox').prop('checked', !checked);
-    } else if (isUpdate && !nextStartCache) {
-        $('#pauseNextLaunchCheckbox').prop('checked', true);
     }
 }
 
-//  TODO replace this feature on pause/unpause task button as checkbox
-function cancelNextLaunch() {
-    const checked = $('#pauseNextLaunchCheckbox').is(':checked');
+function cleanNextLaunch(checkbox) {
+    const checked = checkbox.is(':checked');
     const nextStart = $('#taskNextStart');
-    if (checked) {
-        nextStartCache = nextStart.val();
-        nextStart.val('');
-    } else {
-        nextStart.val(nextStartCache);
-    }
+    nextStart.val(checked ? null : nextLaunchCached);
     hideFormField('taskNextStart', checked, true);
     enableNextLaunchFieldSwitcher(!checked);
 }
@@ -174,7 +176,6 @@ function enableNextLaunchFieldSwitcher(enabled) {
 }
 
 function resetSwitchers() {
-    $('#pauseNextLaunchCheckbox').prop('checked', false);
     const setLaunchCheckbox = $('#setNextLaunchCheckbox');
     setLaunchCheckbox.prop('checked', false);
     setLaunchCheckbox.prop('disabled', false);

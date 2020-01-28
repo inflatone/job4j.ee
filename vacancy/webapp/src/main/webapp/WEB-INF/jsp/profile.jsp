@@ -61,13 +61,14 @@
         <table class="table table-hover" id="table">
             <thead class="thead-light">
             <tr>
+                <th></th>
                 <th>Keyword</th>
                 <th>City</th>
                 <th>Scan from</th>
                 <th>Next launch</th>
                 <th>Repeat</th>
-                <th>Source</th>
                 <th>Amount</th>
+                <th></th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -75,7 +76,11 @@
             </tr>
             </thead> <%--<span class="fa fa-refresh fa-spin fa-fw" title="Scan now"></span>--%>
         </table>
-        <div class="float-right" ><button type="button" onclick="doRecount()">Recount vacancy amounts</button></div>
+        <div class="float-right" >
+            <button type="button" onclick="doRecount('launch')">Update next launches</button>
+            <button type="button" onclick="doRecount('amount')">Recount vacancy amounts</button>
+
+        </div>
 
     </div>
 </div>

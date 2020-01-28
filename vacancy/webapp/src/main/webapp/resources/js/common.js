@@ -43,3 +43,8 @@ function failNoty(jqXHR) {
         layout: 'bottomRight'
     }).show();
 }
+
+function renderSourceIcon(source) {
+    return '<a href="' + source.url + '"><img src="' + source.iconUrl + '" alt="' + source.title
+        + '" title="' + source.title + '">' + '</a>'
+}

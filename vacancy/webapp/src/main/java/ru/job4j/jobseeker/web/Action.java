@@ -12,5 +12,6 @@ public enum Action {
     delete,
     find,
     start,
+    pause,
     empty
 }
