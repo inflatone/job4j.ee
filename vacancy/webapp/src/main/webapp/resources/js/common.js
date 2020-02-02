@@ -48,3 +48,10 @@ function renderSourceIcon(source) {
     return '<a href="' + source.url + '"><img src="' + source.iconUrl + '" alt="' + source.title
         + '" title="' + source.title + '">' + '</a>'
 }
+
+// https://github.com/phstc/jquery-dateFormat
+function timestampAsFormattedDate(timestamp, prettyMode, display) {
+    const date = new Date(timestamp);
+    return  prettyMode ? (display ? $.format.prettyDate(date) : $.format.toBrowserTimeZone(date, 'yyyy-MM-dd HH:mm'))
+        : $.format.toBrowserTimeZone(date, display ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:mm')
+}

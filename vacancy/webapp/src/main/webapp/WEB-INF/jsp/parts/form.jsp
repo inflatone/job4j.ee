@@ -12,24 +12,20 @@
 
                     <div class="form-group">
                         <label for="login" class="col-form-label"></label>
-                        <input class="form-control" type="text" name="login" id="login" placeholder="Login" required>
-                        <div class="invalid-feedback">Please enter username</div>
+                        <input class="form-control" type="text" name="login" id="login" placeholder="Login">
                     </div>
 
                     <p class="h7" id="passwordSwitcherLine" hidden><input type="checkbox" id="passwordSwitcher" onclick="enablePasswordChange($(this))"> Change password</p>
 
                     <div class="form-group" id="passwordField">
                         <label for="password" class="col-form-label"></label>
-                        <input class="form-control" type="password" name="password" id="password" placeholder="Password"
-                               required>
-                        <div class="invalid-feedback">Please enter password</div>
+                        <input class="form-control" type="password" name="password" id="password" placeholder="Password">
                     </div>
 
                     <div class="form-group" id="roleField">
                         <label for="role" class="col-form-label"></label>
-                        <select class="form-control" name="role" id="role" required>
+                        <select class="form-control" name="role" id="role">
                         </select>
-                        <div class="invalid-feedback">Please choose role</div>
                     </div>
                 </form>
             </div>
@@ -39,7 +35,7 @@
                     <span class="fa fa-close"></span>
                     Cancel
                 </button>
-                <button type="button" id="submitButton" class="btn btn-primary">
+                <button type="button" onclick="$('#form').submit();"  id="submitButton" class="btn btn-primary">
                     <span class="fa fa-check"></span>
                     Save
                 </button>

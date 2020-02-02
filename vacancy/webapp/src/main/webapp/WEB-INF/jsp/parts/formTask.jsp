@@ -12,8 +12,7 @@
 
                     <div class="form-group">
                         <label for="taskKey" class="col-form-label"></label>
-                        <input class="form-control" type="text" name="keyword" id="taskKey" placeholder="Search key" required>
-                        <div class="invalid-feedback">Please enter search key</div>
+                        <input class="form-control" type="text" name="keyword" id="taskKey" placeholder="Search key">
                     </div>
 
                     <div class="form-group" id="taskCityField">
@@ -21,15 +20,13 @@
                         <input class="form-control" type="text" name="city" id="taskCity" placeholder="Search city (not required)">
                     </div>
 
-                    <div class="form-group" id="taskDateLimitField">
-                        <label for="taskDateLimit" class="col-form-label"></label>
-                        <select class="form-control" name="limit" id="taskDateLimit" required>
-                            <option value hidden disabled>Limit scan from</option>
-                            <option value="1">week start</option>
-                            <option value="2">month start</option>
-                            <option value="3">year start</option>
-                        </select>
-                        <div class="invalid-feedback">Please choose scan limit</div>
+                    <div class="form-group" id="taskScanFromField">
+                        <button type="button" onclick="fillScanFrom(0)" class="btn btn-basic btn-sm">Today</button>
+                        <button type="button" onclick="fillScanFrom(1)" class="btn btn-basic btn-sm">Week start</button>
+                        <button type="button" onclick="fillScanFrom(2)" class="btn btn-basic btn-sm">Month start</button>
+                        <button type="button" onclick="fillScanFrom(3)" class="btn btn-basic btn-sm">Year start</button>
+                        <label for="taskScanFrom" class="col-form-label"></label>
+                        <input class="form-control" autocomplete="off" name="limit" id="taskScanFrom" title="Scan from" alt="Scan from" placeholder="Scan from">
                     </div>
 
                     <p class="h7"><input type="checkbox" id="setNextLaunchCheckbox" onclick="showSetNextLaunchField()"> Change next start
@@ -37,23 +34,24 @@
                         <input type="checkbox" id="pauseNextLaunchCheckbox" name="active"> Pause task</p>
 
                     <div class="form-group" id="taskNextStartField" hidden>
+                        <button type="button" onclick="fillLaunch(-1)" class="btn btn-basic btn-sm">Default</button>
+                        <button type="button" onclick="fillLaunch(0)" class="btn btn-basic btn-sm">Tomorrow</button>
+                        <button type="button" onclick="fillLaunch(1)" class="btn btn-basic btn-sm">Next week start</button>
+                        <button type="button" onclick="fillLaunch(2)" class="btn btn-basic btn-sm">Next month start</button>
                         <label for="taskNextStart" class="col-form-label"></label>
-                        <input class="form-control" autocomplete="off" name="launch" id="taskNextStart">
-                        <div class="invalid-feedback">Please set next start time</div>
+                        <input class="form-control" autocomplete="off" name="launch" id="taskNextStart" title="Next launch" alt="Next launch" placeholder="Next launch">
                     </div>
 
                     <div class="form-group" >
                         <label for="taskCronRule" class="col-form-label"></label>
-                        <select class="form-control" name="cronRule" id="taskCronRule" required>
+                        <select class="form-control" name="cronRule" id="taskCronRule">
                         </select>
-                        <div class="invalid-feedback">Please choose repeat frequency</div>
                     </div>
 
                     <div class="form-group">
                         <label for="taskProvider" class="col-form-label"></label>
-                        <select class="form-control" name="provider" id="taskProvider" required>
+                        <select class="form-control" name="provider" id="taskProvider">
                         </select>
-                        <div class="invalid-feedback">Please choose scan source</div>
                     </div>
                 </form>
             </div>
@@ -63,7 +61,7 @@
                     <span class="fa fa-close"></span>
                     Cancel
                 </button>
-                <button type="button" id="taskSubmitButton" class="btn btn-primary">
+                <button type="button" onclick="$('#taskForm').submit();" id="taskSubmitButton" class="btn btn-primary">
                     <span class="fa fa-check"></span>
                     Save
                 </button>

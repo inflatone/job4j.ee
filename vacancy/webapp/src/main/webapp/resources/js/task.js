@@ -37,7 +37,8 @@ const datatableOpts = {
             "defaultContent": "Date",
             "render": function (data, type, row) {
                 if (type === 'display' || type === 'sort' || type === 'filter') {
-                    return row.data.dateTime;
+                    // https://github.com/phstc/jquery-dateFormat
+                    return timestampAsFormattedDate(row.data.dateTime, true, type === 'display' || type === 'filter');
                 }
                 return data;
             }
@@ -63,7 +64,8 @@ const datatableOpts = {
 };
 
 function fillProfile(taskData) {
-    $('#launch').html(taskData.launch);
+    $('#lastScan').html(timestampAsFormattedDate(taskData.limit));
+    $('#launch').html(timestampAsFormattedDate(taskData.launch));
     $('#rule').html(taskData.rule);
 }
 
@@ -74,7 +76,7 @@ function fillTaskData() {
         $('#source').html(sourceIcon);
         $('#keyword').html(data.keyword);
         $('#city').html(data.city);
-        $('#lastScan').html(data.limit);
+
         $('#amount').html(data.amount);
     });
 }
@@ -100,7 +102,6 @@ function highlight(checkbox, id) {
 }
 
 function doDeleteItem(id) {
-    console.log('delete item');
     if (confirm("Are you sure?")) {
         $.ajax({
             url: vacancyUrl + '?action=delete&id=' + id + '&taskId=' + taskId + (profileId ? '&userId=' + profileId : ''),
@@ -108,6 +109,16 @@ function doDeleteItem(id) {
         }).done(function () {
             context.afterSuccess();
             successNoty('Task deleted');
+        })
+    }
+}
+function doDeleteTask() {
+    if (confirm("Are you sure?")) {
+        $.ajax({
+            url: taskUrl + '?action=delete' + '&id=' + taskId + (profileId ? '&userId=' + profileId : ''),
+            type: 'POST'
+        }).done(function () {
+            window.location.href = "profile" + (profileId ? '?id=' + profileId : '');
         })
     }
 }

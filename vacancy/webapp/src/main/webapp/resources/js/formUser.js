@@ -1,14 +1,23 @@
-let rolePlaceholder;
+let rolePlaceholder, userFormValidator;
 
 $(function () {
-    formElement = document.getElementById('form');
-    addFormValidator(formElement, "submitButton", sendUserForm);
+    form = $("#form");
+    userFormValidator = addFormValidator(sendUserForm, form,
+        {
+            login: "required",
+            password: "required",
+            role: "required"
+        },
+        {
+            login: "Please fill out login field",
+            password: "Please fill out password field",
+            role: "Please choose role"
+        });
     loadFormResources();
 });
 
 function setContext(ctx) {
     context = ctx;
-    form = $("#form");
 }
 
 
@@ -27,10 +36,10 @@ function openEditForm(id) {
 }
 
 function prepareFields(data) {
-    resetForm(formElement);
+    resetForm(form, userFormValidator);
     enablePasswordSwitcher(!data);
+    form.find(':input').val('');
     if (!data) {
-        form.find(':input').val('');
         form.find('select[id="role"]').val(rolePlaceholder);
     } else {
         $.each(data, pastePropertyInForm)
@@ -50,7 +59,7 @@ function enablePasswordSwitcher(enabled) {
     const switcher = $('#passwordSwitcher');
     switcher.prop('disabled', enabled);
     switcher.prop('checked', enabled);
-    hideFormField('password', !enabled, true);
+    hideFormField('password', !enabled, false);
 }
 
 function enablePasswordChange(checkbox) {
@@ -59,7 +68,6 @@ function enablePasswordChange(checkbox) {
 }
 
 function grabUser() {
-    console.log($('#form').serialize());
     return {
         id: context.idRequired ? $('#id').val() : null,
         login: $('#login').val(),

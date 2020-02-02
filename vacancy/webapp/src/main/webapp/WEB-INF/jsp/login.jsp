@@ -16,20 +16,16 @@
 <div class="container h-100">
     <div class="row h-100 justify-content-center align-items-center">
         <form action="" method="post" class="border border-light w-50 " id="loginForm" novalidate>
-            <h3 style="text-align: center">Sign in:  </h3>
+            <h3 style="text-align: center">Sign in: </h3>
             <p class="h6" style="text-align: center">Enter your credentials below</p>
             <div class="form-group">
                 <label for="authLogin"></label>
-                <input type="text" id="authLogin" class="form-control" placeholder="Username" name="login"
-                       required>
-                <div class="invalid-feedback">Please fill out this field</div>
+                <input type="text" id="authLogin" class="form-control" placeholder="Username" name="login">
             </div>
 
             <div class="form-group">
                 <label for="authPassword"></label>
-                <input type="password" id="authPassword" class="form-control" placeholder="Password" name="password"
-                       required>
-                <div class="invalid-feedback">Please fill out this field</div>
+                <input type="password" id="authPassword" class="form-control" placeholder="Password" name="password">
             </div>
 
             <button class="btn btn-info btn-block my-1" type="submit" id="loginButton">Get in</button>

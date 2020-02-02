@@ -1,4 +1,4 @@
-let context, form, formElement;
+let context, form;
 
 const ajaxUrl = "ajax";
 
@@ -8,26 +8,34 @@ function loadFormResources() {
     });
 }
 
-
-function addFormValidator(formEl, buttonId, onSubmit) {
-    document.getElementById(buttonId).addEventListener("click", function (event) {
-        if (formEl.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
-            formEl.classList.add('was-validated');
-        } else if (onSubmit) {
-            onSubmit(event);
+function addFormValidator(submit, formEl, rules, messages) {
+    return  formEl.validate({
+        submitHandler: function () {
+            submit();
+        },
+        rules: rules,
+        messages: messages,
+        errorElement: "div",
+        errorPlacement: function (error, element) {
+            error.addClass('invalid-feedback');
+            element.closest('.form-group').append(error);
+            console.log(element.closest('.form-group').get(0));
+        },
+        // https://stackoverflow.com/a/52159728/10375242
+        highlight: function (element, errorClass, validClass) {
+            $(element).addClass('is-invalid').removeClass('is-valid');
+        },
+        unhighlight: function (element, errorClass, validClass) {
+            $(element).removeClass('is-invalid').addClass('is-valid');
         }
-
-    }, false);
+    });
 }
 
-function resetForm(formElement) {
-    if (formElement.classList.contains('was-validated')) {
-        formElement.classList.remove('was-validated');
-    }
+function resetForm(formElement, validator) {
+    validator.reset();
+    $(formElement).find(".is-invalid").removeClass("is-invalid");
+    $(formElement).find(".is-valid").removeClass("is-valid");
 }
-
 
 function hideFormField(fieldId, hidden, checkRequired) {
     $('#' + fieldId + 'Field').prop('hidden', hidden);
@@ -47,6 +55,6 @@ function fillSelectField(fieldId, placeholderText, options) {
 
     const keys = Object.keys(options);
     const hidden = keys.length < 2;
-    hideFormField(fieldId, hidden, true);
+    hideFormField(fieldId, hidden, false);
     return hidden ? keys[0] : '';
 }

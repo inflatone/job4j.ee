@@ -24,7 +24,13 @@ const datatableOpts = {
             "data": "login"
         },
         {
-            "data": "registered"
+            "defaultContent": "Registered",
+            "render" : function (data, type, row) {
+                if (type === 'display' || type === 'sort' || type === 'filter') {
+                    return timestampAsFormattedDate(row.registered, false, type === 'display');
+                }
+                return data;
+            }
         },
         {
             "data": "role"
