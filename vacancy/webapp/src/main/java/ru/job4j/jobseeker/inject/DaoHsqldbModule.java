@@ -2,32 +2,31 @@ package ru.job4j.jobseeker.inject;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import lombok.extern.slf4j.Slf4j;
-import ru.job4j.jobseeker.dao.JdbiConfigurator;
-import ru.job4j.jobseeker.dao.TaskDao;
-import ru.job4j.jobseeker.dao.UserDao;
-import ru.job4j.jobseeker.dao.VacancyDao;
+import ru.job4j.jobseeker.dao.*;
 
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
-@Slf4j
-public class DaoModule extends AbstractModule {
+public class DaoHsqldbModule extends AbstractModule {
+    public static final String SQL_RESOURCE_PATH = "hsqldb/";
+
     private final DataSource dataSource;
 
-    public DaoModule(DataSource dataSource) {
+    public DaoHsqldbModule(DataSource dataSource) {
         this.dataSource = dataSource;
-    }
-
-    @Override
-    public void configure() {
-        bind(JdbiConfigurator.class).asEagerSingleton();
     }
 
     @Provides
     @Singleton
     protected DataSource provideDataSource() {
         return dataSource;
+    }
+
+    @Provides
+    @Singleton
+    protected JdbiConfigurator provideJdbiConfigurator(DataSource dataSource) {
+        return new JdbiConfigurator(dataSource)
+                .buildUpDatabase(SQL_RESOURCE_PATH);
     }
 
     @Provides
@@ -45,6 +44,6 @@ public class DaoModule extends AbstractModule {
     @Provides
     @Singleton
     public VacancyDao provideVacancyDao(JdbiConfigurator configurator) {
-        return configurator.getDao(VacancyDao.class);
+        return configurator.getDao(VacancyHsqldbDao.class);
     }
 }

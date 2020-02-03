@@ -40,7 +40,7 @@
               username="${db.username}"
               password="${db.password}"
               driverClassName="${db.driver}"
-              validationQuery="SELECT 1"
+              validationQuery="${db.validationQuery}"
               maxTotal="10"
               minIdle="2"
               maxIdle="5"
