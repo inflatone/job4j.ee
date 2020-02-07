@@ -32,6 +32,10 @@
                 <db.username>${postgres.username}</db.username>
                 <db.password>${postgres.password}</db.password>
                 <db.validationQuery>${postgres.validationQuery}</db.validationQuery>
+
+                <production.db.groupId>org.postgresql</production.db.groupId>
+                <production.db.artifactId>postgresql</production.db.artifactId>
+                <production.db.version>${postgresql.version}</production.db.version>
             </properties>
 
             <build>
@@ -69,7 +73,86 @@
                 <db.username>${hsqldb.username}</db.username>
                 <db.password>${hsqldb.password}</db.password>
                 <db.validationQuery>${hsqldb.validationQuery}</db.validationQuery>
+
+                <production.db.groupId>org.hsqldb</production.db.groupId>
+                <production.db.artifactId>hsqldb</production.db.artifactId>
+                <production.db.version>${hsqldb.version}</production.db.version>
             </properties>
+        </profile>
+
+        <profile>
+            <id>heroku</id>
+
+            <properties>
+                <db.driver>${postgres.driver}</db.driver>
+                <db.url>jdbc:postgresql://ec2-184-72-235-159.compute-1.amazonaws.com:5432/d6umcmo0fjnviu</db.url>
+                <db.username>morycqwqmnwqci</db.username>
+                <db.password>da862fe8a27f506d6faea6275197110f4b9c6dc6ad2b1165620f1699f7a22f19</db.password>
+                <db.validationQuery>${postgres.validationQuery}</db.validationQuery>
+
+                <production.db.groupId>org.postgresql</production.db.groupId>
+                <production.db.artifactId>postgresql</production.db.artifactId>
+                <production.db.version>${postgresql.version}</production.db.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>production</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <executions>
+                            <!--https://devcenter.heroku.com/articles/deploying-java -->
+                            <execution>
+                                <id>copy-dependencies</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeScope>runtime</includeScope>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <!--https://github.com/jsimone/webapp-runner#using-without-memcached-or-redis-->
+                                        <artifactItem>
+                                            <groupId>com.github.jsimone</groupId>
+                                            <artifactId>webapp-runner-main</artifactId>
+                                            <version>${tomcat.version}.1</version>
+                                            <destFileName>webapp-runner.jar</destFileName>
+                                        </artifactItem>
+
+                                        <!-- WebApp Runner's Tomcat do not contains these necessary artifacts -->
+                                        <artifactItem>
+                                            <groupId>org.apache.tomcat</groupId>
+                                            <artifactId>tomcat-dbcp</artifactId>
+                                            <version>${tomcat.version}</version>
+                                            <destFileName>tomcat-dbcp.jar</destFileName>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>${production.db.groupId}</groupId>
+                                            <artifactId>${production.db.artifactId}</artifactId>
+                                            <version>${production.db.version}</version>
+                                            <destFileName>database.jar</destFileName>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 

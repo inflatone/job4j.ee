@@ -75,6 +75,19 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>heroku</id>
+
+            <!--just a stub to deactivate liquibase on heroku-->
+            <properties>
+                <db.driver>${hsqldb.driver}</db.driver>
+                <db.url>${hsqldb.url}</db.url>
+                <db.username>${hsqldb.username}</db.username>
+                <db.password>${hsqldb.password}</db.password>
+                <db.validationQuery>${hsqldb.validationQuery}</db.validationQuery>
+            </properties>
+        </profile>
     </profiles>
 
     <dependencies>
