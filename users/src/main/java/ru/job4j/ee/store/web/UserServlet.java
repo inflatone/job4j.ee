@@ -54,5 +54,6 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         dispatcher.process(request);
+        response.sendRedirect(request.getContextPath() + "/list");
     }
 }
