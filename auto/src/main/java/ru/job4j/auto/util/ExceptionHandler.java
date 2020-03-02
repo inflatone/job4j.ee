@@ -1,8 +1,14 @@
 package ru.job4j.auto.util;
 
+import org.slf4j.Logger;
+import org.springframework.http.HttpStatus;
+
+import javax.servlet.http.HttpServletRequest;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static com.google.common.base.Throwables.getRootCause;
 
 public class ExceptionHandler {
     public static void executeEx(RunnableEx runnable) {
@@ -111,5 +117,21 @@ public class ExceptionHandler {
      */
     public static <E, T> T nullSafely(E entity, FunctionEx<E, T> getter) {
         return entity == null ? null : getter.apply(entity);
+    }
+
+    public static Throwable logAndGetRootCause(
+            Logger log, HttpServletRequest request, Throwable e, boolean logException, HttpStatus status) {
+        Throwable rootCause = getRootCause(e);
+        if (logException) {
+            log.error(status + " at request " + request.getRequestURL(), rootCause);
+        } else {
+            log.warn("{} at request {}: {}", status, request.getRequestURL(), rootCause.toString());
+        }
+        return rootCause;
+    }
+
+    public static String getMessage(Throwable e) {
+        var localizedMessage = e.getLocalizedMessage();
+        return localizedMessage != null ? localizedMessage : e.getClass().getName();
     }
 }
