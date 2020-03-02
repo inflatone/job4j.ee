@@ -7,7 +7,7 @@ import ru.job4j.ee.store.util.ValidationUtil;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
-import static ru.job4j.ee.store.repository.InMemoryUserRepository.getUserRepository;
+import static ru.job4j.ee.store.repository.JdbiUserRepository.getUserRepository;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
 
 /**

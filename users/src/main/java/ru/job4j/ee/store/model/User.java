@@ -1,5 +1,8 @@
 package ru.job4j.ee.store.model;
 
+import org.jdbi.v3.core.mapper.reflect.ColumnName;
+import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
+
 import java.util.Date;
 
 /**
@@ -15,11 +18,19 @@ public class User extends BaseEntity {
     private String password;
     private Date created;
 
+    public User() {
+    }
+
     public User(User user) {
         this(user.getId(), user.name, user.login, user.password, user.created);
     }
 
-    public User(Integer id, String name, String login, String password, Date created) {
+    @JdbiConstructor
+    public User(@ColumnName("id") Integer id,
+                @ColumnName("name") String name,
+                @ColumnName("login") String login,
+                @ColumnName("password") String password,
+                @ColumnName("created") Date created) {
         super(id);
         this.name = name;
         this.login = login;
