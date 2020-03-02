@@ -1,45 +1,48 @@
 package ru.job4j.auto.repository;
 
-import name.falgout.jeffrey.testing.junit.guice.IncludeModule;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import ru.job4j.auto.inject.ExtendedRepositoryModule;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
+import ru.job4j.auto.EntityTestHelper;
 import ru.job4j.auto.model.Post;
 
-import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static ru.job4j.auto.EntityTestHelpers.POST_TEST_HELPER;
 import static ru.job4j.auto.EntityTestHelpers.validateRootCause;
 import static ru.job4j.auto.TestModelData.POSTS;
 import static ru.job4j.auto.TestModelData.POST_BMW;
 
-@IncludeModule(ExtendedRepositoryModule.class)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@Sql(scripts = {"classpath:db/import/data.sql"}, config = @SqlConfig(encoding = "UTF-8"))
 class PostRepositoryTest extends AbstractBaseRepositoryTest {
-    @Inject
-    private PostRepository repository;
+    private final PostRepository repository;
+
+    private final EntityTestHelper<Post> testHelper;
 
     @Test
     void create() {
-        var newPost = POST_TEST_HELPER.newEntity();
-        Post saved = repository.save(POST_TEST_HELPER.copy(newPost));
+        var newPost = testHelper.newEntity();
+        Post saved = repository.save(testHelper.copy(newPost));
         var newId = saved.getId();
 
         newPost.setId(newId);
         newPost.getCar().setId(saved.getCar().getId());
 
-        POST_TEST_HELPER.assertMatch(saved, newPost);
+        testHelper.assertMatch(saved, newPost);
         Post persisted = repository.find(newId);
-        POST_TEST_HELPER.assertMatch(persisted, newPost);
+        testHelper.assertMatch(persisted, newPost);
     }
 
     @Test
     void update() {
-        var postToUpdate = POST_TEST_HELPER.copy(POST_BMW);
-        Post saved = repository.save(POST_TEST_HELPER.copy(postToUpdate));
+        var postToUpdate = testHelper.copy(POST_BMW);
+        Post saved = repository.save(testHelper.copy(postToUpdate));
 
-        POST_TEST_HELPER.assertMatch(saved, postToUpdate);
-        POST_TEST_HELPER.assertMatch(repository.find(POST_BMW.getId()), postToUpdate);
+        testHelper.assertMatch(saved, postToUpdate);
+        testHelper.assertMatch(repository.find(POST_BMW.getId()), postToUpdate);
     }
 
     @Test
@@ -56,12 +59,12 @@ class PostRepositoryTest extends AbstractBaseRepositoryTest {
     @Test
     void find() {
         var post = repository.find(POST_BMW.getId());
-        POST_TEST_HELPER.assertMatch(post, POST_BMW);
+        testHelper.assertMatch(post, POST_BMW);
     }
 
     @Test
     void findAll() {
         var posts = repository.findAll();
-        POST_TEST_HELPER.assertMatch(posts, POSTS);
+        testHelper.assertMatch(posts, POSTS);
     }
 }

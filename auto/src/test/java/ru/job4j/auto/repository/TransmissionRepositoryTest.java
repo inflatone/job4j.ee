@@ -1,43 +1,43 @@
 package ru.job4j.auto.repository;
 
-import name.falgout.jeffrey.testing.junit.guice.IncludeModule;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import ru.job4j.auto.inject.BasicRepositoryModule;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.job4j.auto.EntityTestHelper;
 import ru.job4j.auto.model.Transmission;
 
-import javax.inject.Inject;
-
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static ru.job4j.auto.EntityTestHelpers.TRANSMISSION_TEST_HELPER;
-import static ru.job4j.auto.TestModelData.*;
+import static ru.job4j.auto.TestModelData.AUTOMATIC;
+import static ru.job4j.auto.TestModelData.MANUAL;
 
-@IncludeModule(BasicRepositoryModule.class)
-class TransmissionRepositoryTest extends AbstractBaseRepositoryTest {
-    @Inject
-    private TransmissionRepository repository;
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+class TransmissionRepositoryTest extends AbstractCarDetailsRepositoryTest {
+    private final TransmissionRepository repository;
+
+    private final EntityTestHelper<Transmission> testHelper;
 
     @Test
     void create() {
-        var newTransmission = TRANSMISSION_TEST_HELPER.newEntity();
-        Transmission saved = repository.save(TRANSMISSION_TEST_HELPER.copy(newTransmission));
+        var newTransmission = testHelper.newEntity();
+        Transmission saved = repository.save(testHelper.copy(newTransmission));
         var newId = saved.getId();
         newTransmission.setId(newId);
-        TRANSMISSION_TEST_HELPER.assertMatch(saved, newTransmission);
-        TRANSMISSION_TEST_HELPER.assertMatch(repository.find(newId), newTransmission);
+        testHelper.assertMatch(saved, newTransmission);
+        testHelper.assertMatch(repository.find(newId), newTransmission);
     }
 
     @Test
     void update() {
-        var transmissionToUpdate = TRANSMISSION_TEST_HELPER.editedEntity(MANUAL);
-        Transmission saved = repository.save(TRANSMISSION_TEST_HELPER.copy(transmissionToUpdate));
+        var transmissionToUpdate = testHelper.editedEntity(TRANSMISSION);
+        Transmission saved = repository.save(testHelper.copy(transmissionToUpdate));
 
-        TRANSMISSION_TEST_HELPER.assertMatch(saved, transmissionToUpdate);
-        TRANSMISSION_TEST_HELPER.assertMatch(repository.find(MANUAL.getId()), transmissionToUpdate);
+        testHelper.assertMatch(saved, transmissionToUpdate);
+        testHelper.assertMatch(repository.find(TRANSMISSION.getId()), transmissionToUpdate);
     }
 
     @Test
     void delete() {
-        var id = MANUAL.getId();
+        var id = TRANSMISSION.getId();
         repository.delete(id);
         assertNull(repository.find(id));
     }
@@ -45,12 +45,12 @@ class TransmissionRepositoryTest extends AbstractBaseRepositoryTest {
     @Test
     void find() {
         var transmission = repository.find(AUTOMATIC.getId());
-        TRANSMISSION_TEST_HELPER.assertMatch(transmission, AUTOMATIC);
+        testHelper.assertMatch(transmission, AUTOMATIC);
     }
 
     @Test
     void findAll() {
         var transmissions = repository.findAll();
-        TRANSMISSION_TEST_HELPER.assertMatch(transmissions, TRANSMISSIONS);
+        testHelper.assertMatch(transmissions, AUTOMATIC, MANUAL, TRANSMISSION);
     }
 }

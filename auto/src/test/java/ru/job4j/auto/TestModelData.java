@@ -34,6 +34,6 @@ public class TestModelData {
     public static List<Vendor> VENDORS = List.of(MAZDA, BMW);
 
     public static List<Car> CARS = List.of(CAR_MAZDA6, CAR_BMW, CAR_MAZDA3);
-    public static List<User> USERS = List.of(USER, DEALER);
+    public static List<User> USERS = List.of(DEALER, USER);
     public static List<Post> POSTS = List.of(POST_MAZDA6, POST_BMW, POST_MAZDA3);
 }

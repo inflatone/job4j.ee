@@ -1,5 +1,7 @@
 package ru.job4j.auto;
 
+import one.util.streamex.StreamEx;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -14,17 +16,14 @@ public abstract class EntityTestHelper<T> {
         this.fieldsToIgnore = fieldsToIgnore;
     }
 
-    public void assertMatch(T actual, T expected) {
+    public void assertMatch(T actual, T expected, String... additionalFieldsToIgnore) {
+        var fieldsToIgnore = additionalFieldsToIgnore.length == 0 ? this.fieldsToIgnore
+                : StreamEx.of(this.fieldsToIgnore, additionalFieldsToIgnore).flatMap(StreamEx::of).toArray(String.class);
         if (checkRecursively) {
             assertThat(actual).usingRecursiveComparison().ignoringFields(fieldsToIgnore).isEqualTo(expected);
         } else {
             assertThat(actual).isEqualToIgnoringGivenFields(expected, fieldsToIgnore);
         }
-    }
-
-    @SafeVarargs
-    public final void assertMatch(Iterable<T> actual, T... expected) {
-        assertMatch(actual, List.of(expected));
     }
 
     public void assertMatch(Iterable<T> actual, Iterable<T> expected) {
@@ -35,6 +34,11 @@ public abstract class EntityTestHelper<T> {
         } else {
             assertThat(actual).usingElementComparatorIgnoringFields(fieldsToIgnore).isEqualTo(expected);
         }
+    }
+
+    @SafeVarargs
+    public final void assertMatch(Iterable<T> actual, T... expected) {
+        assertMatch(actual, List.of(expected));
     }
 
     public T nullableCopy(T entity) {

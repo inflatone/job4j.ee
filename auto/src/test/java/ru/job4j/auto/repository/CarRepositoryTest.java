@@ -1,45 +1,54 @@
 package ru.job4j.auto.repository;
 
-import name.falgout.jeffrey.testing.junit.guice.IncludeModule;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import ru.job4j.auto.inject.ExtendedRepositoryModule;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
+import org.springframework.transaction.annotation.Transactional;
+import ru.job4j.auto.EntityTestHelper;
 import ru.job4j.auto.model.Car;
+import ru.job4j.auto.model.Post;
 
-import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static ru.job4j.auto.EntityTestHelpers.CAR_TEST_HELPER;
 import static ru.job4j.auto.EntityTestHelpers.validateRootCause;
-import static ru.job4j.auto.TestModelData.CARS;
 import static ru.job4j.auto.TestModelData.CAR_BMW;
+import static ru.job4j.auto.TestModelData.POST_BMW;
 
-@IncludeModule(ExtendedRepositoryModule.class)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@Sql(scripts = {"classpath:db/import/data.sql"}, config = @SqlConfig(encoding = "UTF-8"))
 class CarRepositoryTest extends AbstractBaseRepositoryTest {
-    @Inject
-    private CarRepository repository;
+    private final CarRepository repository;
+
+    private final EntityTestHelper<Car> testHelper;
 
     @Test
     void create() {
-        var newCar = CAR_TEST_HELPER.newEntity();
-        Car saved = repository.save(CAR_TEST_HELPER.copy(newCar));
+        var newCar = testHelper.newEntity();
+        Car saved = repository.save(testHelper.copy(newCar));
         var newId = saved.getId();
         newCar.setId(newId);
-        CAR_TEST_HELPER.assertMatch(saved, newCar);
-        CAR_TEST_HELPER.assertMatch(repository.find(newId), newCar);
+        testHelper.assertMatch(saved, newCar);
+        testHelper.assertMatch(newCar, repository.findWithDetails(newId));
     }
 
     @Test
+    @Transactional
     void update() {
-        var carToUpdate = CAR_TEST_HELPER.editedEntity(CAR_BMW);
-        Car saved = repository.save(CAR_TEST_HELPER.copy(carToUpdate));
+        var carToUpdate = testHelper.editedEntity(CAR_BMW);
+        Car saved = repository.save(testHelper.copy(carToUpdate));
 
-        CAR_TEST_HELPER.assertMatch(saved, carToUpdate);
-        CAR_TEST_HELPER.assertMatch(repository.find(CAR_BMW.getId()), carToUpdate);
+        testHelper.assertMatch(saved, carToUpdate);
+        testHelper.assertMatch(repository.findWithDetails(CAR_BMW.getId()), carToUpdate);
     }
 
     @Test
-    void delete() {
+    void delete(@Autowired PostRepository postRepository, @Autowired EntityTestHelper<Post> postEntityTestHelper) {
+        Post post = postEntityTestHelper.copy(POST_BMW);
+        post.setCar(null); // detach a car from post (to delete the car)
+        postRepository.save(post);
         repository.delete(CAR_BMW.getId());
         assertNull(repository.find(CAR_BMW.getId()));
     }
@@ -52,13 +61,6 @@ class CarRepositoryTest extends AbstractBaseRepositoryTest {
     @Test
     void find() {
         var car = repository.find(CAR_BMW.getId());
-        CAR_TEST_HELPER.assertMatch(car, CAR_BMW);
-    }
-
-
-    @Test
-    void findAll() {
-        var cars = repository.findAll();
-        CAR_TEST_HELPER.assertMatch(cars, CARS);
+        testHelper.assertMatch(car, CAR_BMW, "body", "engine", "transmission", "vendor");
     }
 }
