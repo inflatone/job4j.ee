@@ -27,13 +27,12 @@ public class JdbiUserRepository implements UserRepository {
     }
 
     @Override
-    public User save(User user) {
+    public boolean save(User user) {
         if (user.isNew()) {
             user.setId(dao.insertAndReturnId(user));
-        } else if (dao.update(user) == 0) {
-            return null;
+            return true;
         }
-        return user;
+        return dao.update(user) != 0;
     }
 
     @Override

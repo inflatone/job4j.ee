@@ -2,7 +2,6 @@ package ru.job4j.ee.store.service;
 
 import ru.job4j.ee.store.model.User;
 import ru.job4j.ee.store.repository.UserRepository;
-import ru.job4j.ee.store.util.ValidationUtil;
 
 import java.util.List;
 
@@ -33,11 +32,10 @@ public class UserService {
      * Asks the store to create the given entity, checks non-nullity of it
      *
      * @param user user entity
-     * @return resulting entity returned from the store after insert
      */
-    public User create(User user) {
+    public void create(User user) {
         requireNonNull(user, "user must not be null");
-        return repository.save(user);
+        repository.save(user);
     }
 
     /**
@@ -57,7 +55,8 @@ public class UserService {
      */
     public void update(User user) {
         requireNonNull(user, "user must not be null");
-        checkNotFoundEntityWithId(repository.save(user), user.getId());
+        int id = user.getId();
+        checkNotFoundEntityWithId(repository.save(user), id);
     }
 
     /**
@@ -67,7 +66,7 @@ public class UserService {
      * @param id id
      */
     public void delete(int id) {
-        ValidationUtil.checkNotFoundEntityWithId(repository.delete(id), id);
+        checkNotFoundEntityWithId(repository.delete(id), id);
     }
 
     /**

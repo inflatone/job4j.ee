@@ -29,19 +29,16 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public User save(User user) {
+    public boolean save(User user) {
         if (user.isNew()) {
             user.setId(INT_SEQ.incrementAndGet());
             storage.put(user.getId(), new User(user));
-        } else {
-            if (storage.computeIfPresent(user.getId(), (id, oldUser) -> {
-                user.setCreated(oldUser.getCreated());
-                return new User(user);
-            }) == null) {
-                return null; // not found to update
-            }
+            return true;
         }
-        return user;
+        return storage.computeIfPresent(user.getId(), (id, oldUser) -> {
+            user.setCreated(oldUser.getCreated());
+            return new User(user);
+        }) != null; // null -> not found to update
     }
 
     @Override
