@@ -2,41 +2,31 @@ package ru.job4j.auto.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import ru.job4j.auto.model.BaseEntity;
-import ru.job4j.auto.repository.env.JpaManager;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public abstract class BaseEntityRepository<T extends BaseEntity> {
     final Class<T> entityClass;
 
-    final JpaManager jm;
+    @PersistenceContext
+    protected EntityManager em;
 
+    @Transactional
     public T save(T entity) {
-        return jm.transactionalRetrieve(em -> saveOrUpdate(em, entity));
-    }
-
-    public void delete(int id) {
-        jm.transactionalExecute(em -> delete(em, id));
-    }
-
-    public T find(int id) {
-        return jm.transactionalRetrieve(em -> find(em, id));
-    }
-
-    public List<T> findAll() {
-        return jm.transactionalRetrieve(this::findAll);
-    }
-
-    T saveOrUpdate(EntityManager em, T entity) {
         if (!entity.isNew()) {
             return em.merge(entity);
         }
@@ -44,35 +34,74 @@ public abstract class BaseEntityRepository<T extends BaseEntity> {
         return entity;
     }
 
-    void delete(EntityManager em, int id) {
+    @Transactional
+    public void delete(int id) {
         var entity = em.getReference(entityClass, id);
         em.remove(entity);
     }
 
-    T find(EntityManager em, int id) {
+    public T find(int id) {
         return em.find(entityClass, id);
     }
 
-    List<T> findAll(EntityManager em) {
-        CriteriaQuery<T> c = em.getCriteriaBuilder().createQuery(entityClass);
-        c.select(c.from(entityClass));
-        return em.createQuery(c).getResultList();
+    public List<T> findAll() {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<T> c = cb.createQuery(entityClass);
+        c.orderBy(orderedBy(cb, c));
+        return prepareToExecute(em.createQuery(c)).getResultList();
     }
 
-    TypedQuery<T> createTypedNamedQuery(EntityManager em, String name, Map<String, Object> params) {
-        return createQuery(() -> em.createNamedQuery(name, entityClass), params);
+    /**
+     * Override to set specific found entities order
+     *
+     * @param cb criteria builder
+     * @param c  criteria query
+     * @return order defined
+     */
+    protected Order orderedBy(CriteriaBuilder cb, CriteriaQuery<T> c) {
+        return cb.asc(c.from(entityClass).get("id"));
     }
 
-    Query createNamedQuery(EntityManager em, String name, Map<String, Object> params) {
-        return createQuery(() -> em.createNamedQuery(name), params);
+    /**
+     * Override to set additional params before a query is to execute
+     *
+     * @return order defined
+     */
+    protected TypedQuery<T> prepareToExecute(TypedQuery<T> query) {
+        return query;
     }
 
-    TypedQuery<T> createTypedQuery(EntityManager em, String jql, Map<String, Object> params) {
-        return createQuery(() -> em.createQuery(jql, entityClass), params);
+    /**
+     * Creates a typed query by the given name, then sets on it the given params
+     *
+     * @param name   given name
+     * @param params given params
+     * @return built typed query
+     */
+    TypedQuery<T> createTypedNamedQuery(String name, Map<String, Object> params) {
+        return createQuery(em -> em.createNamedQuery(name, entityClass), params);
     }
 
-    private <Q extends Query> Q createQuery(Supplier<Q> queryFactory, Map<String, Object> params) {
-        Q result = queryFactory.get();
+    /**
+     * Creates a query by the given name, then sets on it the given params
+     *
+     * @param name   given name
+     * @param params given params
+     * @return built query
+     */
+    Query createNamedQuery(String name, Map<String, Object> params) {
+        return createQuery(em -> em.createNamedQuery(name), params);
+    }
+
+    /**
+     * Creates a typed query by the given query factory, then sets on it the given params
+     *
+     * @param queryFactory   query factory
+     * @param params given params
+     * @return built typed query
+     */
+    private <Q extends Query> Q createQuery(Function<EntityManager, Q> queryFactory, Map<String, Object> params) {
+        Q result = queryFactory.apply(em);
         params.forEach(result::setParameter);
         return result;
     }

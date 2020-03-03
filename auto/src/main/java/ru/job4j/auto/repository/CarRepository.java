@@ -1,17 +1,16 @@
 package ru.job4j.auto.repository;
 
+import org.springframework.stereotype.Repository;
 import ru.job4j.auto.model.Car;
-import ru.job4j.auto.repository.env.JpaManager;
 
-import javax.inject.Inject;
 import java.util.Map;
 
 import static org.hibernate.graph.GraphSemantic.FETCH;
 
+@Repository
 public class CarRepository extends BaseEntityRepository<Car> {
-    @Inject
-    public CarRepository(JpaManager jm) {
-        super(Car.class, jm);
+    public CarRepository() {
+        super(Car.class);
     }
 
     /**
@@ -21,9 +20,8 @@ public class CarRepository extends BaseEntityRepository<Car> {
      * @return car entity
      */
     public Car findWithDetails(int id) {
-        return jm.transactionalRetrieve(em ->
-                em.find(entityClass, id, Map.of(FETCH.getJpaHintName(),
-                        em.createEntityGraph(Car.WITH_DETAILS)))
+        return em.find(entityClass, id, Map.of(FETCH.getJpaHintName(),
+                em.createEntityGraph(Car.WITH_DETAILS))
         );
     }
 }

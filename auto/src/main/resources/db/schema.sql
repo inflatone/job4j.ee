@@ -1,3 +1,15 @@
+DROP TABLE IF EXISTS post;
+DROP TABLE IF EXISTS users;
+
+DROP TABLE IF EXISTS car;
+
+DROP TABLE IF EXISTS vendor;
+DROP TABLE IF EXISTS body;
+DROP TABLE IF EXISTS engine;
+DROP TABLE IF EXISTS transmission;
+
+DROP SEQUENCE IF EXISTS common_seq;
+
 CREATE SEQUENCE common_seq START WITH 100000;
 
 CREATE TABLE body
@@ -44,4 +56,28 @@ CREATE TABLE car
     transmission_id INTEGER NOT NULL REFERENCES transmission (id),
     engine_id       INTEGER NOT NULL REFERENCES engine (id),
     body_id         INTEGER NOT NULL REFERENCES body (id)
+);
+
+CREATE TABLE users
+(
+    id         INTEGER PRIMARY KEY DEFAULT nextval('common_seq'),
+    name       VARCHAR   NOT NULL,
+    login      VARCHAR   NOT NULL,
+    password   VARCHAR   NOT NULL,
+    registered TIMESTAMP NOT NULL  DEFAULT now(),
+    role       VARCHAR   NOT NULL,
+    enabled    BOOLEAN   NOT NULL  DEFAULT true
+);
+
+CREATE UNIQUE INDEX users_unique_login_idx ON users (login);
+
+CREATE TABLE post
+(
+    id        INTEGER PRIMARY KEY DEFAULT nextval('common_seq'),
+    title     VARCHAR   NOT NULL,
+    message   VARCHAR,
+    posted    TIMESTAMP NOT NULL  DEFAULT now(),
+    price     INTEGER,
+    car_id    INTEGER   REFERENCES car (id) ON DELETE SET NULL,
+    user_id   INTEGER   NOT NULL REFERENCES users (id) ON DELETE CASCADE
 );

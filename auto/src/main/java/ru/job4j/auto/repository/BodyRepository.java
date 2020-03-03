@@ -1,13 +1,11 @@
 package ru.job4j.auto.repository;
 
-import ru.job4j.auto.repository.env.JpaManager;
+import org.springframework.stereotype.Repository;
 import ru.job4j.auto.model.Body;
 
-import javax.inject.Inject;
-
+@Repository
 public class BodyRepository extends BaseEntityRepository<Body> {
-    @Inject
-    public BodyRepository(JpaManager jm) {
-        super(Body.class, jm);
+    public BodyRepository() {
+        super(Body.class);
     }
 }

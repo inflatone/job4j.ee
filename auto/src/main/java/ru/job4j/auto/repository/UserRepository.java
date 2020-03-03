@@ -1,17 +1,19 @@
 package ru.job4j.auto.repository;
 
+import org.springframework.stereotype.Repository;
 import ru.job4j.auto.model.User;
-import ru.job4j.auto.repository.env.JpaManager;
 
-import javax.inject.Inject;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import java.util.Map;
 
 import static org.hibernate.graph.GraphSemantic.FETCH;
 
+@Repository
 public class UserRepository extends BaseEntityRepository<User> {
-    @Inject
-    public UserRepository(JpaManager jm) {
-        super(User.class, jm);
+    public UserRepository() {
+        super(User.class);
     }
 
     /**
@@ -21,8 +23,8 @@ public class UserRepository extends BaseEntityRepository<User> {
      * @return user entity
      */
     public User findWithPosts(int id) {
-        return jm.transactionalRetrieve(em -> em.find(User.class, id, Map.of(FETCH.getJpaHintName(),
-                em.createEntityGraph(User.USER_WITH_POSTS))));
+        return em.find(User.class, id, Map.of(FETCH.getJpaHintName(),
+                em.createEntityGraph(User.USER_WITH_POSTS)));
     }
 
     /**
@@ -32,11 +34,21 @@ public class UserRepository extends BaseEntityRepository<User> {
      * @return user entity
      */
     public User findByLogin(String login) {
-        return jm.transactionalRetrieve(em ->
-                createTypedNamedQuery(em, User.BY_LOGIN, Map.of("login", login))
-                        .getResultStream()
-                        .findFirst()
-                        .orElse(null)
-        );
+        return createTypedNamedQuery(User.BY_LOGIN, Map.of("login", login))
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * All find all user queries gonna be sorted by registered date
+     *
+     * @param cb criteria builder
+     * @param c  criteria query
+     * @return user order defined
+     */
+    @Override
+    protected Order orderedBy(CriteriaBuilder cb, CriteriaQuery<User> c) {
+        return cb.asc(c.from(entityClass).get("registered"));
     }
 }
