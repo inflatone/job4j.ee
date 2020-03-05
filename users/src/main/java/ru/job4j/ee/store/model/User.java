@@ -1,5 +1,6 @@
 package ru.job4j.ee.store.model;
 
+import org.jdbi.v3.core.mapper.Nested;
 import org.jdbi.v3.core.mapper.reflect.ColumnName;
 import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
@@ -17,12 +18,13 @@ public class User extends BaseEntity {
     private String login;
     private String password;
     private Date created;
+    private UserImage image;
 
     public User() {
     }
 
     public User(User user) {
-        this(user.getId(), user.name, user.login, user.password, user.created);
+        this(user.getId(), user.name, user.login, user.password, user.created, new UserImage(user.image));
     }
 
     @JdbiConstructor
@@ -30,12 +32,14 @@ public class User extends BaseEntity {
                 @ColumnName("name") String name,
                 @ColumnName("login") String login,
                 @ColumnName("password") String password,
-                @ColumnName("created") Date created) {
+                @ColumnName("created") Date created,
+                @Nested("image_") UserImage image) {
         super(id);
         this.name = name;
         this.login = login;
         this.password = password;
         this.created = created;
+        this.image = image;
     }
 
     public String getName() {
@@ -54,6 +58,10 @@ public class User extends BaseEntity {
         return created;
     }
 
+    public UserImage getImage() {
+        return image;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -70,6 +78,10 @@ public class User extends BaseEntity {
         this.created = created;
     }
 
+    public void setImage(UserImage image) {
+        this.image = image;
+    }
+
     @Override
     public String toString() {
         return "User{"
@@ -78,6 +90,7 @@ public class User extends BaseEntity {
                 + ", login='" + login + '\''
                 + ", password='" + password + '\''
                 + ", created=" + created
+                + ", image=" + image
                 + '}';
     }
 }

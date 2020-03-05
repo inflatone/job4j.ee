@@ -9,9 +9,18 @@
 
     <h2>${param.action == 'create' ? 'Create' : 'Edit'} user</h2>
     <jsp:useBean id="user" type="ru.job4j.ee.store.model.User" scope="request"/>
-    <form action="users" method="post">
+    <img src="images?id=${user.image.id}" alt="userpic" width="400">
+    <form action="images" method="post">
+        <input type="hidden" name="id" value="${user.image.id}">
+        <input type="hidden" name="userId" value="${user.id}">
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" ${user.image.id == null ? "disabled" : ""}>Remove</button>
+    </form>
+
+    <form action="users" method="post" enctype="multipart/form-data">
         <input type="hidden" name="id" value="${user.id}"/>
         <input type="hidden" name="action" value="${param.action}"/>
+        <input type="hidden" name="imageId" value="${user.image.id}">
         <dl>
             <dt>Username:</dt>
             <dd><input type="text" size="40" name="login" value="${user.login}"/></dd>
@@ -23,6 +32,10 @@
         <dl>
             <dt>Password:</dt>
             <dd><input type="password" size="40" name="password" value="${user.password}"/></dd>
+        </dl>
+        <dl>
+            <dt>Userpic:</dt>
+            <dd><input type="file" name="image"/></dd>
         </dl>
         <button type="submit">Save</button>
         <button type="button" onclick="window.history.back()">Cancel</button>

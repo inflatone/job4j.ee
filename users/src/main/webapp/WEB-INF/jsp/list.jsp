@@ -12,6 +12,7 @@
     <table>
         <thead>
         <tr>
+            <th>Userpic</th>
             <th>Login</th>
             <th>Name</th>
             <th>Password</th>
@@ -24,6 +25,7 @@
         <c:forEach items="${users}" var="user">
             <jsp:useBean id="user" type="ru.job4j.ee.store.model.User" scope="page"/>
             <tr>
+                <td><img src="images?id=${user.image.id}" alt="userpic" width="100"></td>
                 <td>${user.login}</td>
                 <td>${user.name}</td>
                 <td>${user.password}</td>
