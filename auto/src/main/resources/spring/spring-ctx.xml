@@ -12,7 +12,7 @@
 
     <jdbc:initialize-database enabled="${database.init}"> <!--data-source="dataSource" -->
         <jdbc:script location="${database.location.schema}" encoding="utf-8"/>
-        <jdbc:script location="${databasedb/import/data.sql" encoding="utf-8"/>
+        <jdbc:script location="${database.location.data}" encoding="utf-8"/>
     </jdbc:initialize-database>
 
     <!--no pooling-->

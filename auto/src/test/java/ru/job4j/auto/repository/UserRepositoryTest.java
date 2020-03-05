@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
-import ru.job4j.auto.EntityTestHelper;
+import ru.job4j.auto.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.model.User;
 
@@ -20,7 +20,7 @@ import static ru.job4j.auto.TestModelData.*;
 class UserRepositoryTest extends AbstractBaseRepositoryTest {
     private final UserRepository repository;
 
-    private final EntityTestHelper<User> testHelper;
+    private final BaseEntityTestHelper<User> testHelper;
 
     @Test
     void create() {
@@ -71,7 +71,7 @@ class UserRepositoryTest extends AbstractBaseRepositoryTest {
     }
 
     @Test
-    void findWithPosts(@Autowired EntityTestHelper<Post> postEntityTestHelper) {
+    void findWithPosts(@Autowired BaseEntityTestHelper<Post> postEntityTestHelper) {
         var user = repository.findWithPosts(USER.getId());
         testHelper.assertMatch(user, USER);
         postEntityTestHelper.assertMatch(user.getPosts(), POST_MAZDA6, POST_BMW);

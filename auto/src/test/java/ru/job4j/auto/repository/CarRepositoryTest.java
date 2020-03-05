@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.transaction.annotation.Transactional;
-import ru.job4j.auto.EntityTestHelper;
+import ru.job4j.auto.BaseEntityTestHelper;
 import ru.job4j.auto.model.Car;
 import ru.job4j.auto.model.Post;
 
@@ -22,7 +22,7 @@ import static ru.job4j.auto.TestModelData.POST_BMW;
 class CarRepositoryTest extends AbstractBaseRepositoryTest {
     private final CarRepository repository;
 
-    private final EntityTestHelper<Car> testHelper;
+    private final BaseEntityTestHelper<Car> testHelper;
 
     @Test
     void create() {
@@ -45,7 +45,7 @@ class CarRepositoryTest extends AbstractBaseRepositoryTest {
     }
 
     @Test
-    void delete(@Autowired PostRepository postRepository, @Autowired EntityTestHelper<Post> postEntityTestHelper) {
+    void delete(@Autowired PostRepository postRepository, @Autowired BaseEntityTestHelper<Post> postEntityTestHelper) {
         Post post = postEntityTestHelper.copy(POST_BMW);
         post.setCar(null); // detach a car from post (to delete the car)
         postRepository.save(post);

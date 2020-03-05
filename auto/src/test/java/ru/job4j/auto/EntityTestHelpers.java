@@ -1,11 +1,14 @@
 package ru.job4j.auto;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.job4j.auto.model.*;
+import ru.job4j.auto.web.converter.JsonHelper;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -16,9 +19,12 @@ import static ru.job4j.auto.TestModelData.*;
 
 @Configuration
 public class EntityTestHelpers {
-    @Bean("bodyHelper")
-    public EntityTestHelper<Body> bodyEntityTestHelper() {
-        return new BaseEntityTestHelper<>(false) {
+    @Autowired(required = false)
+    private JsonHelper jsonHelper;
+
+    @Bean
+    public BaseEntityTestHelper<Body> bodyEntityTestHelper() {
+        return new BaseEntityTestHelper<>(jsonHelper, Body.class, new TypeReference<Map<Integer, Body>>() {}, false) {
             @Override
             public Body doCopy(Body entity) {
                 return new Body(entity.getId(), entity.getType());
@@ -39,8 +45,8 @@ public class EntityTestHelpers {
     }
 
     @Bean
-    public EntityTestHelper<Engine> engineEntityTestHelper() {
-        return new BaseEntityTestHelper<>(false) {
+    public BaseEntityTestHelper<Engine> engineEntityTestHelper() {
+        return new BaseEntityTestHelper<>(jsonHelper, Engine.class, new TypeReference<Map<Integer, Engine>>() {}, false) {
             @Override
             public Engine doCopy(Engine entity) {
                 return new Engine(entity.getId(), entity.getType());
@@ -61,8 +67,8 @@ public class EntityTestHelpers {
     }
 
     @Bean
-    public EntityTestHelper<Transmission> transmissionEntityTestHelper() {
-        return new BaseEntityTestHelper<>(false) {
+    public BaseEntityTestHelper<Transmission> transmissionEntityTestHelper() {
+        return new BaseEntityTestHelper<>(jsonHelper, Transmission.class, new TypeReference<Map<Integer, Transmission>>() {}, false) {
             @Override
             public Transmission doCopy(Transmission entity) {
                 return new Transmission(entity.getId(), entity.getType());
@@ -83,8 +89,8 @@ public class EntityTestHelpers {
     }
 
     @Bean
-    public EntityTestHelper<Vendor> vendorEntityTestHelper() {
-        return new BaseEntityTestHelper<>(false) {
+    public BaseEntityTestHelper<Vendor> vendorEntityTestHelper() {
+        return new BaseEntityTestHelper<>(jsonHelper, Vendor.class, new TypeReference<Map<Integer, Vendor>>() {}, false) {
             @Override
             public Vendor doCopy(Vendor entity) {
                 return new Vendor(entity.getId(), entity.getName(), entity.getCountry(), entity.getLogoLink());
@@ -106,12 +112,12 @@ public class EntityTestHelpers {
     }
 
     @Bean
-    public EntityTestHelper<Car> carEntityTestHelper(@Autowired EntityTestHelper<Body> bodyEntityTestHelper,
-                                                     @Autowired EntityTestHelper<Engine> engineEntityTestHelper,
-                                                     @Autowired EntityTestHelper<Transmission> transmissionEntityTestHelper,
-                                                     @Autowired EntityTestHelper<Vendor> vendorEntityTestHelper
+    public BaseEntityTestHelper<Car> carEntityTestHelper(@Autowired BaseEntityTestHelper<Body> bodyEntityTestHelper,
+                                                         @Autowired BaseEntityTestHelper<Engine> engineEntityTestHelper,
+                                                         @Autowired BaseEntityTestHelper<Transmission> transmissionEntityTestHelper,
+                                                         @Autowired BaseEntityTestHelper<Vendor> vendorEntityTestHelper
     ) {
-        return new BaseEntityTestHelper<>(false) {
+        return new BaseEntityTestHelper<>(jsonHelper, Car.class, new TypeReference<Map<Integer, Car>>() {}, false) {
             @Override
             public Car doCopy(Car entity) {
                 return new Car(entity.getId(), vendorEntityTestHelper.nullableCopy(entity.getVendor()), entity.getModel(), entity.getYear(),
@@ -136,9 +142,9 @@ public class EntityTestHelpers {
     }
 
     @Bean
-    public EntityTestHelper<Post> postEntityTestHelper(@Autowired EntityTestHelper<User> userEntityTestHelper,
-                                                       @Autowired EntityTestHelper<Car> carEntityTestHelper) {
-        return new BaseEntityTestHelper<>(true, "posted", "user") {
+    public BaseEntityTestHelper<Post> postEntityTestHelper(@Autowired BaseEntityTestHelper<User> userEntityTestHelper,
+                                                           @Autowired BaseEntityTestHelper<Car> carEntityTestHelper) {
+        return new BaseEntityTestHelper<>(jsonHelper, Post.class, new TypeReference<Map<Integer, Post>>() {}, true, "posted", "user") {
             @Override
             public Post doCopy(Post entity) {
                 return new Post(entity.getId(), entity.getTitle(), entity.getMessage(), entity.getPosted(), entity.getPrice(), carEntityTestHelper.nullableCopy(entity.getCar()),
@@ -163,8 +169,8 @@ public class EntityTestHelpers {
     }
 
     @Bean
-    public EntityTestHelper<User> userEntityTestHelper() {
-        return new BaseEntityTestHelper<>(true, "registered", "password", "posts") {
+    public BaseEntityTestHelper<User> userEntityTestHelper() {
+        return new BaseEntityTestHelper<>(jsonHelper, User.class, new TypeReference<Map<Integer, User>>() {}, true, "registered", "password", "posts") {
             @Override
             public User doCopy(User entity) {
                 var copy = new User(entity.getId(), entity.getName(), entity.getLogin(), entity.getPassword(), entity.getRole());
@@ -184,6 +190,31 @@ public class EntityTestHelpers {
                 edited.setName("Edited name");
                 edited.setPassword("Edited password");
                 return edited;
+            }
+        };
+    }
+
+    @Bean // only for entity/json matching
+    public EntityTestHelper<Role, String> roleEntityTestHelper() {
+        return new EntityTestHelper<>(jsonHelper, Role.class, new TypeReference<Map<String, Role>>() {}, false) {
+            @Override
+            protected Function<Role, String> idMapper() {
+                return Role::name;
+            }
+
+            @Override
+            protected Role doCopy(Role entity) {
+                return entity; // senselessly
+            }
+
+            @Override
+            public Role newEntity() {
+                return Role.USER; // senselessly
+            }
+
+            @Override
+            public Role editedEntity(Role role) {
+                return role;  // senselessly
             }
         };
     }

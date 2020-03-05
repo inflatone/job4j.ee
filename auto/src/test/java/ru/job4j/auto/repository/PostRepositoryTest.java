@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
-import ru.job4j.auto.EntityTestHelper;
+import ru.job4j.auto.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
 
 import javax.persistence.EntityNotFoundException;
@@ -20,7 +20,7 @@ import static ru.job4j.auto.TestModelData.POST_BMW;
 class PostRepositoryTest extends AbstractBaseRepositoryTest {
     private final PostRepository repository;
 
-    private final EntityTestHelper<Post> testHelper;
+    private final BaseEntityTestHelper<Post> testHelper;
 
     @Test
     void create() {
