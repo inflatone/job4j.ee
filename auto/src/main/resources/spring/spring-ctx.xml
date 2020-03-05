@@ -34,6 +34,11 @@
                 <entry key="#{T(org.hibernate.cfg.AvailableSettings).USE_SQL_COMMENTS}"
                        value="${hibernate.use_sql_comments}"/>
                 <entry key="#{T(org.hibernate.cfg.AvailableSettings).JPA_PROXY_COMPLIANCE}" value="false"/>
+
+                <entry key="#{T(org.hibernate.cfg.AvailableSettings).JPA_PERSIST_VALIDATION_GROUP}"
+                       value="ru.job4j.auto.View$Persist"/>
+                <entry key="#{T(org.hibernate.cfg.AvailableSettings).JPA_UPDATE_VALIDATION_GROUP}"
+                       value="ru.job4j.auto.View$Persist"/>
             </map>
         </property>
         <property name="jpaVendorAdapter">

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import org.springframework.util.Assert;
 
 import javax.persistence.*;
 
@@ -24,6 +25,11 @@ public abstract class BaseEntity {
 
     public boolean isNew() {
         return id == null;
+    }
+
+    public int id() {
+        Assert.notNull(getId(), "Entity must has id");
+        return getId();
     }
 
     @Override

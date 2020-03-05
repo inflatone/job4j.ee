@@ -1,0 +1,32 @@
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+th, td {
+    vertical-align: central;
+}
+
+tr[active="false"] {
+    opacity: 0.3;
+}
+
+.fa {
+    cursor: pointer;
+}
+
+/*https://getbootstrap.com/docs/4.0/examples/sticky-footer/sticky-footer.css*/
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px; /* Margin bottom by footer height */
+}
+
+.errorMessage {
+    color: #a94442;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    text-align: center;
+}
