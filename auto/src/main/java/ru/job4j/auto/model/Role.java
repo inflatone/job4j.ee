@@ -1,5 +1,7 @@
 package ru.job4j.auto.model;
 
+import org.springframework.security.core.GrantedAuthority;
+
 /**
  * Role model
  *
@@ -7,7 +9,12 @@ package ru.job4j.auto.model;
  * @version 1.0
  * @since 2019-12-09
  */
-public enum Role {
+public enum Role implements GrantedAuthority {
     USER,
-    ADMIN
+    ADMIN;
+
+    @Override
+    public String getAuthority() {
+        return name();
+    }
 }

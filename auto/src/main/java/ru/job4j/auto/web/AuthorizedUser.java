@@ -1,14 +1,18 @@
 package ru.job4j.auto.web;
 
-import lombok.AllArgsConstructor;
 import ru.job4j.auto.model.User;
 
-@AllArgsConstructor
-public class AuthorizedUser {
+import java.util.Collections;
+
+public class AuthorizedUser extends org.springframework.security.core.userdetails.User {
+    private static final long serialVersionUID = 1L;
+
     private User user;
 
-    public int getId() {
-        return user.getId();
+    public AuthorizedUser(User user) {
+        super(user.getLogin(), user.getPassword(), user.isEnabled(),
+                true, true, true, Collections.singleton(user.getRole()));
+        this.user = user;
     }
 
     public User extract() {

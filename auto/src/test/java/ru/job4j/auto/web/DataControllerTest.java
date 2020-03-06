@@ -7,6 +7,7 @@ import ru.job4j.auto.model.Role;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.job4j.auto.TestModelData.DEALER;
 
 class DataControllerTest extends AbstractControllerTest {
     DataControllerTest() {
@@ -20,5 +21,14 @@ class DataControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
                 .andExpect(testHelper.contentMapJson(Role.USER));
+    }
+
+    @Test
+    void rolesAsAdmin(@Autowired EntityTestHelper<Role, String> testHelper) throws Exception {
+        perform(doGet("roles").auth(DEALER))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(contentTypeIsJson())
+                .andExpect(testHelper.contentMapJson(Role.USER, Role.ADMIN));
     }
 }

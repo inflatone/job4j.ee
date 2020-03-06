@@ -12,6 +12,7 @@
     </appender>
 
     <logger name="ru.job4j.auto" level="debug"/>
+<!--    <logger name="org.springframework.security" level="debug"/>-->
 
     <root level="info">
         <appender-ref ref="console"/>

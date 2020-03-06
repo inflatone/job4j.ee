@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
 <jsp:include page="common/header.jsp"/>
 <body>
@@ -14,10 +15,12 @@
     <div class="container">
         <h2 class="text-center">Profile</h2>
         <div class="btn-group" role="group">
-            <a class="btn btn-info" href="users">
-                <span class="fa fa-list"></span>
-                All users
-            </a>
+            <sec:authorize access="hasAuthority('ADMIN')">
+                <a class="btn btn-info" href="users">
+                    <span class="fa fa-list"></span>
+                    All users
+                </a>
+            </sec:authorize>
             <button id="editButton" onclick="openEditForm()" class="btn btn-primary">
                 <span class="fa fa-pencil"></span>
                 Edit profile

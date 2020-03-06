@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -32,6 +33,11 @@ public class ApplicationErrorHandler {
             "_unique_type_idx", Map.entry("type", "this type already exists"),
             "_unique_name_idx", Map.entry("name", "this name already exists")
     );
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorInfo> forbiddenHandler(HttpServletRequest request, AccessDeniedException e) {
+        return logAndGetErrorInfo(request, e, false, HttpStatus.FORBIDDEN, "You shall not pass", null);
+    }
 
     @ExceptionHandler({IllegalRequestDataException.class, NotFoundException.class})
     public ResponseEntity<ErrorInfo> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e) {

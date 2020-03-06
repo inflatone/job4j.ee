@@ -2,18 +2,25 @@ package ru.job4j.auto.service;
 
 import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.job4j.auto.model.User;
 import ru.job4j.auto.repository.UserRepository;
+import ru.job4j.auto.web.AuthorizedUser;
 
 import java.util.List;
 
 import static ru.job4j.auto.util.ValidationHelper.checkNotFoundEntityWithId;
 
-@Service
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Service("userService")
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private final UserRepository repository;
 
     /**
@@ -44,6 +51,15 @@ public class UserService {
      */
     public User findWithPosts(int id) {
         return checkNotFoundEntityWithId(repository.findWithPosts(id), id);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
+        var user = repository.findByLogin(login);
+        if (user == null) {
+            throw new UsernameNotFoundException("User " + login + " is not found");
+        }
+        return new AuthorizedUser(user);
     }
 
     /**

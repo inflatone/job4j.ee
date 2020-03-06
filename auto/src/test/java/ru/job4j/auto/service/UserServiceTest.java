@@ -3,10 +3,12 @@ package ru.job4j.auto.service;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import ru.job4j.auto.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.model.User;
 import ru.job4j.auto.util.exception.NotFoundException;
+import ru.job4j.auto.web.AuthorizedUser;
 
 import java.time.Instant;
 
@@ -18,6 +20,18 @@ class UserServiceTest extends AbstractServiceTest {
     private final UserService service;
 
     private final BaseEntityTestHelper<User> testHelper;
+
+    @Test
+    void loadUserByUsername() {
+        AuthorizedUser auth = (AuthorizedUser) service.loadUserByUsername(USER.getLogin());
+        testHelper.assertMatch(auth.extract(), USER);
+    }
+
+    @Test
+    void loadUserByUsernameNotFound() {
+        var thrown = assertThrows(UsernameNotFoundException.class, () -> service.loadUserByUsername("NonExisted"));
+        assertEquals("User NonExisted is not found", thrown.getMessage());
+    }
 
     @Test
     void enable() {

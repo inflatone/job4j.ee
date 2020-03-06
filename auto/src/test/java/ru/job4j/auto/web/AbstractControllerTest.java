@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -24,6 +25,8 @@ import javax.annotation.PostConstruct;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static ru.job4j.auto.web.AbstractControllerTest.RequestWrapper.wrap;
@@ -56,6 +59,7 @@ public abstract class AbstractControllerTest {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(webApplicationContext)
                 .addFilter(CHARACTER_ENCODING_FILTER)
+                .apply(springSecurity())
                 .build();
     }
 
@@ -121,6 +125,11 @@ public abstract class AbstractControllerTest {
                     .param("password", user.getPassword())
                     .param("name", user.getName())
                     .param("role", user.getRole().name());
+            return this;
+        }
+
+        public RequestWrapper auth(User user) {
+            builder.with(authentication(new UsernamePasswordAuthenticationToken(user.getLogin(), user.getPassword())));
             return this;
         }
     }

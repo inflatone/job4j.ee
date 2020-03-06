@@ -30,7 +30,7 @@ class AdminControllerTest extends AbstractControllerTest {
 
     @Test
     void find() throws Exception {
-        perform(doGet(USER.getId()))
+        perform(doGet(USER.getId()).auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
@@ -39,7 +39,7 @@ class AdminControllerTest extends AbstractControllerTest {
 
     @Test
     void findAll() throws Exception {
-        perform(doGet())
+        perform(doGet().auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
@@ -49,7 +49,7 @@ class AdminControllerTest extends AbstractControllerTest {
     @Test
     void create() throws Exception {
         var newUser = testHelper.newEntity();
-        MvcResult result = perform(doPost().userAsFormData(newUser))
+        MvcResult result = perform(doPost().userAsFormData(newUser).auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -61,7 +61,7 @@ class AdminControllerTest extends AbstractControllerTest {
     @Test
     void update() throws Exception {
         var userToUpdate = testHelper.editedEntity(USER);
-        perform(doPost().userAsFormData(userToUpdate))
+        perform(doPost().userAsFormData(userToUpdate).auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isNoContent());
         testHelper.assertMatch(service.findAll(), DEALER, userToUpdate);
@@ -69,7 +69,7 @@ class AdminControllerTest extends AbstractControllerTest {
 
     @Test
     void enable() throws Exception {
-        perform(doPost(USER.getId()).unwrap().param("enabled", "false"))
+        perform(doPost(USER.getId()).auth(DEALER).unwrap().param("enabled", "false"))
                 .andDo(print())
                 .andExpect(status().isNoContent());
         assertFalse(service.find(USER.getId()).isEnabled());
@@ -77,7 +77,7 @@ class AdminControllerTest extends AbstractControllerTest {
 
     @Test
     void delete() throws Exception {
-        perform(doDelete(USER.getId()))
+        perform(doDelete(USER.getId()).auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isNoContent());
         assertThrows(NotFoundException.class, () -> service.find(USER.getId()));

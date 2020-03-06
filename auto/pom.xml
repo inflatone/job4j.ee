@@ -110,6 +110,20 @@
             <artifactId>spring-orm</artifactId>
         </dependency>
 
+        <!--Security-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-taglibs</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
@@ -145,6 +159,11 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
@@ -160,6 +179,13 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>
                 <version>${spring.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-bom</artifactId>
+                <version>${spring.security.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
