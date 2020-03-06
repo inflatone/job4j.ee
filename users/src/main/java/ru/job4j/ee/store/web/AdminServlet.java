@@ -1,9 +1,11 @@
 package ru.job4j.ee.store.web;
 
 import org.slf4j.Logger;
+import ru.job4j.ee.store.model.Role;
 import ru.job4j.ee.store.model.User;
 import ru.job4j.ee.store.model.UserImage;
 import ru.job4j.ee.store.service.UserService;
+import ru.job4j.ee.store.util.ServletUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -12,39 +14,42 @@ import java.io.IOException;
 import java.util.Date;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static ru.job4j.ee.store.model.Role.USER;
 import static ru.job4j.ee.store.service.UserService.getUserService;
 import static ru.job4j.ee.store.util.ServletUtil.getParameter;
-import static ru.job4j.ee.store.util.ServletUtil.getRequiredId;
+import static ru.job4j.ee.store.util.ServletUtil.getRequiredParameter;
 import static ru.job4j.ee.store.web.Action.*;
+import static ru.job4j.ee.store.web.auth.AuthUtil.*;
 
 /**
- * Represents web layer of the app that serves user data requests
+ * Represents web layer of the app that serves user data requests (from ADMIN role users)
  *
  * @author Alexander Savchenko
  * @version 1.0
- * @since 2019-11-05
+ * @since 2019-11-12
  */
-public class UserServlet extends DispatcherServlet {
-    private static final Logger log = getLogger(UserServlet.class);
+public class AdminServlet extends DispatcherServlet {
+    private static final Logger log = getLogger(AdminServlet.class);
 
-    private final UserService service = getUserService();
+    final UserService service = getUserService();
 
     @Override
-    void fillGetActions() {
+    protected void fillGetActions() {
         submitGetAction(create, this::getCreate);
         submitGetAction(update, this::getUpdate);
-        submitGetAction(empty, this::getAll);
+        submitGetAction(empty, this::showView);
     }
 
     @Override
-    void fillPostActions() {
+    protected void fillPostActions() {
         submitPostAction(create, this::doCreate);
         submitPostAction(update, this::doUpdate);
         submitPostAction(delete, this::doDelete);
+        submitPostAction(enable, this::doEnable);
     }
 
     @Override
-    void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.sendRedirect(request.getContextPath() + "/users");
     }
 
@@ -53,10 +58,11 @@ public class UserServlet extends DispatcherServlet {
      *
      * @param request request
      */
-    void doCreate(HttpServletRequest request) throws IOException, ServletException {
+    private void doCreate(HttpServletRequest request) throws IOException, ServletException {
         User user = createModel(null, request);
         log.info("Create {}", user);
         service.create(user);
+        setAuthorizedIfUnauthorized(request, user);
     }
 
     /**
@@ -64,10 +70,17 @@ public class UserServlet extends DispatcherServlet {
      *
      * @param request request
      */
-    void doUpdate(HttpServletRequest request) throws IOException, ServletException {
+    private void doUpdate(HttpServletRequest request) throws IOException, ServletException {
         User user = createModel(getRequiredId(request), request);
         log.info("Update {}", user);
         service.update(user);
+    }
+
+    private void doEnable(HttpServletRequest request) {
+        int id = getRequiredId(request);
+        boolean enabled = getRequiredParameter(request, "enabled", Boolean::valueOf);
+        log.info(enabled ? "Enable {}" : "Disable {}", id);
+        service.enable(id, enabled);
     }
 
     /**
@@ -75,10 +88,11 @@ public class UserServlet extends DispatcherServlet {
      *
      * @param request request
      */
-    void doDelete(HttpServletRequest request) {
+    private void doDelete(HttpServletRequest request) {
         int id = getRequiredId(request);
         log.info("Delete {}", id);
         service.delete(id);
+        setUnauthorizedIfSameId(request, id);
     }
 
     /**
@@ -87,7 +101,7 @@ public class UserServlet extends DispatcherServlet {
      * @param request request
      * @return user form path to redirect
      */
-    String getCreate(HttpServletRequest request) {
+    private String getCreate(HttpServletRequest request) {
         return createRedirectToForm(request, true);
     }
 
@@ -97,7 +111,7 @@ public class UserServlet extends DispatcherServlet {
      * @param request request
      * @return user form path to redirect
      */
-    String getUpdate(HttpServletRequest request) {
+    private String getUpdate(HttpServletRequest request) {
         return createRedirectToForm(request, false);
     }
 
@@ -107,9 +121,30 @@ public class UserServlet extends DispatcherServlet {
      * @param request request
      * @return user list path to redirect
      */
-    String getAll(HttpServletRequest request) {
+    String showView(HttpServletRequest request) {
         request.setAttribute("users", service.findAll());
-        return createRedirection("list");
+        return "list";
+    }
+
+    /**
+     * Extracts the role parameter from the given request, transforms it to relevant {@link Role} enum instance
+     *
+     * @param request request
+     * @return role enum instance
+     */
+    Role extractRole(HttpServletRequest request) {
+        return getRequiredParameter(request, "role", Role::valueOf);
+    }
+
+    /**
+     * Extracts the id parameter from the given request, transforms it to {@link int} value,
+     * throws NPE if it's not found
+     *
+     * @param request request
+     * @return user id
+     */
+    int getRequiredId(HttpServletRequest request) {
+        return ServletUtil.getRequiredId(request);
     }
 
     /**
@@ -123,7 +158,7 @@ public class UserServlet extends DispatcherServlet {
         String name = request.getParameter("name");
         String login = request.getParameter("login");
         String password = request.getParameter("password");
-        return new User(id, name, login, password, new Date(), extractUserImage(request));
+        return new User(id, name, login, password, new Date(), extractRole(request), true, extractUserImage(request));
     }
 
     /**
@@ -152,7 +187,8 @@ public class UserServlet extends DispatcherServlet {
     private String createRedirectToForm(HttpServletRequest request, boolean isNew) {
         var userTo = isNew ? buildEmptyModel() : service.find(getRequiredId(request));
         request.setAttribute("user", userTo);
-        return createRedirection("form");
+        request.setAttribute("roles", composeAvailableRoles(request));
+        return "form";
     }
 
     /**
@@ -161,6 +197,6 @@ public class UserServlet extends DispatcherServlet {
      * @return empty user model
      */
     private User buildEmptyModel() {
-        return new User(null, "", "", "", null, null);
+        return new User(null, "", "", "", null, USER, true, null);
     }
 }

@@ -18,13 +18,15 @@ public class User extends BaseEntity {
     private String login;
     private String password;
     private Date created;
+    private boolean enabled = true;
+    private Role role;
     private UserImage image;
 
     public User() {
     }
 
     public User(User user) {
-        this(user.getId(), user.name, user.login, user.password, user.created, new UserImage(user.image));
+        this(user.getId(), user.name, user.login, user.password, user.created, user.role, user.enabled, new UserImage(user.image));
     }
 
     @JdbiConstructor
@@ -33,12 +35,16 @@ public class User extends BaseEntity {
                 @ColumnName("login") String login,
                 @ColumnName("password") String password,
                 @ColumnName("created") Date created,
+                @ColumnName("role") Role role,
+                @ColumnName("enabled") boolean enabled,
                 @Nested("image_") UserImage image) {
         super(id);
         this.name = name;
         this.login = login;
         this.password = password;
         this.created = created;
+        this.role = role;
+        this.enabled = enabled;
         this.image = image;
     }
 
@@ -56,6 +62,14 @@ public class User extends BaseEntity {
 
     public Date getCreated() {
         return created;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public UserImage getImage() {
@@ -78,6 +92,14 @@ public class User extends BaseEntity {
         this.created = created;
     }
 
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public void setImage(UserImage image) {
         this.image = image;
     }
@@ -91,6 +113,8 @@ public class User extends BaseEntity {
                 + ", password='" + password + '\''
                 + ", created=" + created
                 + ", image=" + image
+                + ", enabled=" + enabled
+                + ", role=" + role
                 + '}';
     }
 }

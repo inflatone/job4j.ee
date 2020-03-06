@@ -41,8 +41,18 @@ public class JdbiUserRepository implements UserRepository {
     }
 
     @Override
+    public boolean enable(int id, boolean enabled) {
+        return dao.enable(id, enabled) != 0;
+    }
+
+    @Override
     public User find(int id) {
         return dao.find(id);
+    }
+
+    @Override
+    public User findByLogin(String login) {
+        return dao.findByLogin(login);
     }
 
     @Override

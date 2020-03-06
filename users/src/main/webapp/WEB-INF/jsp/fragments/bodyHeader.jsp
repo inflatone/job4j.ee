@@ -1,3 +1,8 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://junior.job4j.ru/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
-<h3><a href="users">Home</a></h3>
-<hr/>
+<c:if test="${fn:isAdmin(pageContext.request)}">
+    <h3><a href="users">Users</a></h3>
+    <hr/>
+</c:if>
+<div class="error"><h2>${requestScope.error}</h2></div>

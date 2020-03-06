@@ -18,6 +18,7 @@ public enum Action {
     create,
     update,
     delete,
+    enable,
     empty;
 
     private static final Map<String, Action> ACTION_MAPPER = StreamEx.of(values()).toMap(Enum::name, identity());

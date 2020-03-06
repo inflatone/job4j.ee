@@ -2,8 +2,8 @@
 <html>
 <jsp:include page="fragments/header.jsp"/>
 <body>
+<jsp:include page="fragments/bodyHeader.jsp"/>
 <section>
-    <h2>Wrong action, please try again</h2>
     <button type="button" onclick="window.history.back()">Go back</button>
 </section>
 </body>
