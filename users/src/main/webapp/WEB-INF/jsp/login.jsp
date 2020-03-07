@@ -4,22 +4,40 @@
 <html>
 <jsp:include page="fragments/header.jsp"/>
 <body>
-<jsp:include page="fragments/bodyHeader.jsp"/>
-<section>
-    <a href="profile?action=create">Sign up</a>
-    <h2>Sign in</h2>
-    <form action="" method="post">
-        <dl>
-            <dt>Username:</dt>
-            <dd><input type="text" size="40" name="login"/></dd>
-        </dl>
-        <dl>
-            <dt>Password:</dt>
-            <dd><input type="password" size="40" name="password"/></dd>
-        </dl>
-        <button type="submit">Sign in</button>
-        <button type="button" onclick="window.history.back()">Cancel</button>
-    </form>
-</section>
+
+<script type="text/javascript" src="resources/js/common.js" defer></script>
+<script type="text/javascript" src="resources/js/users.form.js" defer></script>
+<script type="text/javascript" src="resources/js/users.login.js" defer></script>
+
+<button type="button" onclick="loginAs('user', 'password')">Login as user</button>
+<button type="button" onclick="loginAs('root', 'root')">Login as admin</button>
+
+<div class="container h-100">
+    <div class="row h-100 justify-content-center align-items-center">
+        <form action="" method="post" class="border border-light w-50 " id="loginForm" novalidate>
+            <h3 style="text-align: center">Sign in:  </h3>
+            <p class="h6" style="text-align: center">Enter your credentials below</p>
+            <div class="form-group">
+                <label for="authLogin"></label>
+                <input type="text" id="authLogin" class="form-control" placeholder="Username" name="login"
+                       required>
+                <div class="invalid-feedback">Please fill out this field</div>
+            </div>
+
+            <div class="form-group">
+                <label for="authPassword"></label>
+                <input type="password" id="authPassword" class="form-control" placeholder="Password" name="password"
+                       required>
+                <div class="invalid-feedback">Please fill out this field</div>
+            </div>
+
+            <button class="btn btn-info btn-block my-1" type="submit" id="loginButton">Get in</button>
+            <button class="btn btn-secondary btn-block my-1" type="button" onclick="openCreateForm()">Sign up</button>
+        </form>
+    </div>
+</div>
+
+<jsp:include page="fragments/form.jsp"/>
+
 </body>
 </html>

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Image DAO shell
@@ -37,28 +38,63 @@ public interface UserImageDao extends Transactional<UserImageDao> {
     @SqlQuery("SELECT * FROM images WHERE id=:id")
     UserImage find(@Bind(value = "id") int id);
 
+    @SqlUpdate("UPDATE users u SET image_id=:id WHERE u.id=:userId")
+    int bind(@Bind(value = "id") int id, @Bind(value = "userId") int userId);
+
     @SqlUpdate("UPDATE users u SET image_id=null WHERE u.id=:userId AND u.image_id=:id")
     int unbind(@Bind(value = "id") int id, @Bind(value = "userId") Integer userId);
 
     @SqlUpdate("DELETE FROM images WHERE id=:id")
     int delete(@Bind(value = "id") int id);
 
+    @SqlQuery("SELECT u.image_id FROM users u WHERE u.id=:userId")
+    Integer getImageIdByUserId(@Bind(value = "userId") int userId);
+
+    @SqlQuery("SELECT * FROM images i WHERE i.id NOT IN (SELECT image_id FROM users WHERE image_id IS NOT NULL) ")
+    List<UserImage> findUnused();
+
     @Transaction
-    default void save(UserImage image) {
+    default boolean save(UserImage image, Integer userId) {
         try {
             upload(image);
+            if (userId != null && !updateBind(image.getId(), userId)) {
+                image.setId(null); // rollback id
+                rollback();
+                return false;
+            }
+            return true;
         } catch (SQLException | IOException e) {
             throw new TransactionException(e);
         }
     }
 
     @Transaction
-    default boolean delete(int id, Integer userId) {
-        if (userId == null || unbind(id, userId) != 0) {
+    default int clearUnused() {
+        List<UserImage> images = findUnused();
+        images.forEach(this::erase);
+        return images.size();
+    }
+
+    /**
+     * Checks if user with the given id already has an uploaded image, erases it if so,
+     * then binds the given one with this user
+     *
+     * @param id     image id
+     * @param userId user id
+     * @return true if successful
+     */
+    @Transaction
+    default boolean updateBind(int id, int userId) {
+        delete(getImageIdByUserId(userId), userId);
+        return bind(id, userId) != 0;
+    }
+
+    @Transaction
+    default boolean delete(Integer id, Integer userId) {
+        if (id != null && (userId == null || unbind(id, userId) != 0)) {
             var image = find(id);
             return image != null && erase(image);
         }
-        rollback();
         return false;
     }
 

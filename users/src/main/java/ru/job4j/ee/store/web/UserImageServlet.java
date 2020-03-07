@@ -1,7 +1,6 @@
 package ru.job4j.ee.store.web;
 
 import org.slf4j.Logger;
-import ru.job4j.ee.store.model.Role;
 import ru.job4j.ee.store.model.UserImage;
 import ru.job4j.ee.store.service.UserImageService;
 
@@ -13,9 +12,10 @@ import java.io.IOException;
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.job4j.ee.store.service.UserImageService.getUserImageService;
 import static ru.job4j.ee.store.util.ServletUtil.*;
-import static ru.job4j.ee.store.web.Action.delete;
+import static ru.job4j.ee.store.web.Action.*;
 import static ru.job4j.ee.store.web.auth.AuthUtil.getAuthUser;
-import static ru.job4j.ee.store.web.auth.AuthUtil.redirectToMain;
+import static ru.job4j.ee.store.web.auth.AuthUtil.retrieveIfAdminOrCheckSession;
+import static ru.job4j.ee.store.web.json.JsonUtil.asJsonToResponse;
 
 /**
  * Represents web layer of the app that serves user image data requests
@@ -24,24 +24,21 @@ import static ru.job4j.ee.store.web.auth.AuthUtil.redirectToMain;
  * @version 1.0
  * @since 2019-11-10
  */
-public class UserImageServlet extends DispatcherServlet {
+public class UserImageServlet extends ActionDispatcherServlet {
     private static final Logger log = getLogger(UserImageServlet.class);
 
     private final UserImageService service = getUserImageService();
 
     @Override
-    protected void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        redirectToMain(request, response);
-    }
-
-    @Override
     protected void fillPostActions() {
         submitPostAction(delete, this::doRemove);
+        submitPostAction(save, this::doSave);
+        submitPostAction(clear, this::doClear);
     }
 
     @Override
     protected void fillGetActions() {
-        // no need to dispatch GET requests, doGet() is overridden here
+        submitGetAction(empty, this::doFind);
         // may be extended in future: add showing preview-thumbnails instead of original-sized images all the time
     }
 
@@ -52,9 +49,8 @@ public class UserImageServlet extends DispatcherServlet {
      * @param request  request
      * @param response response
      */
-    @Override
     // show image servlet https://o7planning.org/en/11067/displaying-image-from-database-with-java-servlet
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void doFind(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         var image = findImage(request);
         if (image == null) {
             sendRedirectToEmptyImage(request, response);
@@ -72,8 +68,7 @@ public class UserImageServlet extends DispatcherServlet {
      */
     private UserImage findImage(HttpServletRequest request) {
         Integer id = getId(request, false);
-        // id == 0 — repository returns it when no user image binding was found in DB
-        return id == null || id == 0 ? null : service.find(id);
+        return id == null ? null : service.find(id);
     }
 
     /**
@@ -102,15 +97,55 @@ public class UserImageServlet extends DispatcherServlet {
     }
 
     /**
+     * Represents CLEAR UNUSED executor
+     *
+     * @param request  request
+     * @param response response
+     */
+    private void doClear(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        log.info("Clear unused images");
+        int amount = service.clear();
+        asJsonToResponse(response, "message", amount + " images removed");
+    }
+
+    /**
      * Represents DELETE IMAGE executor
      *
      * @param request request
      */
-    void doRemove(HttpServletRequest request) {
+    void doRemove(HttpServletRequest request, HttpServletResponse response) {
         int id = getRequiredId(request);
         int userId = getRequiredUserId(request);
         log.info("Delete image {} of user with id {}", id, userId);
         service.delete(id, userId);
+        response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
+
+    /**
+     * Represents CREATE/UPDATE USER IMAGE executor
+     *
+     * @param request  request
+     * @param response response
+     */
+    void doSave(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        var userId = getRequiredUserId(request);
+        var image = extractUserImage(request);
+        log.info("Save new image of user with id {}", userId);
+        service.save(image, userId);
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        asJsonToResponse(response, image);
+    }
+
+    /**
+     * Retrieves image data from the given request
+     *
+     * @param request request
+     * @return image data
+     */
+    private UserImage extractUserImage(HttpServletRequest request) throws IOException, ServletException {
+        var part = request.getPart("image");
+        return part == null || part.getSize() == 0 ? null
+                : new UserImage(part.getSubmittedFileName(), part.getContentType(), part.getSize(), part.getInputStream());
     }
 
     /**
@@ -121,8 +156,7 @@ public class UserImageServlet extends DispatcherServlet {
      * @return user id
      */
     private int getRequiredUserId(HttpServletRequest request) {
-        var authUser = getAuthUser(request, true);
-        return authUser.getRole() == Role.ADMIN ? getRequiredParameter(request, "userId", Integer::valueOf)
-                : authUser.getId(); // users can delete only own photos
+        Integer userId = retrieveIfAdminOrCheckSession(request, "userId", Integer::parseInt);
+        return userId != null ? userId : getAuthUser(request, true).getId(); // users can delete only own photos
     }
 }

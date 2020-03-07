@@ -1,15 +1,14 @@
 package ru.job4j.ee.store.service;
 
 import ru.job4j.ee.store.model.User;
-import ru.job4j.ee.store.repository.UserImageRepository;
+import ru.job4j.ee.store.repository.CityRepository;
 import ru.job4j.ee.store.repository.UserRepository;
 
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
-import static ru.job4j.ee.store.repository.JdbiUserImageRepository.getUserImageRepository;
+import static ru.job4j.ee.store.repository.JdbiCityRepository.getCityRepository;
 import static ru.job4j.ee.store.repository.JdbiUserRepository.getUserRepository;
-import static ru.job4j.ee.store.util.ValidationUtil.checkNotFound;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
 
 /**
@@ -28,7 +27,7 @@ public class UserService {
 
     private final UserRepository repository = getUserRepository();
 
-    private final UserImageRepository imageRepository = getUserImageRepository();
+    private final CityRepository cityRepository = getCityRepository();
 
     private UserService() {
     }
@@ -40,7 +39,8 @@ public class UserService {
      */
     public void create(User user) {
         requireNonNull(user, "user must not be null");
-        imageRepository.save(user.getImage());
+        cityRepository.save(
+                requireNonNull(user.getCity(), "city must not be null"));
         repository.save(user);
     }
 
@@ -62,9 +62,8 @@ public class UserService {
     public void update(User user) {
         requireNonNull(user, "user must not be null");
         int id = user.getId();
-        if (imageRepository.save(user.getImage())) {
-            eraseCurrentImage(id); // force erase to prevent db overflow
-        }
+        cityRepository.save(
+                requireNonNull(user.getCity(), "city must not be null"));
         checkNotFoundEntityWithId(repository.save(user), id);
     }
 
@@ -95,18 +94,5 @@ public class UserService {
      */
     public List<User> findAll() {
         return repository.findAll();
-    }
-
-    /**
-     * Checks if the user with the given id already has an image
-     * If so — asks the image repository to remove all the data of the image
-     *
-     * @param id user id
-     */
-    private void eraseCurrentImage(int id) {
-        var currentImageId = repository.find(id).getImage().getId();
-        if (currentImageId != null) {
-            imageRepository.deleteFromUser(currentImageId, id);
-        }
     }
 }

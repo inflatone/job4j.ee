@@ -22,6 +22,15 @@ public interface UserImageRepository extends Repository<UserImage> {
      */
     boolean deleteFromUser(int id, int userId);
 
+    /**
+     * Saves the given image data to the store, then binds ts with the user entity associated with the given id
+     *
+     * @param image  user image
+     * @param userId user id
+     * @return {@code true} if successful
+     */
+    boolean addToUser(UserImage image, int userId);
+
     @Override
     default List<UserImage> findAll() {
         throw new UnsupportedOperationException("Not implemented");

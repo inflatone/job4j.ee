@@ -3,7 +3,9 @@ package ru.job4j.ee.store.service;
 import ru.job4j.ee.store.model.UserImage;
 import ru.job4j.ee.store.repository.UserImageRepository;
 
+import static java.util.Objects.requireNonNull;
 import static ru.job4j.ee.store.repository.JdbiUserImageRepository.getUserImageRepository;
+import static ru.job4j.ee.store.util.ValidationUtil.checkNotFound;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFoundEntityWithId;
 
 /**
@@ -41,5 +43,24 @@ public class UserImageService {
      */
     public void delete(int id, int userId) {
         checkNotFoundEntityWithId(repository.deleteFromUser(id, userId), id);
+    }
+
+    /**
+     * Asks the image store to persist the given image entity, then binds it with the suggested user id in the user store
+     *
+     * @param userImage user image
+     */
+    public void save(UserImage userImage, int userId) {
+        requireNonNull(userImage, "Image must not be null");
+        checkNotFound(repository.addToUser(userImage, userId), "Cannot upload image of user with id=" + userId);
+    }
+
+    /**
+     * Asks the store to clear all the unused images
+     *
+     * @return deleted images amount
+     */
+    public int clear() {
+        return repository.clear();
     }
 }

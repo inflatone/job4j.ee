@@ -9,8 +9,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static ru.job4j.ee.store.util.ServletUtil.getParameter;
 import static ru.job4j.ee.store.util.ValidationUtil.checkNotFound;
 
 /**
@@ -97,6 +99,19 @@ public class AuthUtil {
     public static boolean isAdminAuth(HttpServletRequest request) {
         var user = getAuthUser(request, false);
         return user != null && user.getRole() == Role.ADMIN;
+    }
+
+    /**
+     * Retrieves the parameter from the given request's context if user has ADMIN role,
+     * returns null otherwise
+     *
+     * @param request request
+     * @return user id
+     */
+    public static <T> T retrieveIfAdminOrCheckSession(HttpServletRequest request, String key, Function<String, T> parameterMapper) {
+        var authUser = getAuthUser(request, true);
+        return authUser.getRole() != Role.ADMIN ? null
+                : getParameter(request, key, false, parameterMapper);
     }
 
     /**

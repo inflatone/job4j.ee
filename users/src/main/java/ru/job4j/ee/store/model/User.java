@@ -1,10 +1,13 @@
 package ru.job4j.ee.store.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jdbi.v3.core.mapper.Nested;
 import org.jdbi.v3.core.mapper.reflect.ColumnName;
 import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
 import java.util.Date;
+
+import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 
 /**
  * Model to transfer user data layer-to-layer
@@ -13,20 +16,26 @@ import java.util.Date;
  * @version 1.0
  * @since 2019-11-05
  */
-public class User extends BaseEntity {
-    private String name;
+public class User extends BaseNamedEntity {
     private String login;
+
+    // https://stackoverflow.com/a/12505165/548473
+    @JsonProperty(access = WRITE_ONLY)
     private String password;
+
     private Date created;
     private boolean enabled = true;
     private Role role;
+    private City city;
     private UserImage image;
 
     public User() {
     }
 
     public User(User user) {
-        this(user.getId(), user.name, user.login, user.password, user.created, user.role, user.enabled, new UserImage(user.image));
+        this(user.getId(), user.getName(), user.login, user.password, user.created, user.role, user.enabled,
+                user.city == null ? null : new City(user.city),
+                user.image == null ? null : new UserImage(user.image));
     }
 
     @JdbiConstructor
@@ -37,19 +46,16 @@ public class User extends BaseEntity {
                 @ColumnName("created") Date created,
                 @ColumnName("role") Role role,
                 @ColumnName("enabled") boolean enabled,
+                @Nested("city_") City city,
                 @Nested("image_") UserImage image) {
-        super(id);
-        this.name = name;
+        super(id, name);
         this.login = login;
         this.password = password;
         this.created = created;
         this.role = role;
         this.enabled = enabled;
+        this.city = city;
         this.image = image;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getLogin() {
@@ -76,8 +82,8 @@ public class User extends BaseEntity {
         return image;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public City getCity() {
+        return city;
     }
 
     public void setLogin(String login) {
@@ -104,17 +110,22 @@ public class User extends BaseEntity {
         this.image = image;
     }
 
+    public void setCity(City city) {
+        this.city = city;
+    }
+
     @Override
     public String toString() {
         return "User{"
                 + "id=" + getId()
-                + ", name='" + name + '\''
+                + ", name='" + getName() + '\''
                 + ", login='" + login + '\''
                 + ", password='" + password + '\''
                 + ", created=" + created
                 + ", image=" + image
                 + ", enabled=" + enabled
                 + ", role=" + role
+                + ", city=" + city
                 + '}';
     }
 }
