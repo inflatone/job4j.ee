@@ -1,14 +1,13 @@
 package ru.job4j.ee.store.service;
 
 import one.util.streamex.StreamEx;
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.City;
 import ru.job4j.ee.store.model.Country;
 import ru.job4j.ee.store.repository.CityRepository;
 import ru.job4j.ee.store.web.AjaxServlet.CountryTo;
 
 import java.util.List;
-
-import static ru.job4j.ee.store.repository.JdbiCityRepository.getCityRepository;
 
 /**
  * Represents service layer of the app (validates the given city data from the store, then transfer them to the web)
@@ -18,13 +17,8 @@ import static ru.job4j.ee.store.repository.JdbiCityRepository.getCityRepository;
  * @since 2019-11-13
  */
 public class CityService {
-    private static final CityService INSTANCE_HOLDER = new CityService();
-
-    public static CityService getCityService() {
-        return INSTANCE_HOLDER;
-    }
-
-    private final CityRepository repository = getCityRepository();
+    @Inject
+    private CityRepository repository;
 
     /**
      * Asks the store to find the entities associated with the given country

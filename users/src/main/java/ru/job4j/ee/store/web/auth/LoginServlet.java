@@ -1,5 +1,6 @@
 package ru.job4j.ee.store.web.auth;
 
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.User;
 import ru.job4j.ee.store.service.SecurityService;
 import ru.job4j.ee.store.web.ActionDispatcherServlet;
@@ -10,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static ru.job4j.ee.store.service.SecurityService.getSecurityService;
 import static ru.job4j.ee.store.util.ServletUtil.forwardToJsp;
 import static ru.job4j.ee.store.web.Action.empty;
 import static ru.job4j.ee.store.web.auth.AuthUtil.*;
@@ -24,7 +24,8 @@ import static ru.job4j.ee.store.web.json.JsonUtil.fromJson;
  * @since 2019-11-11
  */
 public class LoginServlet extends ActionDispatcherServlet {
-    private final SecurityService service = getSecurityService();
+    @Inject
+    private SecurityService service;
 
     @Override
     protected void fillGetActions() {

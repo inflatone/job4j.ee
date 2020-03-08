@@ -2,94 +2,18 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
-    <filter>
-        <filter-name>UnauthorizedUserFilter</filter-name>
-        <filter-class>ru.job4j.ee.store.web.filters.UnauthorizedUserFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>UnauthorizedUserFilter</filter-name>
-        <url-pattern>*</url-pattern>
-    </filter-mapping>
-    <filter>
-        <filter-name>AdminUserFilter</filter-name>
-        <filter-class>ru.job4j.ee.store.web.filters.AdminUserFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>AdminUserFilter</filter-name>
-        <url-pattern>/users</url-pattern>
-    </filter-mapping>
+    <listener>
+        <listener-class>ru.job4j.ee.store.web.inject.ContextConfigurator</listener-class>
+    </listener>
 
     <filter>
-        <filter-name>CharsetFilter</filter-name>
-        <filter-class>ru.job4j.ee.store.web.filters.CharsetFilter</filter-class>
+        <filter-name>guiceFilter</filter-name>
+        <filter-class>com.google.inject.servlet.GuiceFilter</filter-class>
     </filter>
     <filter-mapping>
-        <filter-name>CharsetFilter</filter-name>
-        <url-pattern>*</url-pattern>
+        <filter-name>guiceFilter</filter-name>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
-
-    <servlet>
-        <servlet-name>AdminServlet</servlet-name>
-        <servlet-class>ru.job4j.ee.store.web.AdminServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AdminServlet</servlet-name>
-        <url-pattern>/users</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>ProfileServlet</servlet-name>
-        <servlet-class>ru.job4j.ee.store.web.ProfileServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ProfileServlet</servlet-name>
-        <url-pattern>/profile</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>AjaxServlet</servlet-name>
-        <servlet-class>ru.job4j.ee.store.web.AjaxServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AjaxServlet</servlet-name>
-        <url-pattern>/ajax</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>ImageServlet</servlet-name>
-        <servlet-class>ru.job4j.ee.store.web.UserImageServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-        <multipart-config>
-            <max-file-size>10485760</max-file-size>
-            <max-request-size>20971520</max-request-size>
-            <file-size-threshold>5242880</file-size-threshold>
-        </multipart-config>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ImageServlet</servlet-name>
-        <url-pattern>/images</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>LoginServlet</servlet-name>
-        <servlet-class>ru.job4j.ee.store.web.auth.LoginServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>LoginServlet</servlet-name>
-        <url-pattern>/login</url-pattern>
-    </servlet-mapping>
-    <servlet>
-        <servlet-name>LogoutServlet</servlet-name>
-        <servlet-class>ru.job4j.ee.store.web.auth.LogoutServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>LogoutServlet</servlet-name>
-        <url-pattern>/logout</url-pattern>
-    </servlet-mapping>
 
     <resource-ref>
         <description>postgresql connection pool</description>

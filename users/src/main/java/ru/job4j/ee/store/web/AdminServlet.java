@@ -1,5 +1,6 @@
 package ru.job4j.ee.store.web;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import ru.job4j.ee.store.model.User;
 import ru.job4j.ee.store.service.CityService;
@@ -12,8 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static ru.job4j.ee.store.service.CityService.getCityService;
-import static ru.job4j.ee.store.service.UserService.getUserService;
 import static ru.job4j.ee.store.util.ServletUtil.*;
 import static ru.job4j.ee.store.web.Action.*;
 import static ru.job4j.ee.store.web.auth.AuthUtil.setAuthorizedIfUnauthorized;
@@ -31,8 +30,11 @@ import static ru.job4j.ee.store.web.json.JsonUtil.fromJson;
 public class AdminServlet extends ActionDispatcherServlet {
     private static final Logger log = getLogger(AdminServlet.class);
 
-    final UserService service = getUserService();
-    private final CityService cityService = getCityService();
+    @Inject
+    UserService service;
+
+    @Inject
+    private CityService cityService;
 
     @Override
     protected void fillGetActions() {

@@ -1,7 +1,7 @@
 package ru.job4j.ee.store.repository;
 
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.User;
-import ru.job4j.ee.store.repository.dbi.JdbiProvider;
 import ru.job4j.ee.store.repository.dbi.UserDao;
 
 import java.util.List;
@@ -14,17 +14,8 @@ import java.util.List;
  * @since 2019-11-08
  */
 public class JdbiUserRepository implements UserRepository {
-    private static final UserRepository INSTANCE_HOLDER = new JdbiUserRepository();
-
-    private final UserDao dao;
-
-    public static UserRepository getUserRepository() {
-        return INSTANCE_HOLDER;
-    }
-
-    private JdbiUserRepository() {
-        this.dao = JdbiProvider.getUserDao();
-    }
+    @Inject
+    private UserDao dao;
 
     @Override
     public boolean save(User user) {

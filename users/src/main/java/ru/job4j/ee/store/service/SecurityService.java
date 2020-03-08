@@ -1,12 +1,11 @@
 package ru.job4j.ee.store.service;
 
+import com.google.inject.Inject;
 import ru.job4j.ee.store.model.User;
 import ru.job4j.ee.store.repository.UserRepository;
 
 import java.util.EnumMap;
 import java.util.Map;
-
-import static ru.job4j.ee.store.repository.JdbiUserRepository.getUserRepository;
 
 /**
  * Represents service layer of the app (validates the security user data from the store, then transfers them to the web)
@@ -17,13 +16,8 @@ import static ru.job4j.ee.store.repository.JdbiUserRepository.getUserRepository;
  * @since 2019-11-11
  */
 public class SecurityService {
-    private static final SecurityService INSTANCE_HOLDER = new SecurityService();
-
-    public static SecurityService getSecurityService() {
-        return INSTANCE_HOLDER;
-    }
-
-    private final UserRepository repository = getUserRepository();
+    @Inject
+    private UserRepository repository;
 
     private static final Map<SecurityCondition, SecurityFilter> FILTERS = new EnumMap<>(SecurityCondition.class) {
         {
@@ -32,9 +26,6 @@ public class SecurityService {
             put(SecurityCondition.BANNED, (expected, actual) -> !actual.isEnabled());
         }
     };
-
-    private SecurityService() {
-    }
 
     /**
      * Asks the store to find the entity associated with the given login,
