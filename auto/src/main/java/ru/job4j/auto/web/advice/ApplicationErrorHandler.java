@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import ru.job4j.auto.to.ErrorInfo;
 import ru.job4j.auto.util.exception.IllegalRequestDataException;
 import ru.job4j.auto.util.exception.NotFoundException;
@@ -57,6 +58,12 @@ public class ApplicationErrorHandler {
             }
         }
         return logAndGetErrorInfo(request, e, true, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorInfo> fileUploadHandler(HttpServletRequest request, MaxUploadSizeExceededException e) {
+        return logAndGetErrorInfo(request, e, false, HttpStatus.UNPROCESSABLE_ENTITY,
+                "Max upload size is " + e.getMaxUploadSize() / 1024 / 1024 + " MB", null);
     }
 
     @ExceptionHandler({BindException.class, MethodArgumentNotValidException.class})

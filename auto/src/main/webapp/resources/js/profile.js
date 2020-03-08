@@ -34,7 +34,7 @@ function fillUserData() {
 }
 
 function updateImgSrc() {
-    $('#image').attr('src', imageUrl + userImageId );
+    $('#image').attr('src', imageUrl + (userImageId ? userImageId : '') );
 }
 
 function doDelete() {
@@ -53,7 +53,7 @@ function saveImage() {
         alertNoty('Image is not selected');
     } else {
         $.ajax({
-            url: imageUrl + 'drivers/' + profileId,
+            url: imageUrl + 'users/' + profileId,
             type: 'POST',
             encType: "multipart/form-data",
             data: new FormData(document.getElementById("imageForm")),
@@ -80,8 +80,8 @@ function deleteImage() {
         alertNoty('User has no picture');
     } else {
         $.ajax({
-            url: imageUrl + '?action=delete&id=' + userImageId + '&userId=' + userId,
-            type: 'POST'
+            url: imageUrl + 'users/' + userId,
+            type: 'DELETE'
         }).done(function () {
             userImageId = undefined;
             imageSuccess();

@@ -25,6 +25,13 @@
 
     <bean class="ru.job4j.auto.web.converter.JacksonObjectMapper" id="mapper"/>
 
+    <!--  to retrieve images as multipart-data from request -->
+    <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+        <property name="maxUploadSize" value="5242880"/> <!--1024 * 1024 * 5 = 5 MB-->
+        <property name="maxInMemorySize" value="1048576"/> <!--1024 * 1024 = 1 MB-->
+        <property name="resolveLazily" value="true"/>
+    </bean>
+
     <mvc:annotation-driven>
         <mvc:message-converters>
             <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">

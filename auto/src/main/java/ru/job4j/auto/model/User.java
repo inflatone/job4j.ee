@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
+import static javax.persistence.CascadeType.PERSIST;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = "login", name = "users_unique_login_idx")})
@@ -63,6 +64,10 @@ public class User extends BaseEntity implements Serializable {
 
     @Column(name = "enabled", nullable = false, columnDefinition = "boolean default true")
     private boolean enabled = true;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = PERSIST, orphanRemoval = true)
+    @JoinColumn(name = "image_id", unique = true)
+    private Image image;
 
     @BatchSize(size = 200)
     @Fetch(FetchMode.SUBSELECT)

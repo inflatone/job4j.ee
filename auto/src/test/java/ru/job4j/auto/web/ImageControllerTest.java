@@ -1,0 +1,154 @@
+package ru.job4j.auto.web;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import ru.job4j.auto.EntityTestHelpers.ImageEntityTestHelper;
+import ru.job4j.auto.model.Image;
+import ru.job4j.auto.repository.ImageRepository;
+import ru.job4j.auto.service.ImageService;
+import ru.job4j.auto.service.UserService;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.job4j.auto.TestModelData.*;
+import static ru.job4j.auto.web.AbstractControllerTest.RequestWrapper.wrap;
+
+class ImageControllerTest extends AbstractControllerTest {
+    private final ImageEntityTestHelper testHelper;
+
+    private final ImageService service;
+
+    private final UserService userService;
+
+    @Autowired
+    public ImageControllerTest(ImageEntityTestHelper testHelper, ImageService service, UserService userService) {
+        super(ImageController.URL);
+        this.testHelper = testHelper;
+        this.service = service;
+        this.userService = userService;
+    }
+
+    @Test
+    void find(@Autowired ImageRepository repository) throws Exception {
+        Image newImage = repository.save(testHelper.newEntity());
+        perform(doGet(newImage.getId()).auth(USER))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(contentTypeIsJpg())
+                .andExpect(testHelper.contentImage(newImage));
+    }
+
+    @Test
+    void findDefault() throws Exception {
+        perform(doGet().auth(USER))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(contentTypeIsJpg())
+                .andExpect(testHelper.contentDefaultImage());
+
+    }
+
+    @Test // need to flush user entity for its image id to be inserted
+    @Transactional(propagation = Propagation.NEVER)
+    void uploadToUser() throws Exception {
+        Image newImage = testHelper.newEntity();
+        perform(userMultipart().auth(USER).attachImage("userPhoto", newImage))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(contentTypeIsJson())
+                .andExpect(testHelper.contentJson(newImage));
+
+        assertNotNull(userService.find(USER.getId()).getImage().getId(), "User image must be set");
+        service.deleteFromUser(USER.getId()); // clean the test dirt
+    }
+
+    @Test
+    void uploadToAnotherUser() throws Exception {
+        Image newImage = testHelper.newEntity();
+        perform(userMultipart(DEALER.getId()).auth(USER).attachImage("userPhoto", newImage))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+        assertNull(userService.find(DEALER.getId()).getImage(), "Image must not be set");
+    }
+
+    @Test // need to flush user entity for its image id to be inserted
+    @Transactional(propagation = Propagation.NEVER)
+    void uploadToAnotherUserAsAdmin() throws Exception {
+        Image newImage = testHelper.newEntity();
+        perform(userMultipart(USER.getId()).auth(DEALER).attachImage("userPhoto", newImage))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(contentTypeIsJson())
+                .andExpect(testHelper.contentJson(newImage));
+
+        assertNotNull(userService.find(USER.getId()).getImage(), "User image must be set");
+        service.deleteFromUser(USER.getId()); // clean the test dirt
+    }
+
+    @Test
+    void deleteFromUser() throws Exception {
+        service.uploadToUser(USER.getId(), testHelper.newEntity());
+
+        perform(userDelete().auth(USER))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+        assertNull(userService.find(USER.getId()).getImage(), "User image must not be set");
+    }
+
+    @Test
+    void deleteFromAnotherUser() throws Exception {
+        service.uploadToUser(DEALER.getId(), testHelper.newEntity());
+
+        perform(userDelete(DEALER.getId()).auth(USER))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+        assertNotNull(userService.find(DEALER.getId()).getImage(), "User image must be set");
+    }
+
+    @Test
+    void deleteFromAnotherUserAsAdmin() throws Exception {
+        service.uploadToUser(USER.getId(), testHelper.newEntity());
+
+        perform(userDelete(USER.getId()).auth(DEALER))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+        assertNull(userService.find(USER.getId()).getImage(), "User image must not be set");
+    }
+
+    protected RequestWrapper userDelete() {
+        return doDelete("users");
+    }
+
+    protected RequestWrapper userDelete(int id) {
+        return doDelete("users/{id}", id);
+    }
+
+    protected RequestWrapper postDelete(int id) {
+        return doDelete("users/posts/{id}", id);
+    }
+
+    protected RequestWrapper postDelete(int rootId, int id) {
+        return doDelete("users/{rootId}/posts/{id}", rootId, id);
+    }
+
+    protected RequestWrapper userMultipart() {
+        return wrap(MockMvcRequestBuilders.multipart(url + "users"));
+    }
+
+    protected RequestWrapper userMultipart(int id) {
+        return wrap(MockMvcRequestBuilders.multipart(url + "users/{id}", id));
+    }
+
+    protected RequestWrapper postMultipart(int id) {
+        return wrap(MockMvcRequestBuilders.multipart(url + "users/posts/{id}", id));
+    }
+
+    protected RequestWrapper postMultipart(int rootId, int id) {
+        return wrap(MockMvcRequestBuilders.multipart(url + "users/{rootId}/posts/{id}", rootId, id));
+    }
+}

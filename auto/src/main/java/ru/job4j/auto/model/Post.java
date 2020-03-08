@@ -38,6 +38,10 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = PERSIST, orphanRemoval = true)
+    @JoinColumn(name = "image_id", unique = true)
+    private Image image;
+
     public Post(Integer id, String title, String message, Instant posted, Integer price, Car car, User user) {
         super(id);
         this.title = title;

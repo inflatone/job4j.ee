@@ -1,6 +1,7 @@
 DELETE FROM post;
 DELETE FROM users;
 
+DELETE FROM image;
 DELETE FROM car;
 
 DELETE FROM transmission;

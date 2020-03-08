@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS post;
 DROP TABLE IF EXISTS users;
 
+DROP TABLE IF EXISTS image;
 DROP TABLE IF EXISTS car;
 
 DROP TABLE IF EXISTS vendor;
@@ -46,6 +47,14 @@ CREATE UNIQUE INDEX transmission_unique_type_idx ON transmission (type);
 
 CREATE UNIQUE INDEX vendor_unique_name_idx ON vendor (name);
 
+CREATE TABLE image
+(
+    id           INTEGER PRIMARY KEY DEFAULT nextval('common_seq'),
+    file_name    VARCHAR(255) NOT NULL,
+    content_type VARCHAR(255) NOT NULL,
+    data         OID          NOT NULL
+);
+
 CREATE TABLE car
 (
     id              INTEGER PRIMARY KEY DEFAULT nextval('common_seq'),
@@ -66,7 +75,8 @@ CREATE TABLE users
     password   VARCHAR   NOT NULL,
     registered TIMESTAMP NOT NULL  DEFAULT now(),
     role       VARCHAR   NOT NULL,
-    enabled    BOOLEAN   NOT NULL  DEFAULT true
+    enabled    BOOLEAN   NOT NULL  DEFAULT true,
+    image_id   INTEGER REFERENCES image (id)
 );
 
 CREATE UNIQUE INDEX users_unique_login_idx ON users (login);
@@ -79,5 +89,6 @@ CREATE TABLE post
     posted    TIMESTAMP NOT NULL  DEFAULT now(),
     price     INTEGER,
     car_id    INTEGER   REFERENCES car (id) ON DELETE SET NULL,
+    image_id  INTEGER REFERENCES image (id),
     user_id   INTEGER   NOT NULL REFERENCES users (id) ON DELETE CASCADE
 );

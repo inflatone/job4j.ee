@@ -1,21 +1,35 @@
 package ru.job4j.auto;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.io.Resources;
+import one.util.streamex.StreamEx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultMatcher;
 import ru.job4j.auto.model.*;
 import ru.job4j.auto.web.converter.JsonHelper;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Throwables.getRootCause;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static ru.job4j.auto.TestModelData.*;
+import static ru.job4j.auto.service.ImageService.NO_IMAGE_RESOURCE;
 
 @Configuration
 public class EntityTestHelpers {
@@ -192,6 +206,90 @@ public class EntityTestHelpers {
                 return edited;
             }
         };
+    }
+
+    @Bean
+    public ImageEntityTestHelper imageEntityTestHelper(@Autowired Image defaultImage) {
+        return new ImageEntityTestHelper(jsonHelper, defaultImage);
+    }
+
+    @Bean("defaultImage")
+    public Image getDefaultImage() throws IOException {
+        return new Image(null, "noImage.jpg", MediaType.IMAGE_JPEG_VALUE,
+                Resources.toByteArray(Resources.getResource(NO_IMAGE_RESOURCE)));
+    }
+
+    public static class ImageEntityTestHelper extends BaseEntityTestHelper<Image> {
+        private static final Pattern FILENAME_REGEX = Pattern.compile("(?:filename=\")(.*)(?:\")");
+
+        private final Random random = new Random();
+
+        private final Image defaultImage;
+
+        public ImageEntityTestHelper(JsonHelper jsonHelper, Image defaultImage) {
+            super(jsonHelper, Image.class, new TypeReference<>() {}, false);
+            this.defaultImage = defaultImage;
+        }
+
+        public void assertDefault(Image actual) {
+            assertMatch(actual, defaultImage);
+        }
+
+        public ResultMatcher contentImage(Image expected) {
+            return result -> assertMatch(retrieveImage(result), expected, "id");
+        }
+
+        public ResultMatcher contentDefaultImage() {
+            return contentImage(defaultImage);
+        }
+
+        @Override
+        public ResultMatcher contentJson(Image expected) {
+            return result -> assertJsonImage(result, expected);
+        }
+
+        private void assertJsonImage(MvcResult result, Image expected) throws UnsupportedEncodingException {
+            Image actual = readFromJsonMvcResult(result);
+            assertNotNull(actual.getId(), "Image id must be inserted");
+            assertMatch(actual, expected, "id", "data");
+        }
+
+        private static Image retrieveImage(MvcResult result) {
+            var response = result.getResponse();
+            return new Image(null, retrieveFilename(response), response.getContentType(), response.getContentAsByteArray());
+        }
+
+        private static String retrieveFilename(MockHttpServletResponse response) {
+            return StreamEx.of(response.getHeaderValues("Content-Disposition"))
+                    .map(v -> {
+                        var m = FILENAME_REGEX.matcher((String) v);
+                        return m.find() ? m.group(1) : null;
+                    })
+                    .findFirst(Objects::nonNull)
+                    .orElseThrow(() -> new AssertionError("Filename of image must be set in response"));
+        }
+
+        @Override
+        protected Image doCopy(Image entity) {
+            return new Image(null, entity.getFileName(), entity.getContentType(), Arrays.copyOf(entity.getData(), entity.getData().length));
+        }
+
+        @Override
+        public Image newEntity() {
+            byte[] data = new byte[10000];
+            random.nextBytes(data);
+            return new Image(null, "Other.jpg", MediaType.IMAGE_JPEG_VALUE, data);
+
+        }
+
+        @Override
+        public Image editedEntity(Image image) {
+            var edited = doCopy(image);
+            edited.setFileName("edited.jpg");
+            edited.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            random.nextBytes(edited.getData());
+            return edited;
+        }
     }
 
     @Bean // only for entity/json matching

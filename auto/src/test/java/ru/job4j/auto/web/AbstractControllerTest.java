@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
@@ -13,12 +14,14 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import ru.job4j.auto.ActiveDbProfileResolver;
 import ru.job4j.auto.SpringMvcTestConfig;
+import ru.job4j.auto.model.Image;
 import ru.job4j.auto.model.User;
 
 import javax.annotation.PostConstruct;
@@ -103,6 +106,10 @@ public abstract class AbstractControllerTest {
         return wrap(delete(url));
     }
 
+    protected RequestWrapper doDelete(String urlTemplatePad, Object... uriVars) {
+        return wrap(delete(url + urlTemplatePad, uriVars));
+    }
+
     protected RequestWrapper doDelete(int id) {
         return wrap(delete(url + "{id}", id));
     }
@@ -128,6 +135,15 @@ public abstract class AbstractControllerTest {
             return this;
         }
 
+        public RequestWrapper attachImage(String name, Image image) {
+            if (builder.getClass() != MockMultipartHttpServletRequestBuilder.class) {
+                throw new IllegalStateException("This RequestWrapper doesn't support multipart");
+            }
+            var mockMultipartFile = new MockMultipartFile(name, image.getFileName(), image.getContentType(), image.getData());
+            ((MockMultipartHttpServletRequestBuilder) builder).file(mockMultipartFile);
+            return this;
+        }
+
         public RequestWrapper auth(User user) {
             builder.with(authentication(new UsernamePasswordAuthenticationToken(user.getLogin(), user.getPassword())));
             return this;
@@ -136,6 +152,10 @@ public abstract class AbstractControllerTest {
 
     public static ResultMatcher contentTypeIsJson() {
         return content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON);
+    }
+
+    public static ResultMatcher contentTypeIsJpg() {
+        return content().contentTypeCompatibleWith(MediaType.IMAGE_JPEG);
     }
 
     public static int getCreatedResourceId(MvcResult result) {
