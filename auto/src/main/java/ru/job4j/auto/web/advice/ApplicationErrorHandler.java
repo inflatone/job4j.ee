@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,6 +20,8 @@ import ru.job4j.auto.util.exception.IllegalRequestDataException;
 import ru.job4j.auto.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,6 +46,21 @@ public class ApplicationErrorHandler {
     @ExceptionHandler({IllegalRequestDataException.class, NotFoundException.class})
     public ResponseEntity<ErrorInfo> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e) {
         return logAndGetErrorInfo(request, e, false, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler(TransactionSystemException.class)
+    public ResponseEntity<ErrorInfo> transactionExceptionHandler(HttpServletRequest request, TransactionSystemException e) {
+        Throwable rootCause = getRootCause(e);
+        return rootCause.getClass() == ConstraintViolationException.class ?
+                constraintViolationHandler(request, (ConstraintViolationException) rootCause) :
+                defaultExceptionHandler(request, e);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorInfo> constraintViolationHandler(HttpServletRequest request, ConstraintViolationException e) {
+        Map<String, String> details = StreamEx.of(e.getConstraintViolations())
+                .toMap(cv -> cv.getPropertyPath().toString(), ConstraintViolation::getMessage, (first, second) -> first + "<br>" + second);
+        return logAndGetErrorInfo(request, e, false, HttpStatus.CONFLICT, "There're validation errors", details);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

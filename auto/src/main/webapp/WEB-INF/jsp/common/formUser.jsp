@@ -1,4 +1,4 @@
-<div class="modal fade" tabindex="-1" id="modalForm">
+<div class="modal fade" tabindex="-1" id="modalUserForm">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,26 +8,31 @@
 
             <div class="modal-body">
                 <form id="formUser" class="border border-light" novalidate>
-                    <input type="hidden" name="id" id="id"/>
+                    <input class="form-control" type="hidden" name="id" id="id"/>
 
-                    <div class="form-group">
+                    <div class="form-group" title="Login">
                         <label for="login" class="col-form-label"></label>
                         <input class="form-control" type="text" name="login" id="login" placeholder="Login">
                     </div>
 
-                    <p class="h7" id="passwordSwitcherLine" hidden><input type="checkbox" id="passwordSwitcher" onclick="enablePasswordChange($(this))"> Change password</p>
-
-                    <div class="form-group" id="passwordField">
-                        <label for="password" class="col-form-label"></label>
-                        <input class="form-control" type="password" name="password" id="password" placeholder="Password">
-                    </div>
-
-                    <div class="form-group">
+                    <div class="form-group" title="Name">
                         <label for="name" class="col-form-label"></label>
                         <input class="form-control" type="text" name="name" id="name" placeholder="Name">
                     </div>
 
-                    <div class="form-group" id="roleField">
+                    <div class="hideable-field" id="password-field">
+                        <div class="hideable-field-switcher">
+                            <input type="checkbox" onclick="showField($(this))">
+                            Change password
+                        </div>
+                        <div class="form-group" title="Password">
+                            <label for="password" class="col-form-label"></label>
+                            <input class="form-control" type="password" name="password" id="password"
+                                   placeholder="Password">
+                        </div>
+                    </div>
+
+                    <div class="form-group" title="Role">
                         <label for="role" class="col-form-label"></label>
                         <select class="form-control" name="role" id="role">
                         </select>
@@ -40,7 +45,7 @@
                     <span class="fa fa-close"></span>
                     Cancel
                 </button>
-                <button type="button" onclick="$('#formUser').submit();"  id="submitButton" class="btn btn-primary">
+                <button type="button" class="btn btn-primary form-submit">
                     <span class="fa fa-check"></span>
                     Save
                 </button>

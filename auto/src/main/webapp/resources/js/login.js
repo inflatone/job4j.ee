@@ -1,15 +1,14 @@
+const profileId = "";
+
 $(function () {
-    setContext({
-        url: profileUrl + "registration",
-        afterSuccess: function () {
-            $('#authLogin').val($('#login').val());
-            $('#authPassword').val($('#password').val());
-            login();
-        },
-        idRequired: false,
-        addUser: 'Registration',
-        editUser: ''
+    extendContext({
+        url: profileAjaxUrl + "registration",
+        afterUserDataModified: () => loginAs(userForm.find('input[name=login]').val(), userForm.find('input[name=password]').val()),
+        addUserFormTitle: 'Registration'
     });
+    if (alertMessage) {
+        alertNoty(alertMessage);
+    }
 });
 
 function loginAs(username, password) {

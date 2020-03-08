@@ -2,6 +2,7 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
 }
+
 th, td {
     vertical-align: central;
 }
@@ -29,4 +30,150 @@ body {
     background-color: #f2dede;
     border: 1px solid #ebccd1;
     text-align: center;
+}
+
+.errorText {
+    color: #9f3a38;
+}
+
+.listing-row__details {
+    font-size: 62.5%;
+    overflow: auto;
+    /*padding: 1.2rem;*/
+    -ms-flex: 1;
+    flex: 1;
+    position: relative
+}
+
+.listing-row__price {
+    font-size: 1.6em;
+    font-weight: 600;
+    color: #333;
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid #bfbfbf
+}
+
+.listing-row__posted {
+    color: #666;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    text-align: right;
+}
+
+.listing-row__mileage {
+    color: #666;
+    font-size: 1.0em;
+    white-space: nowrap;
+    /*padding-left: 8px;*/
+    /*margin-left: 8px;*/
+    /*border-left: 1px solid #bfbfbf*/
+}
+
+.listing-row__country {
+    color: #666;
+    font-size: 0.8em;
+    white-space: nowrap;
+    padding-left: 8px;
+    margin-left: 8px;
+    border-left: 1px solid #bfbfbf
+}
+
+ul.listing-row__meta {
+    font-size: 1.5em;
+    color: #333;
+    margin: 8px 0;
+    text-align: left;
+    width: 100%;
+    column-count: 2;
+    line-height: 20px
+}
+
+.listing-row__title {
+    font-size: 2.2em;
+    text-align: left;
+    font-weight: 600;
+    margin-bottom: 8px;
+    margin-top: 4px;
+    color: #333
+}
+
+.header-group {
+    float: right;
+    text-align: center;
+    min-width: 65%;
+}
+
+/* Set height of the grid so .sidenav can be 100% (adjust if needed) */
+.row.content {
+    height: 1500px
+}
+
+/* Set gray background color and 100% height */
+.sidenav {
+    background-color: #f1f1f1;
+    height: 100%;
+}
+
+/* Set black background color, white text and some padding */
+footer {
+    background-color: #555;
+    color: white;
+    padding: 15px;
+}
+
+/* On small screens, set height to 'auto' for sidenav and grid */
+@media screen and (max-width: 767px) {
+    .sidenav {
+        height: auto;
+        padding: 15px;
+    }
+
+    .row.content {
+        height: auto;
+    }
+}
+
+.data-body, .image-footer {
+@extend . card-footer;
+    padding: 1rem 0 0 0;
+}
+
+.container-page {
+    max-width: 900px;
+}
+
+#postTable_wrapper {
+    width: 100%;
+}
+
+.thead-middle {
+    color: #fff;
+    background-color: #343a40;
+    border-color: #343a40;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+    color: white !important;
+    background-color: green !important;
+}
+
+.btn-twin {
+    width: 50%;
+}
+
+.tip-text {
+    padding-left: 10px;
+    /*vertical-align: central;*/
+    border-left: 1px solid #bfbfbf;
+    vertical-align: bottom;
+
+    height: 105%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.user-thumbnail {
+    width: 120px
 }

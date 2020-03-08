@@ -1,99 +1,59 @@
-let userId, userImageId;
-
 $(function () {
-    fillUserData();
-    setUploadPhotoListener();
-    setContext({
-        url: profileUrl,
-        afterSuccess: function () {
-            $.get(profileUrl + profileId, fillProfile)
-        },
-        idRequired: (!!profileId),
-        addUser: '',
-        editUser: 'Edit profile'
+    extendContext({
+        url: profileAjaxUrl,
+        postUrl: postAjaxUrl + 'filter?user.id=' + profileId,
+
+        tableUrl: postAjaxUrl + 'filter?user.id=' + profileId,
+
+        imagePostUrl: modImagePostUrl,
+        paging: false,
+
+        afterUserDataModified: () => $.get(profileAjaxUrl + profileId, fillProfile),
+        editUserFormTitle: 'Edit profile'
     });
-    $('#formUserImage').attr('hidden', true);
+
+    fillUserData(editable);
 });
 
-function fillProfile(userData) {
-    $('#profileLogin').html(userData.login);
-    $('#profileName').html(userData.name);
-    $('#profileRole').html(userData.role);
+function fillProfile(data, inImmutable) {
+    const table = $('#table-profile');
+    table.find('.login').html(data.login);
+    table.find('.name').html(data.name);
+    table.find('.role').html(data.role);
+    if (inImmutable) {
+        table.find('.registered').html(timestampAsFormattedDate(data.registered, false, true));
+        table.find('.enabled').html(`<span style="margin: 2px 0 0 0" class="${data.enabled ? 'fa fa-check-circle' : 'fa fa-minus-circle'}"></span>`);
+    }
 }
 
-function fillUserData() {
-    $.get(profileUrl + profileId, function (userData) {
-        fillProfile(userData);
-        $('#id').attr('value', userData.id);
-        $('#profileRegistered').html(timestampAsFormattedDate(userData.registered, true, true));
-        $('#profileEnabled').html('<input type="checkbox" ' + (userData.enabled ? 'checked' : '') + ' disabled>');
-        userId = userData.id;
-        userImageId = userData.image ? userData.image.id : '';
-        updateImgSrc();
+function fillUserData(editable) {
+    $.get(profileAjaxUrl + profileId, userData => {
+        fillProfile(userData, true);
+        addImageGroup(userData, editable);
+        addUserEditRemoveButtonGroup(editable);
     });
 }
 
-function updateImgSrc() {
-    $('#image').attr('src', imageUrl + (userImageId ? userImageId : '') );
+function addImageGroup(data, editable) {
+    const imageId = data.image ? data.image.id : undefined;
+    const imageGroup = buildImageGroup("userPhoto", imageId, false, editable, modImageProfileUrl);
+    $('#user-data').prepend(imageGroup);
+}
+
+function addUserEditRemoveButtonGroup(editable) {
+    if (editable) {
+        const buttonGroup = buildEditDeleteButtonGroup('openUserEditForm()', 'doDelete()');
+        $('.data-body').append(buttonGroup);
+    }
 }
 
 function doDelete() {
-    if (confirm("Are you sure?")) {
+    confirmNoty(() => {
         $.ajax({
-            url: profileUrl + profileId,
+            url: profileAjaxUrl + profileId,
             type: 'DELETE'
         }).done(function () {
             window.location.href = "users";
         })
-    }
-}
-
-function saveImage() {
-    if (!$(".custom-file-label").hasClass('selected')) {
-        alertNoty('Image is not selected');
-    } else {
-        $.ajax({
-            url: imageUrl + 'users/' + profileId,
-            type: 'POST',
-            encType: "multipart/form-data",
-            data: new FormData(document.getElementById("imageForm")),
-            cache: false,
-            processData: false,
-            contentType: false
-        }).done(function (data) {
-            userImageId = data.id;
-            imageSuccess();
-            successNoty('Image updated');
-        });
-    }
-}
-
-function imageSuccess() {
-    // https://stackoverflow.com/a/3228167
-    updateImgSrc();
-    $('#imageFile').val('');
-    $(".custom-file-label").removeClass('selected').html('Choose file');
-}
-
-function deleteImage() {
-    if (userImageId == undefined) {
-        alertNoty('User has no picture');
-    } else {
-        $.ajax({
-            url: imageUrl + 'users/' + userId,
-            type: 'DELETE'
-        }).done(function () {
-            userImageId = undefined;
-            imageSuccess();
-            successNoty('Image deleted');
-        })
-    }
-}
-
-// https://www.w3schools.com/bootstrap4/bootstrap_forms_custom.asp
-function setUploadPhotoListener() {
-    $(".custom-file-input").on("change", function () {
-        var fileName = $(this).val().split("\\").pop();
-        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
     });
 }

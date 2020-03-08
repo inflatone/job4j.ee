@@ -29,7 +29,6 @@ public class ProfileController extends AbstractUserController {
         return find(SecurityHelper.authUserId());
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public User find(@PathVariable int id) {
         return super.find(id);
