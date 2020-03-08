@@ -88,6 +88,7 @@ CREATE TABLE post
     message   VARCHAR(2000),
     posted    TIMESTAMP DEFAULT now() NOT NULL,
     price     INTEGER,
+    completed BOOLEAN   DEFAULT false NOT NULL,
     car_id    INTEGER                 REFERENCES car (id) ON DELETE SET NULL,
     image_id  INTEGER REFERENCES image (id),
     user_id   INTEGER                 NOT NULL REFERENCES users (id) ON DELETE CASCADE

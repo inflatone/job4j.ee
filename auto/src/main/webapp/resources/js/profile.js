@@ -13,6 +13,7 @@ $(function () {
     });
 
     fillUserData(editable);
+    initPostLogic(postTableCtx(editable));
 });
 
 function fillProfile(data, inImmutable) {
@@ -56,4 +57,26 @@ function doDelete() {
             window.location.href = "users";
         })
     });
+}
+
+function postTableCtx(editable) {
+    return {
+        "columns": [
+            {
+                "defaultContent": "Message",
+                "render": function (data, type, row) {
+                    return type === 'display' || type === 'filter' ? buildPostMessage(row, editable) : row.posted;
+                }
+            }
+        ],
+        "order": [
+            [0, "desc"]
+        ],
+        "createdRow": function (row, data, dataIndex) {
+            $(row).attr("active", !data.completed);
+        },
+        "language": {
+            "emptyTable": "No post available yet"
+        }
+    }
 }

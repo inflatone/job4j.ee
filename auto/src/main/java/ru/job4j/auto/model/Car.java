@@ -3,8 +3,13 @@ package ru.job4j.auto.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Range;
+import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "car")
@@ -15,27 +20,35 @@ import javax.persistence.*;
 public class Car extends BaseEntity {
     public static final String WITH_DETAILS = "graph: car c join details";
 
+    @NotNull(message = "must be chosen")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
 
+    @NotEmpty
     @Column(name = "model", nullable = false)
     private String model;
 
+    @NotNull(message = "must be set")
+    @Range(min = 1950, max = 2020, message = "choose correct year (1950 — 2020)")
     @Column(name = "year", nullable = false)
     private Integer year;
 
+    @NotNull(message = "must be set")
     @Column(name = "mileage", nullable = false, columnDefinition = "integer default 0")
     private Integer mileage;
 
+    @NotNull(message = "must be chosen")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "body_id", nullable = false)
     private Body body;
 
+    @NotNull(message = "must be chosen")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "engine_id", nullable = false)
     private Engine engine;
 
+    @NotNull(message = "must be chosen")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transmission_id", nullable = false)
     private Transmission transmission;

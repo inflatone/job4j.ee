@@ -1,5 +1,6 @@
 $(function () {
     $('#addUser').prop('hidden', false);
+    $('#addPost').prop('hidden', true);
 
     extendContext({
         url: adminAjaxUrl,

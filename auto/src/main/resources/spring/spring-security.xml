@@ -17,7 +17,7 @@
         <intercept-url pattern="/**/admin/**" access="hasAuthority('ADMIN')"/>
         <intercept-url pattern="/**" access="isAuthenticated()"/>
 
-        <form-login login-page="/login" default-target-url="/profile"
+        <form-login login-page="/login" default-target-url="/posts"
                     authentication-failure-url="/login?error=true"
                     login-processing-url="/security"/>
         <logout logout-success-url="/login"/>
