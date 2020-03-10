@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -cp users/target/classes/:users/target/dependency/* webapp.runner.launch.Main users/target/*.war --enable-naming  --port $PORT
