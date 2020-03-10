@@ -64,6 +64,73 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>heroku</id>
+
+            <properties>
+                <db.driver>${postgres.driver}</db.driver>
+                <db.url>jdbc:postgresql://ec2-54-217-225-16.eu-west-1.compute.amazonaws.com:5432/d2lsr4h5a7pl6d</db.url>
+                <db.username>mgspopxdcjavzz</db.username>
+                <db.password>6563a20199420a532e6532bbae4152aa0a989ccd3fb5aa1261cda39ab56f7f5d</db.password>
+                <db.validationQuery>${postgres.validationQuery}</db.validationQuery>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <executions>
+                            <!--https://devcenter.heroku.com/articles/deploying-java-->
+                            <execution>
+                                <id>copy-dependencies</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeScope>runtime</includeScope>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <!--https://github.com/jsimone/webapp-runner#using-without-memcached-or-redis-->
+                                        <artifactItem>
+                                            <groupId>com.github.jsimone</groupId>
+                                            <artifactId>webapp-runner-main</artifactId>
+                                            <version>${tomcat.version}.1</version>
+                                            <destFileName>webapp-runner.jar</destFileName>
+                                        </artifactItem>
+
+                                        <!-- WebApp Runner's Tomcat do not contains these necessary artifacts -->
+                                        <artifactItem>
+                                            <groupId>org.apache.tomcat</groupId>
+                                            <artifactId>tomcat-dbcp</artifactId>
+                                            <version>${tomcat.version}</version>
+                                            <destFileName>tomcat-dbcp.jar</destFileName>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>org.postgresql</groupId>
+                                            <artifactId>postgresql</artifactId>
+                                            <version>${postgresql.version}</version>
+                                            <destFileName>postgresql.jar</destFileName>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
