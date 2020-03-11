@@ -1,13 +1,11 @@
 package ru.job4j.vacancy;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.quartz.ObjectAlreadyExistsException;
 import org.slf4j.Logger;
 import ru.job4j.vacancy.TestUtil.JobExample;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -15,9 +13,6 @@ import static org.mockito.Mockito.mock;
 import static ru.job4j.vacancy.TestUtil.asFullPathString;
 
 public class VacancyCollectorTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testStart() throws Exception {
@@ -31,9 +26,8 @@ public class VacancyCollectorTest {
     @Test
     public void testStartWithoutProperties() throws Exception {
         VacancyCollector collector = new VacancyCollector(new String[]{});
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("need single *.properties file path at least");
-        collector.start(JobExample.class);
+        var thrown = assertThrows(IllegalArgumentException.class, () -> collector.start(JobExample.class));
+        assertEquals("need single *.properties file path at least", thrown.getMessage());
         collector.shutdown(false);
     }
 

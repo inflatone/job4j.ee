@@ -2,6 +2,7 @@ package ru.job4j.vacancy.jsoup;
 
 import com.google.common.base.Strings;
 import one.util.streamex.StreamEx;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -17,7 +18,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static ru.job4j.vacancy.util.JsoupHelper.Filters.DEFAULT_FILTER;
-import static ru.job4j.vacancy.util.JsoupHelper.buildDocument;
 
 /**
  * Represents template to create real site parsers
@@ -27,6 +27,8 @@ import static ru.job4j.vacancy.util.JsoupHelper.buildDocument;
  * @since 2019-08-14
  */
 public abstract class AbstractJsoupProcessor implements JsoupProcessor {
+    public static final String USER_AGENT = "Mozilla/5.0 (jsoup)";
+
     final Logger log = LoggerFactory.getLogger(getClass());
 
     protected String searchWord = "";
@@ -119,6 +121,20 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
             }
         }
         return result;
+    }
+
+    /**
+     * Forms html document for further parsing
+     *
+     * @param url url
+     * @return jsoup document
+     * @throws IOException if the input-output error occurs
+     */
+    Document buildDocument(String url) throws IOException {
+        return Jsoup.connect(url)
+                .userAgent(USER_AGENT)
+                .referrer("")
+                .get();
     }
 
     /**

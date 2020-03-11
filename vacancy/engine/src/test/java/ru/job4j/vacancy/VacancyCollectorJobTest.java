@@ -1,8 +1,6 @@
 package ru.job4j.vacancy;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -16,13 +14,12 @@ import java.util.Map;
 import java.util.Properties;
 
 import static com.google.common.io.Resources.getResource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class VacancyCollectorJobTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @Test
     public void testExecuteWithInvalidDriver() {
         Map<String, Object> properties = Map.of(
@@ -39,10 +36,9 @@ public class VacancyCollectorJobTest {
         when(mockJob.getJobDataMap()).thenReturn(new JobDataMap(properties));
 
         when(mockCtx.getJobDetail()).thenReturn(mockJob);
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("JDBC driver not found");
 
-        job.execute(mockCtx);
+        var thrown = assertThrows(IllegalStateException.class, () -> job.execute(mockCtx));
+        assertEquals("JDBC driver not found", thrown.getMessage());
     }
 
     @Test
@@ -61,8 +57,7 @@ public class VacancyCollectorJobTest {
         when(mockJob.getJobDataMap()).thenReturn(new JobDataMap(properties));
         when(mockCtx.getJobDetail()).thenReturn(mockJob);
 
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("test connection error");
-        job.execute(mockCtx);
+        var thrown = assertThrows(IllegalStateException.class, () -> job.execute(mockCtx));
+        assertEquals("test connection error", thrown.getMessage());
     }
 }

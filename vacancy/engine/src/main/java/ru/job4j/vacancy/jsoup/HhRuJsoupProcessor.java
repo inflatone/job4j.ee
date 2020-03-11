@@ -25,8 +25,7 @@ public class HhRuJsoupProcessor extends AbstractJsoupProcessor {
     private static final String URL_TEMPLATE
             = "http://hh.ru/search/vacancy?text=%s&page=%d&items_on_page=100&order_by=publication_time";
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d MMMM")
-            .localizedBy(Locale.forLanguageTag("ru"));
+    static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d MMMM", Locale.forLanguageTag("ru"));
 
     @Override
     boolean anyMorePages(int i) {

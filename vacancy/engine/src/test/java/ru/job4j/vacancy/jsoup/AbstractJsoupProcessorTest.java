@@ -1,14 +1,8 @@
 package ru.job4j.vacancy.jsoup;
 
 import org.jsoup.nodes.Element;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.Test;
 import ru.job4j.vacancy.model.VacancyData;
-import ru.job4j.vacancy.util.JsoupHelper;
 import ru.job4j.vacancy.util.JsoupHelper.Filters;
 
 import java.io.IOException;
@@ -16,22 +10,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.spy;
 import static ru.job4j.vacancy.TestUtil.LIMIT_DATE;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({JsoupHelper.class})
-// Powermock problem with jdk9 modules https://github.com/powermock/powermock/issues/864#issuecomment-447001997
-@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public abstract class AbstractJsoupProcessorTest {
     private final VacancyData expectedVacancy;
-    private final AbstractJsoupProcessor processor;
+    final AbstractJsoupProcessor processor;
     final JsoupProcessorTester tester;
 
     AbstractJsoupProcessorTest(AbstractJsoupProcessor processor, VacancyData expectedVacancy) {
-        this.processor = processor;
-        this.tester = new JsoupProcessorTester(processor);
+        this.processor = spy(processor);
+        this.tester = new JsoupProcessorTester(this.processor);
         this.expectedVacancy = expectedVacancy;
     }
 
@@ -40,11 +30,6 @@ public abstract class AbstractJsoupProcessorTest {
     abstract void mockDocument() throws IOException;
 
     abstract void mockEmptyDocument() throws IOException;
-
-    @Before
-    public void setUp() throws IOException {
-        mockStatic(JsoupHelper.class);
-    }
 
     @Test
     public void processPage() throws IOException {

@@ -3,7 +3,7 @@ package ru.job4j.vacancy.jsoup;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.job4j.vacancy.model.VacancyData;
 
 import java.io.IOException;
@@ -11,8 +11,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static java.time.LocalDate.now;
-import static org.mockito.BDDMockito.given;
-import static ru.job4j.vacancy.util.JsoupHelper.buildDocument;
+import static org.mockito.Mockito.doAnswer;
+import static ru.job4j.vacancy.jsoup.HhRuJsoupProcessor.FORMATTER;
 
 public class HhRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     private static final VacancyData EXPECTED_VACANCY_HH_RU = new VacancyData(
@@ -56,14 +56,16 @@ public class HhRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
 
     @Override
     void mockDocument() throws IOException {
-        given(buildDocument("http://hh.ru/search/vacancy?text=&page=0&items_on_page=100&order_by=publication_time"))
-                .willReturn(MOCK_PAGE_HH_RU);
+        doAnswer(invocation -> MOCK_PAGE_HH_RU)
+                .when(processor)
+                .buildDocument("http://hh.ru/search/vacancy?text=&page=0&items_on_page=100&order_by=publication_time");
     }
 
     @Override
     void mockEmptyDocument() throws IOException {
-        given(buildDocument("http://hh.ru/search/vacancy?text=&page=0&items_on_page=100&order_by=publication_time"))
-                .willReturn(EMPTY_MOCK_PAGE_HH_RU);
+        doAnswer(invocation -> EMPTY_MOCK_PAGE_HH_RU)
+                .when(processor)
+                .buildDocument("http://hh.ru/search/vacancy?text=&page=0&items_on_page=100&order_by=publication_time");
     }
 
     // unit tests
@@ -139,12 +141,11 @@ public class HhRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     @Test
-    public void parseDateTimeEndOfYear() {
-        LocalDate endOfYear = dateOf(12, 31);
-        if (!LocalDate.now().isEqual(endOfYear)) { // test won't be succeeded on 31 DEC — should skip it
-            tester.parseDate(endOfYear.minusYears(1), // should be parsed as last year date
-                    "31 декабря");
-        }
+    public void parseDateTimeLaterThenToday() {
+        var laterThanTodayDate = now().plusDays(50);
+        var dateTimeLine = laterThanTodayDate.format(FORMATTER);
+        tester.parseDate(laterThanTodayDate.minusYears(1),
+                dateTimeLine);
     }
 
     @Test
@@ -176,6 +177,8 @@ public class HhRuJsoupProcessorTest extends AbstractJsoupProcessorTest {
     }
 
     private LocalDate dateOf(int month, int dayOfMonth) {
-        return LocalDate.of(now().getYear(), month, dayOfMonth);
+        var now = now();
+        var result = LocalDate.of(now.getYear(), month, dayOfMonth);
+        return result.isAfter(now) ? result.minusYears(1) : result;
     }
 }

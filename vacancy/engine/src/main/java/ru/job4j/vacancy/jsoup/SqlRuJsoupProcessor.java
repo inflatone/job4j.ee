@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ru.job4j.vacancy.util.JsoupHelper.buildDocument;
-
 /**
  * Represents program strategy of sql.ru parsing
  *
