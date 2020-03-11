@@ -7,6 +7,8 @@ import ru.job4j.vacancy.util.JsoupHelper.Filters;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -26,7 +28,7 @@ public class ManualTest {
     private static List<VacancyData> getVacancies(JsoupProcessor processor) {
         processor.submitSearchFilter(Filters::javaFilter);
         processor.submitSearchWord("java");
-        LocalDateTime dateLimit = LocalDateTime.now().with(LocalTime.MIN).minusYears(20);
+        ZonedDateTime dateLimit = LocalDateTime.now().with(LocalTime.MIN).minusYears(20).atZone(ZoneId.systemDefault());
         return processor.parseVacancies(dateLimit);
     }
 }

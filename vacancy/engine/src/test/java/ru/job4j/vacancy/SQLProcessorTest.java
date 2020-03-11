@@ -5,7 +5,7 @@ import ru.job4j.vacancy.model.VacancyData;
 import ru.job4j.vacancy.sql.SQLProcessor;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,7 +18,7 @@ public class SQLProcessorTest {
     public void testGetLastDateFirstTime() throws SQLException {
         try (ConnectionHolder holder = connect()) {
             SQLProcessor processor = new SQLProcessor(holder);
-            LocalDateTime lastDate = processor.lastExecuteDate();
+            ZonedDateTime lastDate = processor.lastExecuteDate();
             assertEquals(firstDayOfYear(), lastDate);
         }
     }
@@ -27,9 +27,9 @@ public class SQLProcessorTest {
     public void testGetLastDateAfterCollect() throws SQLException {
         try (ConnectionHolder holder = connect()) {
             SQLProcessor processor = new SQLProcessor(holder);
-            LocalDateTime now = now();
+            ZonedDateTime now = now();
             processor.addAll(List.of(NEW_VACANCY), now);
-            LocalDateTime newLastDate = processor.lastExecuteDate();
+            ZonedDateTime newLastDate = processor.lastExecuteDate();
             assertEquals(now, newLastDate);
         }
     }
@@ -40,7 +40,7 @@ public class SQLProcessorTest {
         SQLProcessor processor = new SQLProcessor(holder);
         processor.addAll(VACANCIES, now());
         holder.close();
-        LocalDateTime lastDate = processor.lastExecuteDate();
+        ZonedDateTime lastDate = processor.lastExecuteDate();
         assertEquals(firstDayOfYear(), lastDate);
     }
 
@@ -92,7 +92,7 @@ public class SQLProcessorTest {
     public void testAddAllConstraintConflict() throws SQLException {
         try (ConnectionHolder holder = connect()) {
             SQLProcessor processor = new SQLProcessor(holder);
-            LocalDateTime now = now(); // date unique constraint
+            ZonedDateTime now = now(); // date unique constraint
             processor.addAll(VACANCIES, now);
             int amount = processor.addAll(List.of(NEW_VACANCY), now);
             assertEquals(0, amount);

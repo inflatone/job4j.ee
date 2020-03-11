@@ -7,9 +7,8 @@ import org.mockito.invocation.InvocationOnMock;
 import ru.job4j.vacancy.model.VacancyData;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -36,7 +35,7 @@ public class JsoupProcessorTester {
 
     void mainLoopCountCircles(int expectedCount, Predicate<Integer> iterationEscape) throws IOException {
         List<VacancyData> vacancies = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
+        ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.systemDefault());
         AbstractJsoupProcessor mockProcessor = mock(processor.getClass());
         final int[] counter = {0};
         when(mockProcessor.processPage(anyList(), anyInt(), any())).thenAnswer(invocation -> {
@@ -70,12 +69,13 @@ public class JsoupProcessorTester {
     }
 
     void parseDate(LocalDate expected, String dateLine) {
-        parseDateTime(expected, LocalTime.MIN, dateLine);
+        parseDateTime(expected, LocalTime.now().truncatedTo(ChronoUnit.MINUTES), dateLine);
     }
 
     void parseDateTime(LocalDate expectedDate, LocalTime expectedTime, String dateTimeLine) {
         var dateTime = processor.parseDateTime(dateTimeLine);
-        assertEquals(LocalDateTime.of(expectedDate, expectedTime), dateTime);
+        //dateTime.toLocalDateTime()
+        assertEquals(ZonedDateTime.of(LocalDateTime.of(expectedDate, expectedTime), ZoneId.systemDefault()), dateTime);
     }
 
     void grabLink(String expected, Element row) {

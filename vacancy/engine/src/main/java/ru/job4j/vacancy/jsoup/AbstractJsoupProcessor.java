@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import ru.job4j.vacancy.model.VacancyData;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +47,7 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
 
     abstract String grabDateTime(Element row);
 
-    abstract LocalDateTime parseDateTime(String dateLine);
+    abstract ZonedDateTime parseDateTime(String dateLine);
 
     abstract String grabLink(Element row);
 
@@ -69,7 +69,7 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
     }
 
     @Override
-    public List<VacancyData> parseVacancies(LocalDateTime dateLimit) {
+    public List<VacancyData> parseVacancies(ZonedDateTime dateLimit) {
         List<VacancyData> vacancies = new ArrayList<>();
         try {
             mainLoop(vacancies, dateLimit);
@@ -92,7 +92,7 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
      * @param dateLimit date limiter
      * @throws IOException if the input-output error occurs
      */
-    void mainLoop(List<VacancyData> buffer, LocalDateTime dateLimit) throws IOException {
+    void mainLoop(List<VacancyData> buffer, ZonedDateTime dateLimit) throws IOException {
         int i = 0;
         do {
             i++;
@@ -108,7 +108,7 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
      * @return true if it needs to be continued on next page
      * @throws IOException if the input-output error occurs
      */
-    boolean processPage(List<VacancyData> buffer, int pageNumber, LocalDateTime dateLimit) throws IOException {
+    boolean processPage(List<VacancyData> buffer, int pageNumber, ZonedDateTime dateLimit) throws IOException {
         String link = buildPageLink(pageNumber);
         log.info("Trying to get access to the next page: {}", link);
         Document doc = buildDocument(link);
@@ -146,7 +146,7 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
      * @return true if it needs to be continued on next row
      * @throws IOException if the input-output error occurs
      */
-    boolean processRow(List<VacancyData> buffer, Element row, LocalDateTime dateLimit) throws IOException {
+    boolean processRow(List<VacancyData> buffer, Element row, ZonedDateTime dateLimit) throws IOException {
         boolean result = true;
         var date = parseDateTime(grabDateTime(row));
         if (!date.isBefore(dateLimit)) {
@@ -166,7 +166,7 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
      * @return optional of vacancy if it fits
      * @throws IOException if the input-output error occurs
      */
-    Optional<VacancyData> grabRow(Element row, LocalDateTime dateTime) throws IOException {
+    Optional<VacancyData> grabRow(Element row, ZonedDateTime dateTime) throws IOException {
         VacancyData result = null;
         var title = composeTitle(row);
         if (titleFilter.test(title)) {

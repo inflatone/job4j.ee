@@ -5,9 +5,8 @@ import org.quartz.JobExecutionContext;
 import ru.job4j.vacancy.sql.ConnectionFactory;
 import ru.job4j.vacancy.sql.SQLUtil;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 
@@ -25,8 +24,8 @@ public class Util {
     private Util() {
     }
 
-    public static LocalDateTime now() {
-        return LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+    public static ZonedDateTime now() {
+        return ZonedDateTime.now().truncatedTo(ChronoUnit.MINUTES);
     }
 
     /**
@@ -34,8 +33,8 @@ public class Util {
      *
      * @return date-before limiter
      */
-    public static LocalDateTime firstDayOfYear() {
-        return LocalDateTime.of(LocalDate.now().with(TemporalAdjusters.firstDayOfYear()), LocalTime.MIN);
+    public static ZonedDateTime firstDayOfYear() {
+        return ZonedDateTime.now().with(TemporalAdjusters.firstDayOfYear()).truncatedTo(ChronoUnit.DAYS);
     }
 
     /**

@@ -5,9 +5,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -59,8 +61,10 @@ public class HabrCareerJsoupProcessor extends AbstractJsoupProcessor {
     }
 
     @Override
-    LocalDateTime parseDateTime(String dateLine) {
-        return LocalDateTime.of(LocalDate.parse(dateLine, FORMATTER), LocalTime.MIN);
+    ZonedDateTime parseDateTime(String dateLine) {
+        return ZonedDateTime.of(
+                LocalDate.parse(dateLine, FORMATTER), LocalTime.now().truncatedTo(ChronoUnit.MINUTES),
+                ZoneId.systemDefault());
     }
 
     @Override

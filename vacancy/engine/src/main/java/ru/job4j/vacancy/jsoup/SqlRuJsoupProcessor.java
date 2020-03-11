@@ -8,8 +8,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
@@ -82,10 +83,10 @@ public class SqlRuJsoupProcessor extends AbstractJsoupProcessor {
     }
 
     @Override
-    LocalDateTime parseDateTime(String dateTimeLine) {
+    ZonedDateTime parseDateTime(String dateTimeLine) {
         String[] dateTime = dateTimeLine.split(", ");
-        return LocalDateTime.of(
-                parseDate(dateTime[0]), LocalTime.parse(dateTime[1]));
+        return ZonedDateTime.of(
+                parseDate(dateTime[0]), LocalTime.parse(dateTime[1]), ZoneId.systemDefault());
     }
 
     private LocalDate parseDate(String dateLine) {
