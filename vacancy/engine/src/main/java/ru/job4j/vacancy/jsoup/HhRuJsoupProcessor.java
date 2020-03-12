@@ -3,6 +3,7 @@ package ru.job4j.vacancy.jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import ru.job4j.vacancy.model.SourceTitle;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,7 +13,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Locale;
 
 import static java.lang.String.format;
@@ -31,14 +31,19 @@ public class HhRuJsoupProcessor extends AbstractJsoupProcessor {
     static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d MMMM", Locale.forLanguageTag("ru"));
 
     @Override
+    public SourceTitle getSourceTitle() {
+        return SourceTitle.hh_ru;
+    }
+
+    @Override
     boolean anyMorePages(int i) {
         // hh.ru submits only 0-19 pages (in case "100 vacancies per page"), then returns 404 http status
         return i < 20;
     }
 
     @Override
-    String buildPageLink(int page) {
-        return format(URL_TEMPLATE, searchWord, page - 1); // hh.ru starts with 0 page
+    String buildPageLink(int page, ParseParameters params) {
+        return format(URL_TEMPLATE, params.getSearchQuery(), page - 1); // hh.ru starts with 0 page
     }
 
     @Override
@@ -50,8 +55,9 @@ public class HhRuJsoupProcessor extends AbstractJsoupProcessor {
     }
 
     @Override
-    String grabTitle(Element row) {
-        return getDataQaText(row, "vacancy-serp__vacancy-title");
+    String grabTitleIfValid(Element row, ParseParameters params) {
+        var result = getDataQaText(row, "vacancy-serp__vacancy-title");
+        return params.isValidTitle(result) ? result : null;
     }
 
     @Override

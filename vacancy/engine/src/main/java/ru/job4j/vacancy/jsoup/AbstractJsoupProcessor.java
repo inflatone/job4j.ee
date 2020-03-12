@@ -9,15 +9,15 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.job4j.vacancy.model.VacancyData;
+import ru.job4j.vacancy.util.ExceptionUtil;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
-import static ru.job4j.vacancy.util.JsoupHelper.Filters.DEFAULT_FILTER;
+import static ru.job4j.vacancy.util.TimeUtil.asLine;
 
 /**
  * Represents template to create real site parsers
@@ -31,15 +31,11 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
 
     final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected String searchWord = "";
-
-    private Predicate<String> titleFilter = DEFAULT_FILTER;
-
-    abstract String buildPageLink(int page);
+    abstract String buildPageLink(int page, ParseParameters params);
 
     abstract Elements getAllVacancyRowsOnPage(Document doc);
 
-    abstract String grabTitle(Element row);
+    abstract String grabTitleIfValid(Element row, ParseParameters params);
 
     abstract String grabCity(Element row);
 
@@ -64,39 +60,25 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
     }
 
     @Override
-    public void submitSearchWord(String word) {
-        this.searchWord = word == null ? "" : word.toLowerCase();
-    }
-
-    @Override
-    public List<VacancyData> parseVacancies(ZonedDateTime dateLimit) {
+    public List<VacancyData> parseVacancies(ParseParameters params) {
         List<VacancyData> vacancies = new ArrayList<>();
-        try {
-            mainLoop(vacancies, dateLimit);
-        } catch (Exception e) {
-            log.error("Error occurs due html page parsing", e);
-        }
-        log.info("Find and parse {} new vacancies after {}", vacancies.size(), dateLimit);
+        ExceptionUtil.handleRun(() -> mainLoop(vacancies, params));
+        log.info("Found and parsed {} vacancy(ies) between {}", vacancies.size(), params.getDateRangeAsLine());
         return vacancies;
-    }
-
-    @Override
-    public void submitSearchFilter(Predicate<String> filter) {
-        this.titleFilter = filter != null ? filter : DEFAULT_FILTER;
     }
 
     /**
      * Represents main loop of vacancy parser that processes page after page of the job-offers sql.ru forum section
      *
-     * @param buffer    vacancy buffer
-     * @param dateLimit date limiter
+     * @param buffer vacancy buffer
+     * @param params parse params
      * @throws IOException if the input-output error occurs
      */
-    void mainLoop(List<VacancyData> buffer, ZonedDateTime dateLimit) throws IOException {
+    void mainLoop(List<VacancyData> buffer, ParseParameters params) throws IOException {
         int i = 0;
         do {
             i++;
-        } while (processPage(buffer, i, dateLimit) && anyMorePages(i));
+        } while (processPage(buffer, i, params) && anyMorePages(i));
     }
 
     /**
@@ -104,18 +86,18 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
      *
      * @param buffer     vacancy buffer
      * @param pageNumber html page num
-     * @param dateLimit  date limiter
+     * @param params     parse params
      * @return true if it needs to be continued on next page
      * @throws IOException if the input-output error occurs
      */
-    boolean processPage(List<VacancyData> buffer, int pageNumber, ZonedDateTime dateLimit) throws IOException {
-        String link = buildPageLink(pageNumber);
+    boolean processPage(List<VacancyData> buffer, int pageNumber, ParseParameters params) throws IOException {
+        String link = buildPageLink(pageNumber, params);
         log.info("Trying to get access to the next page: {}", link);
         Document doc = buildDocument(link);
         Elements rows = getAllVacancyRowsOnPage(doc);
         boolean result = !rows.isEmpty(); // no more vacancies: stop vacancy processing
         for (Element row : rows) {
-            if (!processRow(buffer, row, dateLimit)) {
+            if (!processRow(buffer, row, params)) {
                 result = false; // datelimit: stop vacancy processing
                 break;
             }
@@ -140,22 +122,22 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
     /**
      * Processes the html table row to add in buffer next parsed vacancy if its valid
      *
-     * @param buffer    vacancy buffer
-     * @param row       html table row
-     * @param dateLimit date limiter
+     * @param buffer vacancy buffer
+     * @param row    html table row
+     * @param params parse params
      * @return true if it needs to be continued on next row
      * @throws IOException if the input-output error occurs
      */
-    boolean processRow(List<VacancyData> buffer, Element row, ZonedDateTime dateLimit) throws IOException {
-        boolean result = true;
+    boolean processRow(List<VacancyData> buffer, Element row, ParseParameters params) throws IOException {
         var date = parseDateTime(grabDateTime(row));
-        if (!date.isBefore(dateLimit)) {
-            grabRow(row, date).ifPresent(buffer::add);
-        } else {
-            result = false; // datelimit: stop vacancy processing
-            log.info("The date limit has been reached ({}): {}", dateLimit, date);
+        if (params.isReachLimit(date)) {
+            log.info("The date limit has been reached ({}): {}", asLine(params.getStart()), asLine(date));
+            return false;
         }
-        return result;
+        if (params.isInRange(date)) {
+            grabRow(row, date, params).ifPresent(buffer::add);
+        }
+        return true;
     }
 
     /**
@@ -163,13 +145,14 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
      *
      * @param row      html table row
      * @param dateTime row date
+     * @param params   parse params
      * @return optional of vacancy if it fits
      * @throws IOException if the input-output error occurs
      */
-    Optional<VacancyData> grabRow(Element row, ZonedDateTime dateTime) throws IOException {
+    Optional<VacancyData> grabRow(Element row, ZonedDateTime dateTime, ParseParameters params) throws IOException {
         VacancyData result = null;
-        var title = composeTitle(row);
-        if (titleFilter.test(title)) {
+        var title = checkAndComposeTitle(row, params);
+        if (title != null) {
             var link = grabLink(row);
             var description = grabDescription(row);
             result = new VacancyData(title, link, description, dateTime);
@@ -179,15 +162,20 @@ public abstract class AbstractJsoupProcessor implements JsoupProcessor {
     }
 
     /**
-     * Composed the complex vacancy title (to prevent duplicate titles) based on vacancy's title, company, and city
+     * Composes the complex vacancy title (to prevent duplicate titles) based on vacancy's title, company, and city
+     * Validates the result to be fitted with the given parse params as well
      *
      * @param row vacancy row
-     * @return vacancy title
+     * @return vacancy title or null if it's not valid
      */
-    String composeTitle(Element row) {
+    String checkAndComposeTitle(Element row, ParseParameters params) {
+        var title = grabTitleIfValid(row, params);
+        if (title == null) {
+            return null;
+        }
         String cityPlusCompany = StreamEx.of(grabCity(row), grabCompany(row))
                 .filter(s -> !Strings.isNullOrEmpty(s))
                 .joining(", ", "(", ")");
-        return grabTitle(row) + (cityPlusCompany.length() > 2 ? ' ' + cityPlusCompany : "");
+        return title + (cityPlusCompany.length() > 2 ? ' ' + cityPlusCompany : "");
     }
 }

@@ -3,6 +3,7 @@ package ru.job4j.vacancy.jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import ru.job4j.vacancy.model.SourceTitle;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,14 +24,19 @@ import static java.lang.String.format;
  * @since 2019-08-15
  */
 public class HabrCareerJsoupProcessor extends AbstractJsoupProcessor {
-    private static final String SITE_NAME = "https://moikrug.ru";
-    private static final String URL_TEMPLATE = "https://moikrug.ru/vacancies?q=%s&page=%d&sort=date";
+    private static final String SITE_NAME = "https://career.habr.com";
+    private static final String URL_TEMPLATE = "https://career.habr.com/vacancies?q=%s&page=%d&sort=date";
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("ru"));
 
     @Override
-    String buildPageLink(int page) {
-        return format(URL_TEMPLATE, searchWord, page);
+    public SourceTitle getSourceTitle() {
+        return SourceTitle.habr_com;
+    }
+
+    @Override
+    String buildPageLink(int page, ParseParameters params) {
+        return format(URL_TEMPLATE, params.getSearchQuery(), page);
     }
 
     @Override
@@ -39,10 +45,12 @@ public class HabrCareerJsoupProcessor extends AbstractJsoupProcessor {
     }
 
     @Override
-    String grabTitle(Element row) {
-        String title = getInnerClassText(row, "title");
-        // e.g. many java-vacancies do not contain 'java' in their title on moikrug.ru
-        return title.toLowerCase().contains(searchWord) ? title : setSkillIfMatched(row, title);
+    String grabTitleIfValid(Element row, ParseParameters params) {
+        var title = getInnerClassText(row, "title");
+        // e.g. many java-vacancies do not contain 'java' in their title on habr.com
+        var keyword = params.getKeyword();
+        var result = title.toLowerCase().contains(keyword) ? title : setSkillIfMatched(row, title, keyword);
+        return params.isValidTitle(result) ? result : null;
     }
 
     @Override
@@ -80,12 +88,12 @@ public class HabrCareerJsoupProcessor extends AbstractJsoupProcessor {
                 .collect(Collectors.joining("\n"));
     }
 
-    private String setSkillIfMatched(Element row, String title) {
+    private String setSkillIfMatched(Element row, String title, String keyword) {
         boolean noneMatched = row.getElementsByClass("skill")
                 .stream()
                 .map(Element::text)
-                .noneMatch(searchWord::equalsIgnoreCase);
-        return noneMatched ? title : '[' + searchWord + "] " + title;
+                .noneMatch(keyword::equalsIgnoreCase);
+        return noneMatched ? title : '[' + keyword + "] " + title;
     }
 
     private String getInnerClassText(Element e, String className) {

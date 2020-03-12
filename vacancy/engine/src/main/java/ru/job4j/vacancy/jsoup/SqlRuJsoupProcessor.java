@@ -5,6 +5,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
+import ru.job4j.vacancy.model.SourceTitle;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -29,12 +30,12 @@ public class SqlRuJsoupProcessor extends AbstractJsoupProcessor {
     private static final String URL = "https://www.sql.ru/forum/job-offers/";
 
     @Override
-    public void submitSearchWord(String word) {
-        // unsupported on sql.ru
+    public SourceTitle getSourceTitle() {
+        return SourceTitle.sql_ru;
     }
 
     @Override
-    String buildPageLink(int page) {
+    String buildPageLink(int page, ParseParameters params) {
         return URL + page;
     }
 
@@ -53,10 +54,11 @@ public class SqlRuJsoupProcessor extends AbstractJsoupProcessor {
     }
 
     @Override
-    String grabTitle(Element row) {
-        return row.getElementsByClass("postslisttopic").first()
+    String grabTitleIfValid(Element row, ParseParameters params) {
+        var result = row.getElementsByClass("postslisttopic").first()
                 .getElementsByTag("a").first()
                 .text();
+        return params.isValidTitle(result) ? result : null;
     }
 
     @Override
