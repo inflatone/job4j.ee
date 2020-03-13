@@ -16,7 +16,9 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = DataController.URL, produces = MediaType.APPLICATION_JSON_VALUE)
 public class DataController {
-    static final String URL = "/ajax/data";
+    public static final String AJAX_URL = "/ajax";
+
+    static final String URL = AJAX_URL + "/data";
 
     private final DataService service;
 
