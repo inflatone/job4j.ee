@@ -9,6 +9,7 @@ import ru.job4j.auto.EntityTestHelpers.ImageEntityTestHelper;
 import ru.job4j.auto.model.Image;
 import ru.job4j.auto.repository.ImageRepository;
 import ru.job4j.auto.service.ImageService;
+import ru.job4j.auto.service.PostService;
 import ru.job4j.auto.service.UserService;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,12 +26,15 @@ class ImageControllerTest extends AbstractControllerTest {
 
     private final UserService userService;
 
+    private final PostService postService;
+
     @Autowired
-    public ImageControllerTest(ImageEntityTestHelper testHelper, ImageService service, UserService userService) {
+    public ImageControllerTest(ImageEntityTestHelper testHelper, ImageService service, UserService userService, PostService postService) {
         super(ImageController.URL);
         this.testHelper = testHelper;
         this.service = service;
         this.userService = userService;
+        this.postService = postService;
     }
 
     @Test
@@ -90,6 +94,43 @@ class ImageControllerTest extends AbstractControllerTest {
         service.deleteFromUser(USER.getId()); // clean the test dirt
     }
 
+    @Test // need to flush post entity for its image id to be inserted
+    @Transactional(propagation = Propagation.NEVER)
+    void uploadToPost() throws Exception {
+        Image newImage = testHelper.newEntity();
+        perform(postMultipart(POST_BMW.getId()).auth(USER).attachImage("postPhoto", newImage))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(contentTypeIsJson())
+                .andExpect(testHelper.contentJson(newImage));
+
+        assertNotNull(postService.find(POST_BMW.getId(), USER.getId()).getImage(), "Post image must be set");
+        service.deleteFromPost(POST_BMW.getId(), USER.getId()); // clean the test dirt
+    }
+
+    @Test
+    void uploadToAnotherUserPost() throws Exception {
+        Image newImage = testHelper.newEntity();
+        perform(postMultipart(DEALER.getId(), POST_MAZDA3.getId()).auth(USER).attachImage("postPhoto", newImage))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+        assertNull(postService.find(POST_MAZDA3.getId(), DEALER.getId()).getImage(), "Image must not be set");
+    }
+
+    @Test // need to flush post entity for its image id to be inserted
+    @Transactional(propagation = Propagation.NEVER)
+    void uploadToAnotherUserPostAsAdmin() throws Exception {
+        Image newImage = testHelper.newEntity();
+        perform(postMultipart(USER.getId(), POST_BMW.getId()).auth(DEALER).attachImage("postPhoto", newImage))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(contentTypeIsJson())
+                .andExpect(testHelper.contentJson(newImage));
+
+        assertNotNull(postService.find(POST_BMW.getId(), USER.getId()).getImage(), "Post image must be set");
+        service.deleteFromPost(POST_BMW.getId(), USER.getId()); // clean the test dirt
+    }
+
     @Test
     void deleteFromUser() throws Exception {
         service.uploadToUser(USER.getId(), testHelper.newEntity());
@@ -118,6 +159,36 @@ class ImageControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
         assertNull(userService.find(USER.getId()).getImage(), "User image must not be set");
+    }
+
+    @Test
+    void deleteFromPost() throws Exception {
+        service.uploadToPost(POST_BMW.getId(), USER.getId(), testHelper.newEntity());
+
+        perform(postDelete(POST_BMW.getId()).auth(USER))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+        assertNull(postService.find(POST_BMW.getId(), USER.getId()).getImage(), "User image must not be set");
+    }
+
+    @Test
+    void deleteFromAnotherUserPost() throws Exception {
+        service.uploadToPost(POST_MAZDA3.getId(), DEALER.getId(), testHelper.newEntity());
+
+        perform(postDelete(DEALER.getId(), POST_MAZDA3.getId()).auth(USER))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+        assertNotNull(postService.find(POST_MAZDA3.getId(), DEALER.getId()).getImage(), "Post image must be set");
+    }
+
+    @Test
+    void deleteFromAnotherUserPostAsAdmin() throws Exception {
+        service.uploadToPost(POST_BMW.getId(), USER.getId(), testHelper.newEntity());
+
+        perform(postDelete(USER.getId(), POST_BMW.getId()).auth(DEALER))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+        assertNull(postService.find(POST_BMW.getId(), USER.getId()).getImage(), "User image must not be set");
     }
 
     protected RequestWrapper userDelete() {

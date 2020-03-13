@@ -17,7 +17,7 @@ class RootControllerTest extends AbstractControllerTest {
         perform(doGet().auth(USER))
                 .andDo(print())
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("profile"));
+                .andExpect(redirectedUrl("posts"));
     }
 
     @Test
@@ -46,7 +46,7 @@ class RootControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void users() throws Exception {
+    void users() throws Exception{
         perform(doGet("users").auth(USER))
                 .andDo(print())
                 .andExpect(status().isForbidden());
@@ -59,6 +59,15 @@ class RootControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("users"))
                 .andExpect(forwardedUrl("/WEB-INF/jsp/users.jsp"));
+    }
+
+    @Test
+    void posts() throws Exception {
+        perform(doGet("posts").auth(USER))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(view().name("posts"))
+                .andExpect(forwardedUrl("/WEB-INF/jsp/posts.jsp"));
     }
 
     @Test

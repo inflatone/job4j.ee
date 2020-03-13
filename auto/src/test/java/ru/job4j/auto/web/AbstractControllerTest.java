@@ -22,6 +22,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import ru.job4j.auto.ActiveDbProfileResolver;
 import ru.job4j.auto.SpringMvcTestConfig;
 import ru.job4j.auto.model.Image;
+import ru.job4j.auto.model.Post;
 import ru.job4j.auto.model.User;
 
 import javax.annotation.PostConstruct;
@@ -29,6 +30,7 @@ import javax.annotation.PostConstruct;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -71,7 +73,7 @@ public abstract class AbstractControllerTest {
     }
 
     public ResultActions perform(MockHttpServletRequestBuilder builder) throws Exception {
-        return mockMvc.perform(builder);
+        return mockMvc.perform(builder.with(csrf()));
     }
 
     protected RequestWrapper doGet(String urlTemplatePad, Object... uriVars) {
@@ -131,7 +133,25 @@ public abstract class AbstractControllerTest {
                     .param("login", user.getLogin())
                     .param("password", user.getPassword())
                     .param("name", user.getName())
-                    .param("role", user.getRole().name());
+                    .param("role", user.getRole().getAuthority());
+            return this;
+        }
+
+        public RequestWrapper postAsFormData(Post post) {
+            var car = post.getCar();
+            builder.param("id", post.getId() == null ? null : String.valueOf(post.getId()))
+                    .param("user.id", String.valueOf(post.getUser().getId()))
+                    .param("title", post.getTitle())
+                    .param("price", post.getPrice() == null ? null : String.valueOf(post.getPrice()))
+                    .param("message", post.getMessage())
+                    .param("car.id", car.getId() == null ? null : String.valueOf(car.getId()))
+                    .param("car.vendor.id", String.valueOf(car.getVendor().getId()))
+                    .param("car.model", car.getModel())
+                    .param("car.year", String.valueOf(car.getYear()))
+                    .param("car.body.id", String.valueOf(car.getBody().getId()))
+                    .param("car.engine.id", String.valueOf(car.getEngine().getId()))
+                    .param("car.transmission.id", String.valueOf(car.getTransmission().getId()))
+                    .param("car.mileage", String.valueOf(car.getMileage()));
             return this;
         }
 

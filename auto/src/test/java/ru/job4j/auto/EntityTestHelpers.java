@@ -297,7 +297,7 @@ public class EntityTestHelpers {
         return new EntityTestHelper<>(jsonHelper, Role.class, new TypeReference<Map<String, Role>>() {}, false) {
             @Override
             protected Function<Role, String> idMapper() {
-                return Role::name;
+                return Role::getAuthority;
             }
 
             @Override
