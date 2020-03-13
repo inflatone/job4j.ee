@@ -1,74 +1,143 @@
 package ru.job4j.vacancy;
 
+import org.assertj.core.util.DateUtil;
 import org.junit.jupiter.api.Test;
 import org.quartz.JobDataMap;
-import org.quartz.JobKey;
-import ru.job4j.vacancy.TestUtil.JobExample;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import ru.job4j.vacancy.jsoup.JsoupProcessor;
+import ru.job4j.vacancy.jsoup.SqlRuJsoupProcessor;
+import ru.job4j.vacancy.sql.SQLProcessor;
+import ru.job4j.vacancy.util.TimeUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.Map;
 
-import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static ru.job4j.vacancy.util.Util.now;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.quartz.impl.StdSchedulerFactory.getDefaultScheduler;
+import static ru.job4j.vacancy.TestUtil.mockCollectorJob;
+import static ru.job4j.vacancy.job.VacancyCollectorJob.VACANCY_KEYWORD;
+import static ru.job4j.vacancy.util.TimeUtil.now;
+import static ru.job4j.vacancy.util.TimeUtilTest.assertMatch;
 
-public class JobExecutorTest {
+class JobExecutorTest {
+    private static final String JOB_KEY = "testJob";
+
     @Test
-    public void testExecute() throws Exception {
-        String data = new StringJoiner("\n")
-                .add("db.driver=testDriver")
-                .add("db.url=testUrl")
-                .add("db.username=testUsername")
-                .add("db.password=testPassword")
-                .add("cron.time=0 0/1 * * * ?") // every single minute
-                .toString();
+    void schedule() throws Exception {
+        SQLProcessor mockSqlProcessor = mock(SQLProcessor.class);
+        JsoupProcessor mockJsoupProcessor = mock(SqlRuJsoupProcessor.class);
+        var inputProperties = Map.of(
+                SQLProcessor.class.getSimpleName(), mockSqlProcessor,
+                JsoupProcessor.class.getSimpleName(), mockJsoupProcessor,
+                VACANCY_KEYWORD, "java"
+        );
+        var cronExpression = "0 0 12 * * ?"; // every day 12:00
+
         JobExecutor executor = new JobExecutor();
-        try (InputStream in = new ByteArrayInputStream(data.getBytes())) {
-            executor.loadProperties(in);
-        }
         executor.start();
-        ZonedDateTime expected = now().plusMinutes(1);
-        Date actual = executor.execute(JobExample.class, List.of("db.username", "db.password"), List.of());
+        Trigger jobTrigger = executor.schedule(mockCollectorJob(), JOB_KEY, null, cronExpression, inputProperties);
+        JobDataMap dataMap = getDefaultScheduler().getJobDetail(jobTrigger.getJobKey()).getJobDataMap();
+        executor.shutdown(false);
+
+        ZonedDateTime now = now();
+        Date actual = jobTrigger.getNextFireTime();
+        ZonedDateTime expected = nextMidday(now);
         assertMatch(actual, expected);
 
-        JobKey jobKey = JobKey.jobKey(JobExample.class.getSimpleName());
-        JobDataMap dataMap = executor.scheduler().getJobDetail(jobKey).getJobDataMap();
+        // only default keys required
+        assertEquals(mockSqlProcessor, dataMap.get(SQLProcessor.class.getSimpleName()));
+        assertEquals(mockJsoupProcessor, dataMap.get(JsoupProcessor.class.getSimpleName()));
+    }
 
+    private ZonedDateTime nextMidday(ZonedDateTime now) {
+        var result = now;
+        if (!now.isBefore(ZonedDateTime.now().withHour(12).withMinute(0))) {
+            result = result.plusDays(1);
+        }
+        return result.withHour(12).withMinute(0);
+    }
+
+    @Test
+    void scheduleWithExtraProperties() throws Exception {
+        var inputProperties = Map.of(
+                "db.driver", "testDriver",
+                "db.url", "testUrl",
+                "db.username", "testUsername",
+                "db.password", "testPassword");
+
+        JobExecutor executor = new JobExecutor();
+        executor.start();
+
+        var requiredKeys = List.of("db.username", "db.password");
+        Trigger jobTrigger = executor.schedule(mockCollectorJob(requiredKeys), JOB_KEY, DateUtil.tomorrow(), null, inputProperties);
+        JobDataMap dataMap = executor.getScheduler().getJobDetail(jobTrigger.getJobKey()).getJobDataMap();
+        executor.shutdown(false);
+
+        // only username and password required
         assertEquals("testUsername", dataMap.getString("db.username"));
         assertEquals("testPassword", dataMap.getString("db.password"));
         assertNull(dataMap.getString("db.driver"));
         assertNull(dataMap.getString("db.url"));
-        executor.shutdown(false);
     }
 
     @Test
-    public void testExecuteWithoutCronExpression() throws Exception {
-        String data = new StringJoiner("\n")
-                .add("db.driver=testDriver")
-                .add("db.url=testUrl")
-                .add("db.username=testUsername")
-                .add("db.password=testPassword")
-                .toString();
+    void scheduleWithoutCronExpression() throws SchedulerException {
+        var properties = Map.of(
+                "db.driver", "testDriver",
+                "db.url", "testUrl",
+                "db.username", "testUsername",
+                "db.password", "testPassword");
+        List<String> requiredKeys = List.of("db.driver", "db.url");
+
         JobExecutor executor = new JobExecutor();
-        try (InputStream in = new ByteArrayInputStream(data.getBytes())) {
-            executor.loadProperties(in);
-        }
         executor.start();
-        ZonedDateTime expected = now();
-        Date actual = executor.execute(JobExample.class, List.of(), List.of());
-        assertMatch(actual, expected);
+
+        Trigger jobTrigger = executor.schedule(mockCollectorJob(requiredKeys), JOB_KEY, null, null, properties);
         executor.shutdown(false);
+
+        Date actual = jobTrigger.getNextFireTime();
+        ZonedDateTime expected = now();
+        assertMatch(actual, expected);
     }
 
-    private void assertMatch(Date actualDate, ZonedDateTime expected) {
-        actualDate.toInstant();
-        ZonedDateTime actual = ZonedDateTime.ofInstant(actualDate.toInstant(), ZoneId.systemDefault()).truncatedTo(MINUTES);
-        assertEquals(expected, actual);
+    @Test
+    void scheduleWithNextLaunch() throws SchedulerException {
+        var properties = Map.of(
+                "db.driver", "testDriver",
+                "db.url", "testUrl");
+        List<String> requiredKeys = List.of("db.driver", "db.url");
+
+        JobExecutor executor = new JobExecutor();
+        executor.start();
+
+        ZonedDateTime nextLaunch = TimeUtil.now().plusDays(1);
+
+        Trigger jobTrigger = executor.schedule(mockCollectorJob(requiredKeys), JOB_KEY, Date.from(nextLaunch.toInstant()), null, properties);
+        executor.shutdown(false);
+
+        assertMatch(jobTrigger.getNextFireTime(), nextLaunch);
     }
+
+    @Test
+    void scheduleWithoutRequiredProperty() throws SchedulerException {
+        var properties = Map.of(
+                "db.driver", "testDriver",
+                "db.url", "testUrl",
+                "db.password", "testPassword");
+        var requiredKeys = List.of("db.username", "db.password");
+
+        JobExecutor executor = new JobExecutor();
+        executor.start();
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
+                () -> executor.schedule(mockCollectorJob(requiredKeys), JOB_KEY, null, null, properties));
+        executor.shutdown(false);
+
+        assertEquals("'db.username' is missing or incorrect", thrown.getMessage());
+    }
+
+
 }

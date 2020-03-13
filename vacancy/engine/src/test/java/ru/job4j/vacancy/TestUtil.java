@@ -1,26 +1,27 @@
 package ru.job4j.vacancy;
 
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
+import ru.job4j.vacancy.job.ExecutorJob;
+import ru.job4j.vacancy.job.VacancyCollectorJob;
+import ru.job4j.vacancy.jsoup.ParseParameters;
 import ru.job4j.vacancy.model.VacancyData;
-import ru.job4j.vacancy.sql.ConnectionFactory;
-import ru.job4j.vacancy.sql.SQLUtil;
 
-import java.lang.reflect.Proxy;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import static com.google.common.io.Resources.getResource;
 import static java.time.Month.JULY;
 import static java.time.Month.JUNE;
-import static ru.job4j.vacancy.util.Util.now;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static ru.job4j.vacancy.util.TimeUtil.now;
 
 public class TestUtil {
     public static final VacancyData VACANCY1 = new VacancyData("first", "link_1", "description_1", of(2019, JUNE, 30, 15, 17));
@@ -32,7 +33,8 @@ public class TestUtil {
 
     public static final List<VacancyData> UPDATED_VACANCIES = List.of(NEW_VACANCY, VACANCY1, VACANCY2, VACANCY3);
 
-    public static final ZonedDateTime LIMIT_DATE = of(2019, JULY, 25, 16, 0);
+    public static final ParseParameters JAVA_DEFAULT_PARAMS = ParseParameters.of("java",
+            LocalDateTime.now().with(LocalTime.MIN).minusYears(10).atZone(ZoneId.systemDefault()));
 
     public static ZonedDateTime of(int year, Month month, int dayOfMonth, int hour, int minute) {
         return ZonedDateTime.of(LocalDateTime.of(year, month, dayOfMonth, hour, minute), ZoneId.systemDefault());
@@ -46,79 +48,32 @@ public class TestUtil {
         return new VacancyData(vacancy.getTitle(), "new_" + vacancy.getUrl(), "new_" + vacancy.getDescription(), now());
     }
 
-    public static List<VacancyData> getAll(ConnectionFactory connectionFactory) {
-        List<VacancyData> result = new ArrayList<>();
-        try (var connection = connectionFactory.getConnection();
-             var selectStatement = connection.createStatement()
-        ) {
-            ResultSet resultSet = selectStatement.executeQuery("SELECT * FROM  vacancy_data ORDER BY date DESC");
-            while (resultSet.next()) {
-                result.add(parseVacancy(resultSet));
-            }
-
-        } catch (SQLException e) {
-            throw new IllegalStateException("cannot connect to db", e);
-        }
-        return result;
-    }
-
-    private static VacancyData parseVacancy(ResultSet resultSet) throws SQLException {
-        return new VacancyData(
-                resultSet.getString("title"),
-                resultSet.getString("link"),
-                resultSet.getString("description"),
-                resultSet.getTimestamp("date").toInstant().atZone(ZoneId.systemDefault())
-        );
-    }
-
-    public static ConnectionHolder connect() throws SQLException {
-        return new ConnectionHolder("job.properties");
-    }
-
     public static String asFullPathString(String resourceName) throws URISyntaxException {
         return Paths.get(getResource(resourceName).toURI()).toString();
     }
 
-    static class ConnectionHolder implements ConnectionFactory, AutoCloseable {
-        private Connection connection;
-
-        public ConnectionHolder(String resource) throws SQLException {
-            this.connection = SQLUtil.getConnection(resource);
+    public static String writeProperties(Path output, Properties properties) throws IOException {
+        Path file = Files.createFile(output);
+        System.out.println("Created: " + file);
+        try (var writer = Files.newBufferedWriter(output)) {
+            properties.store(writer, null);
         }
-
-        @Override
-        public Connection getConnection() throws SQLException {
-            return rollbackProxy(connection);
-        }
-
-        @Override
-        public void close() throws SQLException {
-            if (connection != null) {
-                if (!connection.getAutoCommit()) {
-                    connection.rollback();
-                }
-                connection.close();
-            }
-        }
-
-        public static Connection rollbackProxy(Connection connection) throws SQLException {
-            connection.setAutoCommit(false);
-            return (Connection) Proxy.newProxyInstance(
-                    ConnectionHolder.class.getClassLoader(),
-                    new Class[]{Connection.class},
-                    (proxy, method, args) -> {
-                        Object result = null;
-                        // do not commit and do not close (handle it on ConnectionHolder.close() call)
-                        if (!"commit".equals(method.getName()) && !"close".equals(method.getName())) {
-                            result = method.invoke(connection, args);
-                        }
-                        return result;
-                    }
-            );
-        }
+        return output.toString();
     }
 
-    static class JobExample implements Job {
+    // job class with no execution
+    public static ExecutorJob mockCollectorJob(List<String> requiredKeys, String... additionalKeys) {
+        var mockJob = mock(MockVacancyCollectorJob.class);
+        when(mockJob.getRequiredKeys()).thenReturn(requiredKeys);
+        when(mockJob.getAdditionalKeys()).thenReturn(List.of(additionalKeys));
+        return mockJob;
+    }
+
+    public static ExecutorJob mockCollectorJob() {
+        return new MockVacancyCollectorJob();
+    }
+
+    public static class MockVacancyCollectorJob extends VacancyCollectorJob {
         @Override
         public void execute(JobExecutionContext context) {
             // do nothing

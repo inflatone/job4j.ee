@@ -2,85 +2,116 @@ package ru.job4j.vacancy.jsoup;
 
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
+import ru.job4j.vacancy.TestUtil;
 import ru.job4j.vacancy.model.VacancyData;
-import ru.job4j.vacancy.util.JsoupHelper.Filters;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 
+import static java.time.Month.JULY;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.spy;
-import static ru.job4j.vacancy.TestUtil.LIMIT_DATE;
+import static ru.job4j.vacancy.TestUtil.JAVA_DEFAULT_PARAMS;
 
-public abstract class AbstractJsoupProcessorTest {
-    private final VacancyData expectedVacancy;
+
+abstract class AbstractJsoupProcessorTest {
+    private static final ZonedDateTime LIMIT_DATE = TestUtil.of(2019, JULY, 31, 16, 0);
+
+    private static final ParseParameters PARAMS = ParseParameters.of("", LIMIT_DATE);
+
+    private final VacancyData augustVacancy;
+    private final VacancyData juneVacancy;
+
     final AbstractJsoupProcessor processor;
     final JsoupProcessorTester tester;
 
-    AbstractJsoupProcessorTest(AbstractJsoupProcessor processor, VacancyData expectedVacancy) {
+    AbstractJsoupProcessorTest(AbstractJsoupProcessor processor, VacancyData augustVacancy, VacancyData juneVacancy) {
         this.processor = spy(processor);
         this.tester = new JsoupProcessorTester(this.processor);
-        this.expectedVacancy = expectedVacancy;
+        this.augustVacancy = augustVacancy;
+        this.juneVacancy = juneVacancy;
     }
 
     abstract Element mockRow();
 
-    abstract void mockDocument() throws IOException;
+    abstract void mockDocument(ParseParameters params) throws IOException;
 
     abstract void mockEmptyDocument() throws IOException;
 
     @Test
-    public void processPage() throws IOException {
-        mockDocument();
+    void processPage() throws IOException {
+        mockDocument(PARAMS);
         ArrayList<VacancyData> buffer = new ArrayList<>();
-        boolean continued = processor.processPage(buffer, 1, LIMIT_DATE);
+        boolean continued = processor.processPage(buffer, 1, PARAMS);
         assertFalse(continued);
         assertEquals(1, buffer.size());
-        assertEquals(expectedVacancy, buffer.get(0));
+        assertEquals(augustVacancy, buffer.get(0));
     }
 
     @Test
-    public void processEmptyPage() throws IOException {
-        mockEmptyDocument();
+    void processPageWithKeywordAndCity() throws IOException {
+        var params = ParseParameters.of("программист", "Москва", LIMIT_DATE);
+        mockDocument(params);
         ArrayList<VacancyData> buffer = new ArrayList<>();
-        boolean continued = processor.processPage(buffer, 1, LIMIT_DATE);
+        boolean continued = processor.processPage(buffer, 1, params);
         assertFalse(continued);
-        assertTrue(buffer.isEmpty());
+        assertEquals(1, buffer.size());
+        assertEquals(augustVacancy, buffer.get(0));
     }
 
     @Test
-    public void processRow() throws IOException {
+    void processPageWithFinishLimit() throws IOException {
+        var params = ParseParameters.of("", null, LIMIT_DATE.minusMonths(2), LIMIT_DATE.minusMonths(1));
+        mockDocument(params);
         ArrayList<VacancyData> buffer = new ArrayList<>();
-        boolean continued = processor.processRow(buffer, mockRow(), LIMIT_DATE);
+        boolean continued = processor.processPage(buffer, 1, params);
         assertTrue(continued);
         assertEquals(1, buffer.size());
-        assertEquals(expectedVacancy, buffer.get(0));
+        assertEquals(juneVacancy, buffer.get(0));
     }
 
     @Test
-    public void processRowDateLimited() throws IOException {
+    void processEmptyPage() throws IOException {
+        mockEmptyDocument();
         ArrayList<VacancyData> buffer = new ArrayList<>();
-        boolean continued = processor.processRow(buffer, mockRow(), LocalDateTime.MAX.atZone(ZoneId.systemDefault()));
+        boolean continued = processor.processPage(buffer, 1, PARAMS);
         assertFalse(continued);
         assertTrue(buffer.isEmpty());
     }
 
     @Test
-    public void grabRow() throws IOException {
-        processor.submitSearchFilter(null);
-        Optional<VacancyData> vacContainer = processor.grabRow(mockRow(), expectedVacancy.getDateTime()); // method's parameter = already parsed date
-        assertTrue(vacContainer.isPresent());
-        VacancyData vacancy = vacContainer.get();
-        assertEquals(expectedVacancy, vacancy);
+    void processRow() throws IOException {
+        ArrayList<VacancyData> buffer = new ArrayList<>();
+        boolean continued = processor.processRow(buffer, mockRow(), PARAMS);
+        assertTrue(continued);
+        assertEquals(1, buffer.size());
+        assertEquals(augustVacancy, buffer.get(0));
     }
 
     @Test
-    public void grabRowNotPassed() throws IOException {
-        processor.submitSearchFilter(Filters::javaFilter);
-        Optional<VacancyData> vacContainer = processor.grabRow(mockRow(), expectedVacancy.getDateTime()); // method's parameter = already parsed date
+    void processRowDateLimited() throws IOException {
+        ArrayList<VacancyData> buffer = new ArrayList<>();
+        var params = ParseParameters.of("", LocalDateTime.MAX.atZone(ZoneId.systemDefault()));
+        boolean continued = processor.processRow(buffer, mockRow(), params);
+        assertFalse(continued);
+        assertTrue(buffer.isEmpty());
+    }
+
+    @Test
+    void grabRow() throws IOException {
+        Optional<VacancyData> vacContainer = processor.grabRow(mockRow(), augustVacancy.getDateTime(), PARAMS); // method's parameter = already parsed date
+        assertTrue(vacContainer.isPresent());
+        VacancyData vacancy = vacContainer.get();
+        assertEquals(augustVacancy, vacancy);
+    }
+
+    @Test
+    void grabRowNotPassed() throws IOException {
+        Optional<VacancyData> vacContainer = processor.grabRow(mockRow(), augustVacancy.getDateTime(), JAVA_DEFAULT_PARAMS); // method's parameter = already parsed date
         assertTrue(vacContainer.isEmpty());
     }
 }
