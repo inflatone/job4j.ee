@@ -14,7 +14,7 @@
     <div class="container">
         <h2 class="text-center">Profile</h2>
         <div class="btn-group" role="group">
-            <a id="allUsersButton" class="btn btn-info" href="users">
+            <a id="allUsersButton" class="btn btn-info" href="users" hidden>
                 <span class="fa fa-list"></span>
                 All users
             </a>
@@ -26,6 +26,10 @@
                 <span class="fa fa-remove"></span>
                 Remove profile
             </button>
+            <a class="btn btn-danger" href="logout">
+                <span class="fa fa-sign-out"></span>
+                Sign out
+            </a>
         </div>
         <br/>
         <br/>
@@ -89,6 +93,7 @@
 
 <script type="text/javascript">
     const profileId = "${param.id}";
+    const isAdmin = "${requestScope.role}" === "ADMIN";
 </script>
 
 <jsp:include page="parts/form.jsp"/>

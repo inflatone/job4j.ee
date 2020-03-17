@@ -12,7 +12,7 @@ $(function () {
         addUser: '',
         editUser: 'Edit profile'
     });
-    $('#formUserImage').attr('hidden', true);
+    $('#allUsersButton').attr('hidden', !isAdmin);
 });
 
 function fillProfile(userData) {

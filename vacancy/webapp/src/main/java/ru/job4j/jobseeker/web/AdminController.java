@@ -1,8 +1,11 @@
 package ru.job4j.jobseeker.web;
 
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.slf4j.Logger;
 import ru.job4j.jobseeker.model.Role;
 import ru.job4j.jobseeker.model.User;
+import ru.job4j.jobseeker.web.security.AuthManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -10,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,6 +45,13 @@ public class AdminController extends ActionDispatcherServlet {
         USERS.put(SEQ.incrementAndGet(), new User(SEQ.get(), "supervisor", "bingo", new Date(), Role.ADMIN));
     }
 
+    final Provider<AuthManager> authManagerProvider;
+
+    @Inject
+    public AdminController(Provider<AuthManager> managerProvider) {
+        this.authManagerProvider = managerProvider;
+    }
+
     @Override
     protected void fillGetActions() {
         submitGetAction(find, this::find);
@@ -61,11 +72,14 @@ public class AdminController extends ActionDispatcherServlet {
      */
     private void doSave(HttpServletRequest request, HttpServletResponse response) throws IOException {
         var user = createModel(request);
+        AuthManager manager = authManagerProvider.get();
         if (user.isNew()) {
             doCreate(user);
+            manager.setAuth(user, false);
             response.setStatus(HttpServletResponse.SC_CREATED);
         } else {
             doUpdate(user);
+            manager.setAuth(user, Objects.equals(manager.getAuth().getId(), user.getId()));
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }
     }
@@ -114,6 +128,7 @@ public class AdminController extends ActionDispatcherServlet {
         USERS.remove(id);
         //service.delete(id);
 
+        authManagerProvider.get().removeAuth(id);
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
