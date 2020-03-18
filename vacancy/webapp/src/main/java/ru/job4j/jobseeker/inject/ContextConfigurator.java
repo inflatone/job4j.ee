@@ -7,6 +7,6 @@ import com.google.inject.servlet.GuiceServletContextListener;
 public class ContextConfigurator extends GuiceServletContextListener {
     @Override
     protected Injector getInjector() {
-        return Guice.createInjector(new WebModule());
+        return Guice.createInjector(new DaoModule(), new ServiceModule(), new WebModule());
     }
 }

@@ -3,6 +3,7 @@ package ru.job4j.jobseeker.web;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import ru.job4j.jobseeker.model.User;
+import ru.job4j.jobseeker.service.UserService;
 import ru.job4j.jobseeker.web.security.AuthManager;
 
 import javax.servlet.ServletException;
@@ -21,14 +22,14 @@ import static ru.job4j.jobseeker.web.WebHelper.asJsonToResponse;
  */
 public class ProfileController extends AdminController {
     @Inject
-    public ProfileController(Provider<AuthManager> managerProvider) {
-        super(managerProvider);
+    public ProfileController(UserService service, Provider<AuthManager> managerProvider) {
+        super(service, managerProvider);
     }
 
     @Override
     void find(HttpServletRequest request, HttpServletResponse response) throws IOException {
         var id = getRequiredId(request);
-        asJsonToResponse(response, USERS.get(id));
+        asJsonToResponse(response, service.find(id));
     }
 
     @Override

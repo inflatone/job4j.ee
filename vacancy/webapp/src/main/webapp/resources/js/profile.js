@@ -17,7 +17,6 @@ $(function () {
 
 function fillProfile(userData) {
     $('#profileLogin').html(userData.login);
-    $('#profilePassword').html(userData.password);
     $('#profileRegistered').html(userData.registered);
     $('#profileRole').html(userData.role);
 }
