@@ -2,6 +2,8 @@ package ru.job4j.jobseeker.service;
 
 import ru.job4j.jobseeker.exeption.ApplicationException;
 
+import java.util.function.Function;
+
 /**
  * Contains utility methods to validate the data from requests
  *
@@ -82,5 +84,16 @@ public class ValidationHelper {
         if (statement != expected) {
             throw new ApplicationException(message);
         }
+    }
+
+    /**
+     * Helps safely retrieve entity field value in case entity is null
+     *
+     * @param entity entity
+     * @param getter field mapper
+     * @return field value or null
+     */
+    public static <E, T> T getSafely(E entity, Function<E, T> getter) {
+        return entity == null ? null : getter.apply(entity);
     }
 }

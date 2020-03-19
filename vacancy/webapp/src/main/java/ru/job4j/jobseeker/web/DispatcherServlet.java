@@ -109,9 +109,12 @@ public abstract class DispatcherServlet<T extends Enum<T>> extends HttpServlet {
         try {
             processAction(request, response, processors);
         } catch (RuntimeException e) {
-            var root = getRootCause(e);
-            var message = root.getMessage();
-            errorAsJsonToResponse(response, message != null ? message : root.getClass().getSimpleName());
+            var message = e.getMessage();
+            if (message == null) {
+                var root = getRootCause(e);
+                message = root.getMessage();
+            }
+            errorAsJsonToResponse(response, message != null ? message : e.getClass().getSimpleName());
         }
     }
 

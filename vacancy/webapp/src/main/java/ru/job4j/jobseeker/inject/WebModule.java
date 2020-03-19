@@ -6,6 +6,7 @@ import com.google.inject.servlet.SessionScoped;
 import ru.job4j.jobseeker.web.AdminController;
 import ru.job4j.jobseeker.web.AjaxFormDataController;
 import ru.job4j.jobseeker.web.ProfileController;
+import ru.job4j.jobseeker.web.TaskController;
 import ru.job4j.jobseeker.web.filter.CharsetFilter;
 import ru.job4j.jobseeker.web.filter.NoAdminUserFilter;
 import ru.job4j.jobseeker.web.filter.UnauthorizedUserFilter;
@@ -32,6 +33,8 @@ public class WebModule extends ServletModule {
         serve("/profile").with(ProfileController.class);
 
         serve("/ajax").with(AjaxFormDataController.class);
+
+        serve("/task").with(TaskController.class);
     }
 
     private void configureClasses() {
@@ -40,6 +43,8 @@ public class WebModule extends ServletModule {
         bind(ProfileController.class).asEagerSingleton();
 
         bind(AjaxFormDataController.class).asEagerSingleton();
+
+        bind(TaskController.class).asEagerSingleton();
 
         bind(LoginController.class).asEagerSingleton();
         bind(LogoutController.class).asEagerSingleton();
