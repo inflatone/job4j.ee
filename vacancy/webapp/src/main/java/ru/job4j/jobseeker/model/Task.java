@@ -2,6 +2,9 @@ package ru.job4j.jobseeker.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.jdbi.v3.core.mapper.Nested;
+import org.jdbi.v3.core.mapper.reflect.ColumnName;
+import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
 import java.util.Date;
 
@@ -33,13 +36,26 @@ public class Task extends BaseEntity {
     @JsonProperty(access = WRITE_ONLY)
     private User user;
 
+    public Task(Integer id) {
+        super(id);
+    }
+
     public Task(Task task) {
         this(task.keyword, task.city, task.limit, task.active, task.launch, task.rule, task.source, task.user);
         setId(task.getId());
     }
 
-    public Task(Integer id, String keyword, String city, Date limit, Date launch, RepeatRule rule, ScanSource source, User user) {
-        this(keyword, city, limit, true, launch, rule, source, user);
+    @JdbiConstructor
+    public Task(@ColumnName("id") Integer id,
+                @ColumnName("keyword") String keyword,
+                @ColumnName("city") String city,
+                @ColumnName("scan_limit") Date limit,
+                @ColumnName("active") boolean active,
+                @ColumnName("next_launch") Date launch,
+                @ColumnName("repeat_rule") RepeatRule rule,
+                @Nested("scan_source_") ScanSource source,
+                @ColumnName("user_id") Integer userId) {
+        this(keyword, city, limit, active, launch, rule, source, new User(userId));
         setId(id);
     }
 

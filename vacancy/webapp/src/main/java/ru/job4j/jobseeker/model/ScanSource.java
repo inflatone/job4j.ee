@@ -1,6 +1,8 @@
 package ru.job4j.jobseeker.model;
 
 import lombok.*;
+import org.jdbi.v3.core.mapper.reflect.ColumnName;
+import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 import ru.job4j.vacancy.model.SourceTitle;
 
 /**
@@ -21,8 +23,12 @@ public class ScanSource extends BaseEntity {
     private String url;
     private String iconUrl;
 
-    public ScanSource(Integer id, SourceTitle title, String url, String iconUrl) {
-        this(title, url, iconUrl);
+    @JdbiConstructor
+    public ScanSource(@ColumnName("id") Integer id,
+                      @ColumnName("code") String titleCode,
+                      @ColumnName("url") String url,
+                      @ColumnName("icon_url") String iconUrl) {
+        this(SourceTitle.valueOf(titleCode), url, iconUrl);
         setId(id);
     }
 }
