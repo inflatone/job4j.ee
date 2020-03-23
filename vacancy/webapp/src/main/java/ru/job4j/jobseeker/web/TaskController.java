@@ -3,6 +3,7 @@ package ru.job4j.jobseeker.web;
 import com.google.inject.Provider;
 import org.slf4j.Logger;
 import ru.job4j.jobseeker.model.Task;
+import ru.job4j.jobseeker.service.executor.ExecutionService;
 import ru.job4j.jobseeker.service.TaskService;
 import ru.job4j.jobseeker.web.security.AuthManager;
 
@@ -29,11 +30,14 @@ public class TaskController extends ActionDispatcherServlet {
     private static final Logger log = getLogger(TaskController.class);
 
     private final TaskService service;
+    private final ExecutionService executionService;
+
     private final Provider<AuthManager> authManagerProvider;
 
     @Inject
-    public TaskController(TaskService service, Provider<AuthManager> authManagerProvider) {
+    public TaskController(TaskService service, ExecutionService executionService, Provider<AuthManager> authManagerProvider) {
         this.service = service;
+        this.executionService = executionService;
         this.authManagerProvider = authManagerProvider;
     }
 
@@ -47,6 +51,8 @@ public class TaskController extends ActionDispatcherServlet {
     protected void fillPostActions() {
         submitPostAction(save, this::doSave);
         submitPostAction(delete, this::doRemove);
+        submitPostAction(start, this::doStart);
+        submitPostAction(empty, this::doRecount);
     }
 
     /**
@@ -137,6 +143,33 @@ public class TaskController extends ActionDispatcherServlet {
     private void doUpdate(Task task, int userId) {
         log.info("Update task {} for user with id={}", task, userId);
         service.update(task, userId);
+    }
+
+
+    /**
+     * Represents START TASK NOW executor
+     *
+     * @param request  request
+     * @param response response
+     */
+    private void doStart(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        int userId = authManagerProvider.get().getRequiredUserId(request, false);
+        Integer id = getRequiredParameter(request, "id", Integer::parseInt);
+        log.info("Force start task {} for user with id={}", id, userId);
+        var launchLog = executionService.launch(id, userId);
+        asJsonToResponse(response, launchLog);
+    }
+
+    /**
+     * Represents RECOUNT VACANCY AMOUNT executor
+     *
+     * @param request  request
+     * @param response response
+     */
+    private void doRecount(HttpServletRequest request, HttpServletResponse response) {
+        int userId = authManagerProvider.get().getRequiredUserId(request, false);
+        log.info("Recount parsed vacancies amount for user with id={}", userId);
+        service.recount(userId);
     }
 
     /**

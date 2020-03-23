@@ -6,6 +6,7 @@ import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import ru.job4j.jobseeker.model.LaunchLog;
 import ru.job4j.jobseeker.model.ScanSource;
 import ru.job4j.jobseeker.model.Task;
 import ru.job4j.jobseeker.model.User;
@@ -47,6 +48,9 @@ public interface TaskDao {
         return update(task, task.getId(), userId);
     }
 
+    @SqlUpdate("UPDATE task SET scan_limit=:limit, next_launch=:launch, amount=:amount WHERE id=:id")
+    void innerUpdate(@BindBean Task task);
+
     @GetGeneratedKeys
     @SqlUpdate("INSERT INTO task (keyword, city, scan_limit, next_launch, repeat_rule, scan_source_id, user_id) " +
             "        VALUES (:keyword, :city, :limit, :launch, :rule, :sourceId, :userId)")
@@ -55,6 +59,12 @@ public interface TaskDao {
     @SqlUpdate("UPDATE task t SET repeat_rule=:rule, next_launch=:launch WHERE t.id=:id AND t.user_id=:userId")
     boolean update(@BindBean Task task, @Bind("id") int id, @Bind("userId") int userId);
 
+    @SqlUpdate("INSERT INTO launch_log(date_time, found_amount, added_amount, status, task_id) VALUES (:dateTime, :foundAmount, :addedAmount, :status, :taskId)")
+    void saveLog(@BindBean LaunchLog log, @Bind("taskId") int taskId);
+
     @SqlUpdate("DELETE FROM task WHERE id=:id AND user_id=:userId")
     boolean delete(@Bind("id") int id, @Bind("userId") int userId);
+
+    @SqlUpdate("UPDATE task t SET amount = (SELECT count (v.id) FROM vacancy v WHERE v.task_id = t.id ) WHERE t.user_id=:id")
+    void recount(@Bind("id") int id);
 }

@@ -32,6 +32,7 @@ public class Task extends BaseEntity {
     private RepeatRule rule;
 
     private ScanSource source;
+    private int amount;
 
     @JsonProperty(access = WRITE_ONLY)
     private User user;
@@ -41,7 +42,7 @@ public class Task extends BaseEntity {
     }
 
     public Task(Task task) {
-        this(task.keyword, task.city, task.limit, task.active, task.launch, task.rule, task.source, task.user);
+        this(task.keyword, task.city, task.limit, task.active, task.launch, task.rule, task.source, task.amount, task.user);
         setId(task.getId());
     }
 
@@ -54,8 +55,9 @@ public class Task extends BaseEntity {
                 @ColumnName("next_launch") Date launch,
                 @ColumnName("repeat_rule") RepeatRule rule,
                 @Nested("scan_source_") ScanSource source,
+                @ColumnName("amount") int amount,
                 @ColumnName("user_id") Integer userId) {
-        this(keyword, city, limit, active, launch, rule, source, new User(userId));
+        this(keyword, city, limit, active, launch, rule, source, amount, new User(userId));
         setId(id);
     }
 

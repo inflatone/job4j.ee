@@ -75,7 +75,7 @@
             </tr>
             </thead> <%--<span class="fa fa-refresh fa-spin fa-fw" title="Scan now"></span>--%>
         </table>
-
+        <div class="float-right" ><button type="button" onclick="doRecount()">Recount vacancy amounts</button></div>
 
     </div>
 </div>

@@ -79,7 +79,7 @@ const datatableOpts = {
         {
             "data": "amount",
             "render": function (data, type, row) {
-                return row.keyword.length;
+                return row.amount;
             }
         },
 
@@ -91,7 +91,7 @@ const datatableOpts = {
         {
             "defaultContent": "Start",
             "orderable": false,
-            "render": renderUpdateButton
+            "render": renderStartButton
         },
         {
             "defaultContent": "Edit",
@@ -148,11 +148,31 @@ function renderViewButton(data, type, row) {
     }
 }
 
-function renderUpdateButton(data, type, row) {
+function renderStartButton(data, type, row) {
     if (type === 'display') {
-        return '<a onclick="processTableElementEdit(' + row.id + ')"><span class="fa fa-refresh" title="Start now"></span></a>';
+        return '<a onclick="doStartTask($(this).children(), ' + row.id + ')"><span class="fa fa-refresh" title="Start now"></span></a>';
     }
 }
+
+function doStartTask(refresh, id) {
+    if (confirm("Start now?")) {
+        refresh.addClass('fa-spin fa-fw'); // make refresh button spin
+        $.ajax({
+            url: taskUrl + '?action=start&id=' + id + (profileId ? '&userId=' + profileId : ''),
+            type: 'POST'
+        }).done(function (data) {
+            const amountRow = $(refresh).parents('tr').find('td').eq(6);
+            if (data.status === 'OK') {
+                amountRow.text(Number(amountRow.text()) + data.addedAmount);
+                successNoty(data.foundAmount + ' vacancy(ies) found and ' + data.addedAmount + ' of them saved or updated');
+            } else {
+                warnNoty('Vacancy parsing fails with error');
+            }
+            refresh.removeClass('fa-spin fa-fw'); // make refresh button freeze
+        })
+    }
+}
+
 
 function doDeleteItem(id) {
     if (confirm("Are you sure?")) {
@@ -164,4 +184,12 @@ function doDeleteItem(id) {
             successNoty('Task deleted');
         })
     }
+}
+
+function doRecount() {
+    $.post(taskUrl + (profileId ? '?userId=' + profileId : ''))
+        .done(function () {
+            context.afterTaskFormSuccess();
+            successNoty('Vacancies recounted');
+        })
 }
