@@ -8,6 +8,8 @@
 <script type="text/javascript" src="resources/js/common.js" defer></script>
 <script type="text/javascript" src="resources/js/list.js" defer></script>
 <script type="text/javascript" src="resources/js/task.js" defer></script>
+<script type="text/javascript" src="resources/js/form.js" defer></script>
+<script type="text/javascript" src="resources/js/formTask.js" defer></script>
 
 <div class="jumbotron bg-light pt-4">
     <div class="container">
@@ -21,7 +23,7 @@
                 <span class="fa fa-user"></span>
                 Profile
             </a>
-            <button id="editButton" onclick="openEditForm()" class="btn btn-primary">
+            <button id="editButton" onclick="openEditTaskForm()" class="btn btn-primary">
                 <span class="fa fa-pencil"></span>
                 Edit task
             </button>
@@ -59,6 +61,18 @@
                         <td class=""><b>Last scan:</b></td>
                         <td id="lastScan"></td>
                     </tr>
+                    <tr>
+                        <td class=""><b>Next launch</b></td>
+                        <td id="launch"></td>
+                    </tr>
+                    <tr>
+                        <td class=""><b>Repeat rule:</b></td>
+                        <td id="rule"></td>
+                    </tr>
+                    <tr>
+                        <td class=""><b>Collected amount:</b></td>
+                        <td id="amount"></td>
+                    </tr>
                 </table>
             </div>
         </div>
@@ -83,6 +97,7 @@
     const profileId = "${param.userId}"
 </script>
 
+<jsp:include page="parts/formTask.jsp"/>
 
 </body>
 </html>

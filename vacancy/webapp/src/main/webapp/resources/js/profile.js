@@ -1,5 +1,4 @@
 const profileUrl = "profile";
-const taskUrl = "task";
 
 $(function () {
     fillUserData();
@@ -26,6 +25,16 @@ $(function () {
 const datatableOpts = {
     "columns": [
         {
+            "defaultContent": "Source",
+            "render": function (data, type, row) {
+                // https://datatables.net/forums/discussion/comment/154284/#Comment_154284
+                if (type === 'display' || type === 'sort' || type === 'filter') {
+                    return renderSourceIcon(row.source);
+                }
+                return data;
+            }
+        },
+        {
             "data": "keyword"
         },
         {
@@ -51,7 +60,7 @@ const datatableOpts = {
             "defaultContent": "Next launch",
             "render": function (data, type, row) {
                 if (type === 'display' || type === 'sort' || type === 'filter') {
-                    return row.launch ? row.launch : '&mdash;';
+                    return row.launch ? (row.active ? row.launch : 'PAUSED') : '&mdash;';
                 }
                 return data;
             }
@@ -67,16 +76,6 @@ const datatableOpts = {
             }
         },
         {
-            "defaultContent": "Platform",
-            "render": function (data, type, row) {
-                // https://datatables.net/forums/discussion/comment/154284/#Comment_154284
-                if (type === 'display' || type === 'sort' || type === 'filter') {
-                    return row.source.title;
-                }
-                return data;
-            }
-        },
-        {
             "data": "amount",
             "render": function (data, type, row) {
                 return row.amount;
@@ -87,6 +86,11 @@ const datatableOpts = {
             "defaultContent": "View",
             "orderable": false,
             "render": renderViewButton
+        },
+        {
+            "defaultContent": "Pause/Resume",
+            "orderable": false,
+            "render": renderPauseButton
         },
         {
             "defaultContent": "Start",
@@ -105,7 +109,7 @@ const datatableOpts = {
         }
     ],
     "order": [
-        [0, "asc"]
+        [1, "asc"], [2, "asc"]
     ],
 };
 
@@ -154,21 +158,45 @@ function renderStartButton(data, type, row) {
     }
 }
 
-function doStartTask(refresh, id) {
+function renderPauseButton(data, type, row) {
+    const active = row.active;
+    if (type === 'display') {
+        return '<a onclick="doPauseTask($(this).children(), ' + row.id + ')"><span class="fa fa-' + (active ? 'pause' : 'play')
+            + '" title="' + (active ? 'Pause' : 'Resume') + '"></span></a>';
+    }
+}
+
+function doPauseTask(icon, id) {
+    const paused = icon.hasClass('fa fa-pause'); // true -> click means to pause task, task is active now (and vice versa)
+    $.post(taskUrl + '?action=pause&id=' + id + '&paused=' + paused + (profileId ? '&userId=' + profileId : ''))
+        .done(function () {
+            switchPauseResume(icon, paused);
+            successNoty(paused ? 'Task paused' : 'Task resumed');
+        });
+
+}
+
+function switchPauseResume(icon, paused) {
+    icon.removeClass(paused ? 'fa fa-pause' : 'fa fa-play');
+    icon.addClass(paused ? 'fa fa-play' : 'fa fa-pause');
+    icon.prop('title', paused ? 'play' : 'pause');
+}
+
+function doStartTask(icon, id) {
     if (confirm("Start now?")) {
-        refresh.addClass('fa-spin fa-fw'); // make refresh button spin
+        icon.addClass('fa-spin fa-fw'); // make refresh button spin
         $.ajax({
             url: taskUrl + '?action=start&id=' + id + (profileId ? '&userId=' + profileId : ''),
             type: 'POST'
         }).done(function (data) {
-            const amountRow = $(refresh).parents('tr').find('td').eq(6);
+            const amountRow = $(icon).parents('tr').find('td').eq(6);
             if (data.status === 'OK') {
                 amountRow.text(Number(amountRow.text()) + data.addedAmount);
                 successNoty(data.foundAmount + ' vacancy(ies) found and ' + data.addedAmount + ' of them saved or updated');
             } else {
                 warnNoty('Vacancy parsing fails with error');
             }
-            refresh.removeClass('fa-spin fa-fw'); // make refresh button freeze
+            icon.removeClass('fa-spin fa-fw'); // make refresh button freeze
         })
     }
 }
@@ -186,10 +214,10 @@ function doDeleteItem(id) {
     }
 }
 
-function doRecount() {
-    $.post(taskUrl + (profileId ? '?userId=' + profileId : ''))
+function doRecount(type) {
+    $.post(taskUrl + '?recount=' + type + (profileId ? '&userId=' + profileId : ''))
         .done(function () {
             context.afterTaskFormSuccess();
-            successNoty('Vacancies recounted');
+            successNoty('Successfully recounted ' + type);
         })
 }

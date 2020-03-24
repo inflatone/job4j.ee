@@ -32,9 +32,9 @@
                         <div class="invalid-feedback">Please choose scan limit</div>
                     </div>
 
-                    <p class="h7"><input type="checkbox" id="setNextLaunchCheckbox" onclick="showSetNextLaunchField()"> Set next start
+                    <p class="h7"><input type="checkbox" id="setNextLaunchCheckbox" onclick="showSetNextLaunchField()"> Change next start
                         &nbsp;&nbsp;&nbsp;
-                    <input type="checkbox" id="pauseNextLaunchCheckbox" onclick="cancelNextLaunch()"> Disable next start</p>
+                        <input type="checkbox" id="pauseNextLaunchCheckbox" name="active"> Pause task</p>
 
                     <div class="form-group" id="taskNextStartField" hidden>
                         <label for="taskNextStart" class="col-form-label"></label>

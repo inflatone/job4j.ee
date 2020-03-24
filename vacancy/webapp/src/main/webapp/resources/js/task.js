@@ -1,9 +1,9 @@
-let context;
 const vacancyUrl = "vacancy";
 
 $(function () {
+    fillTaskData();
     let ctx = {
-        url: vacancyUrl,
+        url: taskUrl,
         tableUrl: vacancyUrl,
         idRequired: true,
     };
@@ -11,6 +11,9 @@ $(function () {
     ctx.tableUpdateUrl = ctx.tableUrl + '?action=find&taskId=' + taskId + (profileId ? '&userId=' + profileId : '');
     ctx.afterSuccess = function () {
         $.get(ctx.tableUpdateUrl, fillTableByData)
+    };
+    ctx.afterTaskFormSuccess = function () {
+        $.get(ctx.url + '?action=find&id=' + taskId, fillProfile)
     };
     context = ctx;
     makeDynamicTable(true);
@@ -59,9 +62,26 @@ const datatableOpts = {
     }
 };
 
+function fillProfile(taskData) {
+    $('#launch').html(taskData.launch);
+    $('#rule').html(taskData.rule);
+}
+
+function fillTaskData() {
+    $.get(taskUrl + '?action=find&id=' + taskId + (profileId ? '&userId=' + profileId : ''), function (data) {
+        fillProfile(data);
+        const sourceIcon = renderSourceIcon(data.source);
+        $('#source').html(sourceIcon);
+        $('#keyword').html(data.keyword);
+        $('#city').html(data.city);
+        $('#lastScan').html(data.limit);
+        $('#amount').html(data.amount);
+    });
+}
+
 function renderHighlightButton(data, type, row) {
     if (type === "display") {
-        return '<input type="checkbox" ' + (row.highlighted === true ? ' checked' : '') +' onclick="highlight($(this), ' + row.id +  ')">';
+        return '<input type="checkbox" ' + (row.highlighted === true ? ' checked' : '') + ' onclick="highlight($(this), ' + row.id + ')">';
     }
 }
 
