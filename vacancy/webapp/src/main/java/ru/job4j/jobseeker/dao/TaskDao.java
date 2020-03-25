@@ -68,7 +68,7 @@ public interface TaskDao {
             "        VALUES (:keyword, :city, :limit, :active, :launch, :rule, :sourceId, :userId)")
     int insertAndReturnId(@BindBean Task task, @Bind("sourceId") int sourceId, @Bind("userId") int userId);
 
-    @SqlUpdate("UPDATE task t SET active=:active, repeat_rule=:rule, next_launch=:launch WHERE t.id=:id AND t.user_id=:userId")
+    @SqlUpdate("UPDATE task t SET active=:active, repeat_rule=:rule, scan_limit=:limit, next_launch=:launch WHERE t.id=:id AND t.user_id=:userId")
     boolean update(@BindBean Task task, @Bind("id") int id, @Bind("userId") int userId);
 
     @SqlUpdate("INSERT INTO launch_log(date_time, found_amount, added_amount, status, task_id) VALUES (:dateTime, :foundAmount, :addedAmount, :status, :taskId)")

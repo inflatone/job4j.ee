@@ -1,5 +1,15 @@
 $(function () {
-    addFormValidator(document.getElementById('loginForm'), "loginButton", submitLogin);
+    addFormValidator(
+        login,
+        $('#loginForm'),
+        {
+            login: "required",
+            password: "required"
+        },
+        {
+            login: "Please fill out login field",
+            password: "Please fill out password field"
+        });
     setContext({
         url: "profile",
         afterSuccess: function () {
@@ -16,12 +26,6 @@ $(function () {
 function loginAs(username, password) {
     $('#authLogin').val(username);
     $('#authPassword').val(password);
-    login();
-}
-
-function submitLogin(event) {
-    event.preventDefault();
-    event.stopPropagation();
     login();
 }
 

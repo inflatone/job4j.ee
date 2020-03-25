@@ -5,7 +5,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -20,8 +19,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class CharsetFilter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        request.setCharacterEncoding(UTF_8.name());
-        response.setCharacterEncoding(UTF_8.name());
+        // fixing a problem ("Failed to decode downloaded font") with awesome-font from webjars
+        if (!request.getRequestURI().startsWith("/webjars")) {
+            request.setCharacterEncoding(UTF_8.name());
+            response.setCharacterEncoding(UTF_8.name());
+        }
         chain.doFilter(request, response);
     }
 }

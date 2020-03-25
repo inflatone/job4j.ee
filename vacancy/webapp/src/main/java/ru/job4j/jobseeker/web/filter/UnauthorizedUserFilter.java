@@ -27,7 +27,8 @@ public class UnauthorizedUserFilter extends AbstractRequestFilter {
             "/profile", Set.of("save"),
             "/ajax", Set.of(),
             "/login", Set.of(),
-            "/resources", Set.of()
+            "/resources", Set.of(),
+            "/webjars", Set.of()
     );
 
     private final Provider<AuthManager> authManagerProvider;

@@ -31,7 +31,7 @@
                 <span class="fa fa-warning"></span>
                 Clear all data
             </button>
-            <button class="btn btn-primary" onclick="doDelete()">
+            <button class="btn btn-primary" onclick="doDeleteTask()">
                 <span class="fa fa-remove"></span>
                 Remove task
             </button>

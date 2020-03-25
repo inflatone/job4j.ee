@@ -51,7 +51,7 @@ const datatableOpts = {
             "render": function (data, type, row) {
                 // https://datatables.net/forums/discussion/comment/154284/#Comment_154284
                 if (type === 'display' || type === 'sort' || type === 'filter') {
-                    return row.limit.substr(0, 10);
+                    return timestampAsFormattedDate(row.limit, true, type === 'display' || type === 'filter');
                 }
                 return data;
             }
@@ -60,7 +60,7 @@ const datatableOpts = {
             "defaultContent": "Next launch",
             "render": function (data, type, row) {
                 if (type === 'display' || type === 'sort' || type === 'filter') {
-                    return row.launch ? (row.active ? row.launch : 'PAUSED') : '&mdash;';
+                    return row.launch ? (row.active ? timestampAsFormattedDate(row.launch) : 'PAUSED') : '&mdash;';
                 }
                 return data;
             }
@@ -115,7 +115,6 @@ const datatableOpts = {
 
 function fillProfile(userData) {
     $('#profileLogin').html(userData.login);
-    $('#profileRegistered').html(userData.registered);
     $('#profileRole').html(userData.role);
 }
 
@@ -123,17 +122,17 @@ function fillUserData() {
     $.get(profileUrl + '?action=find' + (profileId ? '&id=' + profileId : ''), function (data) {
         fillProfile(data);
         $('#id').attr('value', data.id);
-        $('#profileRegistered').html(data.registered);
+        $('#profileRegistered').html(timestampAsFormattedDate(data.registered));
     });
 }
 
-function doDelete(id) {
+function doDelete() {
     if (confirm("Are you sure?")) {
         $.ajax({
-            url: profileUrl + '?action=delete' + (id ? '&id=' + id : ''),
+            url: profileUrl + '?action=delete' + (profileId ? '&id=' + profileId : ''),
             type: 'POST'
         }).done(function () {
-            window.location.href = "login";
+            window.location.href = profileId ? "users" : "login";
         })
     }
 }

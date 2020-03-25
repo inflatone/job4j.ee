@@ -6,9 +6,6 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import java.text.SimpleDateFormat;
 
 /**
  * Customized JSON mapper to serialize/deserialize entities
@@ -21,10 +18,8 @@ public class JsonObjectMapper extends ObjectMapper {
     private static final ObjectMapper INSTANCE_HANDLER = new JsonObjectMapper();
 
     private JsonObjectMapper() {
-        registerModule(new JavaTimeModule());
-
-        var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        setDateFormat(dateFormat);
+        findAndRegisterModules();
+        configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
 
         configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
         configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true);
