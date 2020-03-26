@@ -59,6 +59,18 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>hsqldb</id>
+
+            <properties>
+                <db.driver>${hsqldb.driver}</db.driver>
+                <db.url>${hsqldb.url}</db.url>
+                <db.username>${hsqldb.username}</db.username>
+                <db.password>${hsqldb.password}</db.password>
+                <db.validationQuery>${hsqldb.validationQuery}</db.validationQuery>
+            </properties>
+        </profile>
     </profiles>
 
     <build>

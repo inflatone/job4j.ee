@@ -10,7 +10,10 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.spi.JobFactory;
 import org.quartz.spi.TriggerFiredBundle;
-import ru.job4j.jobseeker.service.executor.*;
+import ru.job4j.jobseeker.service.executor.ExecutionService;
+import ru.job4j.jobseeker.service.executor.ParserBatch;
+import ru.job4j.jobseeker.service.executor.TaskLauncher;
+import ru.job4j.jobseeker.service.executor.WebJobExecutor;
 import ru.job4j.vacancy.JobExecutor;
 import ru.job4j.vacancy.jsoup.HabrCareerJsoupProcessor;
 import ru.job4j.vacancy.jsoup.HhRuJsoupProcessor;
@@ -22,7 +25,11 @@ import javax.inject.Singleton;
 
 @Slf4j
 public class ExecutionModule extends AbstractModule {
-    private static final String QUARTZ_PROPERTIES = "app.quartz.properties";
+    private final String quartzProperties;
+
+    public ExecutionModule(String quartzProperties) {
+        this.quartzProperties = quartzProperties;
+    }
 
     @Override
     protected void configure() {
@@ -42,7 +49,7 @@ public class ExecutionModule extends AbstractModule {
     @Provides
     @Singleton
     public WebJobExecutor provideJobExecutor(JobFactory jobFactory) throws SchedulerException {
-        return new WebJobExecutor(QUARTZ_PROPERTIES, jobFactory);
+        return new WebJobExecutor(quartzProperties, jobFactory);
     }
 
     // http://blog.timmattison.com/archives/2014/08/05/using-guice-dependency-injection-with-quartz-schedulding/
