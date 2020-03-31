@@ -78,6 +78,4 @@ public class JsonHelper {
     public <T> String asJsonAdditional(T obj, String key, Object value) {
         return asJsonAdditional(obj, Map.of(key, value));
     }
-
-
 }

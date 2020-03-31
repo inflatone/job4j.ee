@@ -3,7 +3,9 @@ package ru.job4j.auto.web.post;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
-import ru.job4j.auto.BaseEntityTestHelper;
+import org.springframework.test.web.servlet.ResultActions;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.ToTestHelpers.PostToTestHelper;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.service.PostService;
 import ru.job4j.auto.web.AbstractSecondLevelControllerTest;
@@ -12,16 +14,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.job4j.auto.TestModelData.*;
+import static ru.job4j.auto.config.helper.BaseEntityTestHelper.setIdIfRequired;
 
 class AdminPostControllerTest extends AbstractSecondLevelControllerTest {
     private final BaseEntityTestHelper<Post> testHelper;
 
+    private final PostToTestHelper toTestHelper;
+
     private final PostService service;
 
     @Autowired
-    AdminPostControllerTest(BaseEntityTestHelper<Post> testHelper, PostService service) {
+    AdminPostControllerTest(BaseEntityTestHelper<Post> testHelper, PostToTestHelper toTestHelper, PostService service) {
         super(AdminPostController.URL);
         this.testHelper = testHelper;
+        this.toTestHelper = toTestHelper;
         this.service = service;
     }
 
@@ -31,7 +37,7 @@ class AdminPostControllerTest extends AbstractSecondLevelControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentJson(POST_BMW));
+                .andExpect(toTestHelper.forAuth(DEALER).contentJson(POST_BMW));
     }
 
     @Test
@@ -40,21 +46,22 @@ class AdminPostControllerTest extends AbstractSecondLevelControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentJson(POST_MAZDA6, POST_BMW));
+                .andExpect(toTestHelper.forAuth(DEALER).contentJson(POST_MAZDA6, POST_BMW));
     }
 
     @Test
     void create() throws Exception {
         Post newPost = testHelper.newEntity();
-        MvcResult result = perform(doPost(DEALER.getId()).postAsFormData(newPost).auth(DEALER))
+        ResultActions actions = perform(doPost(DEALER.getId()).postAsFormData(newPost).auth(DEALER))
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andReturn();
-        int newId = getCreatedResourceId(result);
-        newPost.setId(newId);
+                .andExpect(status().isCreated());
 
-        var persisted = service.find(newId, DEALER.getId());
+        setIdIfRequired(newPost, actions.andReturn());
+        var persisted = service.find(newPost.getId(), DEALER.getId());
         newPost.getCar().setId(persisted.getCar().getId());
+        newPost.setUser(DEALER);
+
+        actions.andExpect(toTestHelper.forAuth(DEALER).contentJson(newPost));
         testHelper.assertMatch(persisted, newPost);
         testHelper.assertMatch(service.findAll(DEALER.getId()), POST_MAZDA3, newPost);
     }
@@ -62,7 +69,7 @@ class AdminPostControllerTest extends AbstractSecondLevelControllerTest {
     @Test
     void update() throws Exception {
         Post postToUpdate = testHelper.copy(POST_MAZDA3);
-        perform(doPost(DEALER.getId()).postAsFormData(postToUpdate).auth(DEALER))
+        perform(doPost(DEALER.getId(), POST_MAZDA3.getId()).postAsFormData(postToUpdate).auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isNoContent());
         testHelper.assertMatch(service.findAll(DEALER.getId()), POST_MAZDA3);
@@ -70,7 +77,7 @@ class AdminPostControllerTest extends AbstractSecondLevelControllerTest {
 
     @Test
     void complete() throws Exception {
-        perform(doPost(DEALER.getId(), POST_MAZDA3.getId()).auth(DEALER).unwrap().param("completed", "true"))
+        perform(doPut("{id}/completed", DEALER.getId(), POST_MAZDA3.getId()).auth(DEALER).jsonBody(true))
                 .andDo(print())
                 .andExpect(status().isNoContent());
         assertTrue(service.find(POST_MAZDA3.getId(), DEALER.getId()).isCompleted());

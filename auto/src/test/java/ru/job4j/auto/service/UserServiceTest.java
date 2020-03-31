@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import ru.job4j.auto.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.model.User;
 import ru.job4j.auto.util.exception.NotFoundException;

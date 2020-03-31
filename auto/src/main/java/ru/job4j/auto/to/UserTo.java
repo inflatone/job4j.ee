@@ -1,30 +1,32 @@
 package ru.job4j.auto.to;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import ru.job4j.auto.model.Role;
 
 import java.net.URI;
 import java.time.Instant;
 
 @Getter
+@NoArgsConstructor
 public class UserTo extends BaseTo {
-    private final int id;
+    private int id;
 
-    private final String name;
+    private String name;
 
-    private final String login;
+    private String login;
 
-    private final Instant registered;
+    private Instant registered;
 
-    private final Boolean enabled;
+    private Boolean enabled;
 
-    private final Role role;
+    private Role role;
 
-    private final ImageTo image;
+    private ImageTo image;
 
-    private final URI urlToPosts;
+    private URI urlToPosts;
 
-    private final URI urlToAddPost;
+    private URI urlToAddPost;
 
     public UserTo(int id, String name, String login, Instant registered, Boolean enabled,
                   Role role, ImageTo image, URI url, URI urlToModify, URI urlToPosts, URI urlToAddPost) {

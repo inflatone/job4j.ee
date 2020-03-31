@@ -2,10 +2,12 @@ package ru.job4j.auto.web.user;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.MvcResult;
-import ru.job4j.auto.BaseEntityTestHelper;
+import org.springframework.test.web.servlet.ResultActions;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.BaseToTestHelper;
 import ru.job4j.auto.model.User;
 import ru.job4j.auto.service.UserService;
+import ru.job4j.auto.to.UserTo;
 import ru.job4j.auto.util.exception.NotFoundException;
 import ru.job4j.auto.web.AbstractControllerTest;
 
@@ -19,49 +21,34 @@ import static ru.job4j.auto.TestModelData.USER;
 class AdminControllerTest extends AbstractControllerTest {
     private final BaseEntityTestHelper<User> testHelper;
 
+    private final BaseToTestHelper<UserTo, User> toTestHelper;
+
     private final UserService service;
 
     @Autowired
-    AdminControllerTest(BaseEntityTestHelper<User> testHelper, UserService service) {
+    AdminControllerTest(BaseEntityTestHelper<User> testHelper, BaseToTestHelper<UserTo, User> toTestHelper, UserService service) {
         super(AdminController.URL);
         this.testHelper = testHelper;
+        this.toTestHelper = toTestHelper;
         this.service = service;
-    }
-
-    @Test
-    void find() throws Exception {
-        perform(doGet(USER.getId()).auth(DEALER))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentJson(USER));
-    }
-
-    @Test
-    void findAll() throws Exception {
-        perform(doGet().auth(DEALER))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentJson(DEALER, USER));
     }
 
     @Test
     void create() throws Exception {
         var newUser = testHelper.newEntity();
-        MvcResult result = perform(doPost().userAsFormData(newUser).auth(DEALER))
+        ResultActions actions = perform(doPost().userAsFormData(newUser).auth(DEALER))
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andReturn();
+                .andExpect(status().isCreated());
+        newUser.setId(getCreatedResourceId(actions.andReturn()));
 
-        newUser.setId(getCreatedResourceId(result));
+        actions.andExpect(toTestHelper.forAuth(DEALER).contentJson(newUser));
         testHelper.assertMatch(service.findAll(), DEALER, USER, newUser);
     }
 
     @Test
     void update() throws Exception {
         var userToUpdate = testHelper.editedEntity(USER);
-        perform(doPost().userAsFormData(userToUpdate).auth(DEALER))
+        perform(doPost(USER.getId()).userAsFormData(userToUpdate).auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isNoContent());
         testHelper.assertMatch(service.findAll(), DEALER, userToUpdate);
@@ -69,7 +56,7 @@ class AdminControllerTest extends AbstractControllerTest {
 
     @Test
     void enable() throws Exception {
-        perform(doPost(USER.getId()).auth(DEALER).unwrap().param("enabled", "false"))
+        perform(doPut(USER.getId(), "enabled").auth(DEALER).jsonBody(false))
                 .andDo(print())
                 .andExpect(status().isNoContent());
         assertFalse(service.find(USER.getId()).isEnabled());

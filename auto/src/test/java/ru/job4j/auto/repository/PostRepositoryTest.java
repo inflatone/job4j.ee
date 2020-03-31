@@ -5,15 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
-import ru.job4j.auto.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
 
 import javax.persistence.EntityNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static ru.job4j.auto.EntityTestHelpers.validateRootCause;
-import static ru.job4j.auto.TestModelData.POSTS;
-import static ru.job4j.auto.TestModelData.POST_BMW;
+import static ru.job4j.auto.TestModelData.*;
+import static ru.job4j.auto.config.TestHelpersConfig.validateRootCause;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Sql(scripts = {"classpath:db/import/data.sql"}, config = @SqlConfig(encoding = "UTF-8"))
@@ -25,6 +24,7 @@ class PostRepositoryTest extends AbstractBaseRepositoryTest {
     @Test
     void create() {
         var newPost = testHelper.newEntity();
+        newPost.setUser(USER);
         Post saved = repository.save(testHelper.copy(newPost));
         var newId = saved.getId();
 

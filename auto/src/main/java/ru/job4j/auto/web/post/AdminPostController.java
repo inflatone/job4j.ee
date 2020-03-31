@@ -32,10 +32,9 @@ public class AdminPostController extends AbstractPostController {
         return converter.asPostTo(super.find(id, profileId), auth);
     }
 
-    @Override
     @GetMapping
-    public List<Post> findAll(@PathVariable int profileId) {
-        return super.findAll(profileId);
+    public List<PostTo> findAll(@PathVariable int profileId, @AuthenticationPrincipal AuthorizedUser auth) {
+        return converter.asPostTo(super.findAll(profileId), auth, true);
     }
 
     @PostMapping

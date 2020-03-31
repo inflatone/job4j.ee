@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
-import ru.job4j.auto.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.model.User;
 
 import javax.persistence.EntityNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static ru.job4j.auto.EntityTestHelpers.validateRootCause;
+import static ru.job4j.auto.config.TestHelpersConfig.validateRootCause;
 import static ru.job4j.auto.TestModelData.*;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)

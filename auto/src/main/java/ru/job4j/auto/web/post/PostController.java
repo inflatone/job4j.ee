@@ -27,6 +27,8 @@ public class PostController extends AbstractPostController {
         this.converter = converter;
     }
 
+    // TODO ONLY NO-COMPLETED POSTS FOR ALL METHODS (service: find(boolean includeCompleted), findAll(boolean includeCompleted)
+
     @GetMapping
     public List<PostTo> findAll(@AuthenticationPrincipal AuthorizedUser auth) {
         return converter.asPostTo(super.findAll(), auth, true);

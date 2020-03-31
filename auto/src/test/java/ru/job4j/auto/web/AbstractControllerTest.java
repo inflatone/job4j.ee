@@ -24,6 +24,7 @@ import ru.job4j.auto.SpringMvcTestConfig;
 import ru.job4j.auto.model.Image;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.model.User;
+import ru.job4j.auto.web.converter.JsonHelper;
 
 import javax.annotation.PostConstruct;
 
@@ -59,6 +60,8 @@ public abstract class AbstractControllerTest {
 
     private MockMvc mockMvc;
 
+    private static JsonHelper jsonHelper;
+
     @PostConstruct
     private void postConstruct() {
         mockMvc = MockMvcBuilders
@@ -66,6 +69,8 @@ public abstract class AbstractControllerTest {
                 .addFilter(CHARACTER_ENCODING_FILTER)
                 .apply(springSecurity())
                 .build();
+        jsonHelper = webApplicationContext.getBean(JsonHelper.class);
+
     }
 
     public ResultActions perform(RequestWrapper wrapper) throws Exception {
@@ -104,6 +109,14 @@ public abstract class AbstractControllerTest {
         return wrap(post(url));
     }
 
+    protected RequestWrapper doPut(String urlTemplatePad, Object... uriVars) {
+        return wrap(put(url + urlTemplatePad, uriVars));
+    }
+
+    protected RequestWrapper doPut(int id, String property) {
+        return doPut("{id}/" + property, id);
+    }
+
     protected RequestWrapper doDelete() {
         return wrap(delete(url));
     }
@@ -140,7 +153,7 @@ public abstract class AbstractControllerTest {
         public RequestWrapper postAsFormData(Post post) {
             var car = post.getCar();
             builder.param("id", post.getId() == null ? null : String.valueOf(post.getId()))
-                    .param("user.id", String.valueOf(post.getUser().getId()))
+//                    .param("user.id", String.valueOf(post.getUser().getId()))
                     .param("title", post.getTitle())
                     .param("price", post.getPrice() == null ? null : String.valueOf(post.getPrice()))
                     .param("message", post.getMessage())
@@ -154,6 +167,12 @@ public abstract class AbstractControllerTest {
                     .param("car.mileage", String.valueOf(car.getMileage()));
             return this;
         }
+
+        public <T> RequestWrapper jsonBody(T body) {
+            builder.contentType(MediaType.APPLICATION_JSON).content(jsonHelper.asJson(body));
+            return this;
+        }
+
 
         public RequestWrapper attachImage(String name, Image image) {
             if (builder.getClass() != MockMultipartHttpServletRequestBuilder.class) {

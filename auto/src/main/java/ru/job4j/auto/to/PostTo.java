@@ -1,28 +1,30 @@
 package ru.job4j.auto.to;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import ru.job4j.auto.model.Car;
 
 import java.net.URI;
 import java.time.Instant;
 
 @Getter
+@NoArgsConstructor
 public class PostTo extends BaseTo {
-    private final String title;
+    private String title;
 
-    private final String message;
+    private String message;
 
-    private final Instant posted;
+    private Instant posted;
 
-    private final boolean completed;
+    private boolean completed;
 
-    private final Integer price;
+    private Integer price;
 
-    private final Car car;
+    private Car car;
 
-    private final UserTo user;
+    private UserTo user;
 
-    private final ImageTo image;
+    private ImageTo image;
 
     public PostTo(String title, String message, Instant posted, boolean completed, Integer price, Car car, UserTo user,
                   ImageTo image, URI url, URI urlToModify) {

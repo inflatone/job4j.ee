@@ -14,7 +14,7 @@ public class DataUrlInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
-        if (modelAndView != null && !modelAndView.isEmpty()) {
+        if (modelAndView != null && !modelAndView.isEmpty() && !modelAndView.getViewName().startsWith("redirect:")) {
             modelAndView.getModelMap().addAttribute("dataUrl", urlConverter.buildUrl(DataController.URL));
         }
     }

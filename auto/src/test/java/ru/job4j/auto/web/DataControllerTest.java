@@ -2,9 +2,9 @@ package ru.job4j.auto.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.job4j.auto.BaseEntityTestHelper;
-import ru.job4j.auto.EntityTestHelper;
-import ru.job4j.auto.model.*;
+import ru.job4j.auto.config.helper.BaseDetailsTestHelperFacade;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper.RoleEntityTestHelper;
+import ru.job4j.auto.model.Role;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,56 +16,29 @@ class DataControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void roles(@Autowired EntityTestHelper<Role, String> testHelper) throws Exception {
+    void roles(@Autowired RoleEntityTestHelper testHelper) throws Exception {
         perform(doGet("roles"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentMapJson(Role.USER));
+                .andExpect(testHelper.contentJsonAsMap(Role.USER));
     }
 
     @Test
-    void rolesAsAdmin(@Autowired EntityTestHelper<Role, String> testHelper) throws Exception {
+    void rolesAsAdmin(@Autowired RoleEntityTestHelper testHelper) throws Exception {
         perform(doGet("roles").auth(DEALER))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentMapJson(Role.USER, Role.ADMIN));
+                .andExpect(testHelper.contentJsonAsMap(Role.USER, Role.ADMIN));
     }
 
     @Test
-    void bodies(@Autowired BaseEntityTestHelper<Body> testHelper) throws Exception {
-        perform(doGet("bodies"))
+    void details(@Autowired BaseDetailsTestHelperFacade carDetailsTestHelper) throws Exception {
+        perform(doGet("details"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentMapJson(BODIES));
-    }
-
-    @Test
-    void engines(@Autowired BaseEntityTestHelper<Engine> testHelper) throws Exception {
-        perform(doGet("engines"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentMapJson(ENGINES));
-    }
-
-    @Test
-    void transmissions(@Autowired BaseEntityTestHelper<Transmission> testHelper) throws Exception {
-        perform(doGet("transmissions"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentMapJson(TRANSMISSIONS));
-    }
-
-    @Test
-    void vendors(@Autowired BaseEntityTestHelper<Vendor> testHelper) throws Exception {
-        perform(doGet("vendors"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentMapJson(VENDORS));
+                .andExpect(carDetailsTestHelper.contentMapJson(BODIES, ENGINES, TRANSMISSIONS, VENDORS));
     }
 }

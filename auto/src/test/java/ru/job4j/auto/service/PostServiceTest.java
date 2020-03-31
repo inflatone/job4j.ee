@@ -3,9 +3,8 @@ package ru.job4j.auto.service;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.job4j.auto.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
-import ru.job4j.auto.to.filter.PostFilterTo;
 import ru.job4j.auto.util.exception.NotFoundException;
 
 import javax.persistence.EntityNotFoundException;

@@ -20,36 +20,13 @@ class RootControllerTest extends AbstractControllerTest {
                 .andExpect(redirectedUrl("posts"));
     }
 
-    @Test
-    void profile() throws Exception {
-        perform(doGet("profile").auth(USER))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(view().name("profile"))
-                .andExpect(forwardedUrl("/WEB-INF/jsp/profile.jsp"));
-    }
-
-    @Test
-    void profileNotOwn() throws Exception {
-        perform(doGet("profile/{id}", DEALER.getId()).auth(USER))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void profileNotOwnAsAdmin() throws Exception {
-        perform(doGet("profile/{id}", USER.getId()).auth(DEALER))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(view().name("profile"))
-                .andExpect(forwardedUrl("/WEB-INF/jsp/profile.jsp"));
-    }
 
     @Test
     void users() throws Exception{
         perform(doGet("users").auth(USER))
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("profile"));
     }
 
     @Test

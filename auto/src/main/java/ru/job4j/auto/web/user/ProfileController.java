@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import ru.job4j.auto.model.Role;
 import ru.job4j.auto.model.User;
 import ru.job4j.auto.service.UserService;
 import ru.job4j.auto.to.UserTo;
@@ -46,7 +47,7 @@ public class ProfileController extends AbstractUserController {
     @PostMapping("/registration")
     public ResponseEntity<UserTo> register(@Valid User user) {
         User created = super.create(user);
-        UserTo to = converter.asUserTo(created, created.getId(), false);
+        UserTo to = converter.asUserTo(created, false, true);
         return ResponseEntity.created(to.getUrl()).contentType(MediaType.APPLICATION_JSON).body(to);
     }
 }

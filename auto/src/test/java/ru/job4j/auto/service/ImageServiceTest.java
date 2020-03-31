@@ -3,6 +3,7 @@ package ru.job4j.auto.service;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.job4j.auto.config.helper.ImageEntityTestHelper;
 import ru.job4j.auto.model.Image;
 import ru.job4j.auto.model.User;
 import ru.job4j.auto.util.exception.IllegalRequestDataException;

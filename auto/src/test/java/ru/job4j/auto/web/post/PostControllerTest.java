@@ -2,25 +2,30 @@ package ru.job4j.auto.web.post;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.job4j.auto.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.ToTestHelpers.PostToTestHelper;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.service.PostService;
 import ru.job4j.auto.web.AbstractControllerTest;
 
+import java.util.List;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.job4j.auto.TestModelData.POST_BMW;
-import static ru.job4j.auto.TestModelData.USER;
+import static ru.job4j.auto.TestModelData.*;
 
 class PostControllerTest extends AbstractControllerTest {
     private final BaseEntityTestHelper<Post> testHelper;
 
+    private final PostToTestHelper toTestHelper;
+
     private final PostService service;
 
     @Autowired
-    PostControllerTest(BaseEntityTestHelper<Post> testHelper, PostService service) {
+    PostControllerTest(BaseEntityTestHelper<Post> testHelper, PostToTestHelper toTestHelper, PostService service) {
         super(PostController.URL);
         this.testHelper = testHelper;
+        this.toTestHelper = toTestHelper;
         this.service = service;
     }
 
@@ -34,6 +39,6 @@ class PostControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(contentTypeIsJson())
-                .andExpect(testHelper.contentJson(POST_BMW));
+                .andExpect(toTestHelper.forAuth(USER).contentJson(POST_MAZDA6, POST_BMW));
     }
 }

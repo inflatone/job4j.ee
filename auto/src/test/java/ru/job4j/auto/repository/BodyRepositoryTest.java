@@ -3,7 +3,7 @@ package ru.job4j.auto.repository;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.job4j.auto.BaseEntityTestHelper;
+import ru.job4j.auto.config.helper.BaseDetailsTestHelperFacade.CarDetailTestHelper;
 import ru.job4j.auto.model.Body;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -14,7 +14,7 @@ import static ru.job4j.auto.TestModelData.SEDAN;
 class BodyRepositoryTest extends AbstractCarDetailsRepositoryTest {
     private final BodyRepository repository;
 
-    private final BaseEntityTestHelper<Body> testHelper;
+    private final CarDetailTestHelper<Body> testHelper;
 
     @Test
     void create() {

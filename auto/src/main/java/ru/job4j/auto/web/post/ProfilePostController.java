@@ -33,10 +33,9 @@ public class ProfilePostController extends AbstractPostController {
         return converter.asPostTo(super.find(id, auth.id()), auth);
     }
 
-    @Override
     @GetMapping
-    public List<Post> findAll() {
-        return super.findAll(SecurityHelper.authUserId());
+    public List<PostTo> findAll(@AuthenticationPrincipal AuthorizedUser auth) {
+        return converter.asPostTo(super.findAll(auth.id()), auth, false);
     }
 
     @PostMapping

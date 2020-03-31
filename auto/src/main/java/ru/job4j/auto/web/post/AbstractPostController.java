@@ -19,7 +19,7 @@ public class AbstractPostController {
 
     private final FilterToValidator filterValidator;
 
-    @InitBinder
+    @InitBinder("PostFilterTo")
     protected void initBinder(WebDataBinder binder) {
         binder.addValidators(filterValidator);
     }
