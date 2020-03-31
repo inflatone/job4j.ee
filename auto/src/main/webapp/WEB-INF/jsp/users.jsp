@@ -8,6 +8,7 @@
 <script type="text/javascript" src="static/js/common/basic.js" defer></script>
 <script type="text/javascript" src="static/js/common/form.js" defer></script>
 <script type="text/javascript" src="static/js/common/list.js" defer></script>
+<script type="text/javascript" src="static/js/common/image.js" defer></script>
 
 <script type="text/javascript" src="static/js/formUser.js" defer></script>
 <script type="text/javascript" src="static/js/listUser.js" defer></script>
@@ -16,7 +17,7 @@
     <jsp:include page="common/header.jsp"/>
 
     <div class="listing-row__title">
-        <strong>Users</strong>
+        Users
     </div>
 
     <div class="row content">

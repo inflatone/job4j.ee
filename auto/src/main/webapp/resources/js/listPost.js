@@ -1,55 +1,73 @@
 const postCardModal = $('#modalPostCard');
 
-$(function () {
-    postCardModal.body = postCardModal.find('.modal-body');
-    extendContext({
-        url: modPostAjaxUrl,
-        postUrl: postAjaxUrl,
-
-        tableUrl: postAjaxUrl,
-
-        paging: false,
-        editable: false
-    });
-    initPostLogic(postTableCtx());
-});
-
-function postTableCtx() {
-    return {
-        "columns": [
-            {
-                "defaultContent": "Image",
-                "orderable": false,
-                "render": function (data, type, row) {
-                    return type === "display" ? buildImageView(row) : "";
-                }
-            },
-            {
-                "defaultContent": "Message",
-                "render": function (data, type, row) {
-                    return type === 'display' || type === 'filter' ? buildMessageView(row, true) : row.posted;
-                }
+const postTableCtx = {
+    "columns": [
+        {
+            "defaultContent": "Image",
+            "orderable": false,
+            "render": function (data, type, row) {
+                return type === "display" ? buildImageView(row.image, 'post-thumbnail clickable') : "";
             }
-        ],
-        "order": [
-            [1, "desc"]
-        ],
-        "createdRow": function (row, data, dataIndex) {
-            const jRow = $(row);
-            jRow.attr("active", !data.completed);
-            jRow.click(() => openForm(postCardModal, buildPostTitle(data), () => postCardModal.body.html(buildPostMessage(data))));
         },
-        "searching": false
-    }
+        {
+            "defaultContent": "Message",
+            "render": function (data, type, row) {
+                return type === 'display' || type === 'filter' ? buildPostAsPreview(row) : row.posted;
+            }
+        }
+    ],
+    "order": [
+        [1, "desc"]
+    ],
+    "createdRow": function (row, data) {
+        const jRow = $(row);
+        jRow.attr("active", !data.completed);
+        jRow.find('.clickable').click(() => onRowClick(data));
+    },
+    "searching": false
 }
 
-function buildImageView(row) {
-    const image = '<img src="' + imagesUrl + (row.image ? row.image.id : '') + '" alt="postImage" width="250">'
-    return !context.editable ? image
-        : image.concat('<div class="listing-row__posted">')
-            .concat(buildPostEditButton(row))
-            .concat('&nbsp;')
-            .concat(buildPostDeleteButton(row))
-            .concat('</div>');
+$(function () {
+    postCardModal.body = postCardModal.find('.modal-body');
+    $.get(dataUrl, data => fillPostsPage(data.posts));
+});
 
+function fillPostsPage(url) {
+    $.get(url, data => postDataInit({
+        get: data.urlToPosts,
+        add: data.urlToAddPost,
+        form: data.urlToCarDetails
+    }, postTableCtx, () => $.get(data.urlToPosts, fillTableByData), onEditPostModalClosed));
+}
+
+function onRowClick(data) {
+    openModal(postCardModal, 'Post card', () => {
+        $.get(data.url, data => {
+            postCardModal.body.html(buildPostAsCard(data, true));
+            if (data.urlToModify) {
+                buildEditDeleteButtonGroup(postCardModal.body.find('.card'),
+                    () => onclickEditPostCard(data), () => onclickDeletePostCard(data));
+            }
+        });
+    });
+}
+
+function onclickEditPostCard(data) {
+    postCardModal.post = data;
+    postCardModal.modal('hide');
+    openPostEditForm(data.urlToModify);
+}
+
+function onclickDeletePostCard(data) {
+    doDeleteItem(data.urlToModify, () => {
+        postForm.afterDataModified();
+        postCardModal.modal('hide');
+    })
+}
+
+function onEditPostModalClosed() {
+    if (postCardModal.post) {
+        onRowClick(postCardModal.post);
+        postCardModal.post = false;
+    }
 }

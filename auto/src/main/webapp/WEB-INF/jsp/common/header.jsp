@@ -32,13 +32,3 @@
         </button>
     </div>
 </form:form>
-
-<script type="text/javascript">
-    const profileId = "${profileId}";
-    const editable = '${editable}' === 'true';
-
-    const modPostAjaxUrl = '${modPostUrl}';
-
-    const modImageProfileUrl = '${modImageProfileUrl}';
-    const modImagePostUrl = '${modImagePostUrl}';
-</script>

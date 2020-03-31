@@ -1,8 +1,8 @@
-function ajaxForm(form, submit) {
+function setFormSubmitAction(form, submit) {
     form.modal.find('button.form-submit').on('click', submit);
 }
 
-function openForm(modal, title, fillFields) {
+function openModal(modal, title, fillFields) {
     modal.find('.modal-title').html(title);
     fillFields();
     modal.modal();
@@ -50,33 +50,59 @@ function showField(checkbox, defaultValue) {
 }
 
 function fillSelectFieldValues(url, field, valueMapper) {
-    const fieldName = field.closest('.form-group').attr('title');
-    $.get(url, values => {
-        field.find('option').remove();
-        $.each(values, (k, v) => field.append('<option value="' + k + '" ' + '>' + (valueMapper ? valueMapper(v) : v) + '</option>'));
-
-        const options = field.find('option');
-        const shown = options.length !== 1;
-        if (shown) {
-            field.append('<option value selected disabled hidden>' + fieldName + '</option>'); // placeholder
-        }
-        field.closest('.form-group').prop('hidden', false);
-        context['default' + fieldName] = shown ? '' : options.val();
-    })
+    $.get(url, data => fillSelectFieldValuesByData(data, field, valueMapper));
 }
 
-function sendForm(form, url, afterDataModified) {
+function fillSelectFieldValuesByData(data, field, valueMapper) {
+    field.find('option').remove();
+    $.each(data, (k, v) => field.append('<option value="' + k + '" ' + '>' + (valueMapper ? valueMapper(v) : v) + '</option>'));
+
+    const options = field.find('option');
+    const shown = options.length !== 1;
+    const fieldName = field.closest('.form-group').attr('title');
+    if (shown) {
+        field.append('<option value selected disabled hidden>' + fieldName + '</option>'); // placeholder
+    }
+    field.closest('.form-group').prop('hidden', !shown);
+    context['default' + fieldName] = shown ? '' : options.val();
+}
+
+function doDeleteItem(url, afterDataModified) {
+    confirmNoty(() => {
+        $.ajax({
+            url: url,
+            type: 'DELETE'
+        }).done(function () {
+            afterDataModified();
+            successNoty('Record deleted');
+        })
+    });
+}
+
+function sendForm(form) {
+    console.log('icon');
+    const icon = turnOnProcessIcon(form.closest('.modal-content').find('.form-submit'), 'fa-check');
     $.ajax({
         type: 'POST',
-        url: url,
+        url: form.find('[name=urlToModify]').val(),
         data: form.serialize()
     }).done(function () {
         form.modal.modal('hide');
-        afterDataModified();
+        form.afterDataModified();
         successNoty('Record saved');
     }).fail(function (jqXHR) {
         showErrors(form, jqXHR.responseJSON.details);
-    })
+    }).always(() => turnOffProcessIcon(icon));
+}
+
+function turnOnProcessIcon(submitButton, iconClass) {
+    const icon = submitButton.find(`.${iconClass}`).removeClass(iconClass).addClass('fa-spinner fa-pulse');
+    icon.defaultClass = iconClass;
+    return icon;
+}
+
+function turnOffProcessIcon(icon) {
+    icon.removeClass('fa-spinner fa-pulse').addClass(icon.defaultClass);
 }
 
 function buildEnableCheckbox(url, checked, title, key, reversed) {
@@ -105,7 +131,6 @@ function pasteInvalidFeedback(field, feedback) {
             .html(feedback);
         field.closest('.form-group').append(error);
         error.hide().show();
-        console.log(field.closest('.form-group')[0]);
     } else {
         invalidFeedback.html(feedback);
         invalidFeedback.hide().show();
@@ -117,14 +142,17 @@ function findFormField(form, name) {
     return formField.length ? formField : form.find('[name="' + name + '.id"].form-control')
 }
 
-function buildEditDeleteButtonGroup(onclickEdit, onclickDelete) {
-    return '<div class="btn-group btn-group-sm btn-block header-group">'
-        + '         <button onclick="' + onclickEdit + '" class="btn btn-outline-dark btn-twin">'
-        + '             <span class="fa fa-pencil"></span> Edit'
-        + '         </button>'
-        + '         <button class="btn btn-outline-danger button_profile-delete btn-twin"'
-        + '                 onclick="' + onclickDelete + '">'
-        + '             <span class="fa fa-remove"></span> Remove'
-        + '         </button>'
-        + '     </div>'
+function buildEditDeleteButtonGroup(appendTo, onclickEdit, onclickDelete) {
+    const buttonGroup
+        = ' <div class="btn-group btn-group-sm btn-block header-group">'
+        + '     <button class="btn btn-outline-dark button-edit btn-twin">'
+        + '         <span class="fa fa-pencil"></span> Edit'
+        + '     </button>'
+        + '     <button class="btn btn-outline-danger button_delete btn-twin">'
+        + '         <span class="fa fa-remove"></span> Remove'
+        + '     </button>'
+        + ' </div>'
+    appendTo.append(buttonGroup);
+    $(appendTo).find('.button-edit').click(onclickEdit);
+    $(appendTo).find('.button_delete').click(onclickDelete);
 }

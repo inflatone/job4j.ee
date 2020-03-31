@@ -1,26 +1,26 @@
 const userForm = $("#formUser");
 
-$(function () {
+function userFormInit(roleUrl) {
     userForm.modal = $('#modalUserForm');
-    ajaxForm(userForm, sendUserForm);
+
+    setFormSubmitAction(userForm, sendUserForm);
     // load and fill roles into <select>
-    fillSelectFieldValues(dataAjaxUrl + 'roles', userForm.find('#role'));
-});
+    fillSelectFieldValues(roleUrl, userForm.find('#role'));
+}
 
 function sendUserForm() {
-    sendForm(userForm, context.url + profileId, context.afterUserDataModified);
+    sendForm(userForm);
 }
 
 function openUserCreateForm() {
-    openForm(userForm.modal, context.addUserFormTitle, prepareUserFields);
+    openModal(userForm.modal, context.addUserFormTitle, prepareUserFields);
 }
 
-function openUserEditForm(id) {
-    const url = context.url + (id ? id : profileId);
-    openForm(userForm.modal, context.editUserFormTitle, () => $.get(url, prepareUserFields));
+function openUserEditForm(url) {
+    openModal(userForm.modal, context.editUserFormTitle, () => $.get(url, prepareUserFields));
 }
 
 function prepareUserFields(data) {
     enableFieldHiding($('#password-field'), !!data);
-    refillForm(userForm, data ? data : {role: context['defaultRole']});
+    refillForm(userForm, data ? data : {role: context['defaultRole'], urlToModify: context['urlToAddUser']});
 }

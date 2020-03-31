@@ -1,13 +1,13 @@
-function fillTable(table, datatableOpts) {
+function fillTable(table, url, datatableOpts, paging) {
     context.datatableApi = table.DataTable(
         // https://api.jquery.com/jquery.extend/#jQuery-extend-deep-target-object1-objectN
 
         $.extend(true, datatableOpts, {
             "ajax": {
-                "url": context.tableUrl,
+                "url": url,
                 "dataSrc": ""
             },
-            "paging": context.paging,
+            "paging": !!paging,
             "info": true
         })
     );
@@ -18,27 +18,15 @@ function doEnableItem(checkbox, url, key, reversed) {
     //  https://stackoverflow.com/a/22213543/548473
     $.ajax({
         url: url,
-        type: 'POST',
-        data: key + '=' + checked
+        type: 'PUT',
+        data: JSON.stringify(checked),
+        contentType: 'application/json'
     }).done(function () {
         checkbox.closest("tr").attr("active", reversed ? !checked : checked);
-        successNoty('Record is '+ (checked ? '' : 'not ') + key + ' now');
+        successNoty('Record is ' + (checked ? '' : 'not ') + key + ' now');
     }).fail(function () {
         $(checkbox).prop("checked", !checked);
     })
-}
-
-function doDeleteItem(url, afterDataModified) {
-    confirmNoty(() => {
-        $.ajax({
-            url: url,
-            type: 'DELETE'
-        }).done(function () {
-            afterDataModified();
-            // context.afterUserDataModified();
-            successNoty('Record deleted');
-        })
-    });
 }
 
 function fillTableByData(data) {

@@ -17,9 +17,7 @@
 <div class="container-fluid container-page">
     <jsp:include page="common/header.jsp"/>
 
-    <div class="listing-row__title">
-        <strong>Posts</strong>
-    </div>
+    <div class="listing-row__title">Posts</div>
 
     <div class="row content">
         <div class="col-sm-4 sidenav">
@@ -49,12 +47,12 @@
                     </table>
 
                     <div class="btn-group special btn-group-sm btn-block header-group">
-                        <button id="editButton" onclick="openUserEditForm()" class="btn btn-outline-dark">
+                        <button id="editButton" onclick="" class="btn btn-outline-dark">
                             <span class="fa fa-refresh"></span>
                             Filter
                         </button>
                         <button class="btn btn-outline-danger button_profile-delete"
-                                onclick="doDelete()">
+                                onclick="">
                             <span class="fa fa-undo"></span> Reset
                         </button>
                     </div>
@@ -81,6 +79,10 @@
 <div class="modal fade" tabindex="-1" id="modalPostCard">
     <div class="modal-dialog">
         <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title listing-row__title" style="font-size: 1.5em"></h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
             <div class="modal-body"></div>
         </div>
     </div>

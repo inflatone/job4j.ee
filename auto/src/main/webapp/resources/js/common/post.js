@@ -5,21 +5,24 @@ const nestedFields = ['car', 'car.vendor', 'car.transmission', 'car.engine', 'ca
 const distanceFormatter = new Intl.NumberFormat('cs', {style: 'decimal', unit: 'kilometer'});
 const currencyFormatter = new Intl.NumberFormat('ru', {style: 'currency', currency: 'RUB', minimumFractionDigits: 0});
 
-function initPostLogic(ctx) {
+function postDataInit(urls, ctx, afterDataModified, onModalClosed) {
+    context.urlToAddPost = urls.add;
+
     postForm.modal = $('#modalPostForm');
+    postForm.modal.on('hidden.bs.modal', onModalClosed);
+
     postForm.priceCheckbox = postForm.find('.hideable-field-switcher');
+    postForm.afterDataModified = afterDataModified ? afterDataModified : () => $.get(urls.get, fillTableByData);
 
-    ajaxForm(postForm, sendPostForm);
-    fillTable($('#postTable'), ctx);
+    setFormSubmitAction(postForm, sendPostForm);
+    fillTable($('#postTable'), urls.get, ctx, true);
 
-    fillSelectFieldValues(dataAjaxUrl + 'vendors', postForm.find('#vendorId'), v => v.name + ' (' + v.country + ')');
-    fillSelectFieldValues(dataAjaxUrl + 'bodies', postForm.find('#bodyId'), v => v.type);
-    fillSelectFieldValues(dataAjaxUrl + 'engines', postForm.find('#engineId'), v => v.type);
-    fillSelectFieldValues(dataAjaxUrl + 'transmissions', postForm.find('#transmissionId'), v => v.type);
-
-    extendContext({
-        afterPostDataModified: () => $.get(context.postUrl, fillTableByData)
-    });
+    $.get(urls.form, data => {
+        fillSelectFieldValuesByData(data['vendors'], postForm.find('#vendorId'), v => v.name + ' (' + v.country + ')');
+        fillSelectFieldValuesByData(data['bodies'], postForm.find('#bodyId'), v => v.type);
+        fillSelectFieldValuesByData(data['engines'], postForm.find('#engineId'), v => v.type);
+        fillSelectFieldValuesByData(data['transmissions'], postForm.find('#transmissionId'), v => v.type);
+    })
 
     $('#carYear').datetimepicker({
         format: "YYYY",
@@ -34,20 +37,19 @@ function initPostLogic(ctx) {
 }
 
 function sendPostForm() {
-    sendForm(postForm, modPostAjaxUrl, context.afterPostDataModified);
+    sendForm(postForm);
 }
 
 function openPostCreateForm() {
-    openForm(postForm.modal, 'Add post', preparePostFields);
+    openModal(postForm.modal, 'Add post', preparePostFields);
 }
 
-function openPostEditForm(id) {
-    const url = postAjaxUrl + id;
-    openForm(postForm.modal, 'Edit post', () => $.get(url, preparePostFields));
+function openPostEditForm(url) {
+    openModal(postForm.modal, 'Edit post', () => $.get(url, preparePostFields));
 }
 
 function preparePostFields(data) {
-    refillForm(postForm, data ? data : {car: {mileage: 0}}, nestedFields);
+    refillForm(postForm, data ? data : {car: {mileage: 0}, urlToModify: context['urlToAddPost']}, nestedFields);
 
     enableFieldHiding($('#price-field'), true, data && data.price);
     enableFieldHiding($('#mileage-field'), true, data && data.car.mileage > 0);
@@ -56,17 +58,15 @@ function preparePostFields(data) {
     context['defaultPrice'] = data ? data.price : undefined;
 }
 
-function buildPostMessage(data, editable) {
-    const url = context.imagePostUrl + data.id;
-    const imageId = data.image ? data.image.id : undefined;
-    const imageGroup = buildImageGroup('postPhoto', imageId, true, editable, url);
-
+function buildPostAsCard(data, showBlankImage) {
+    const imageGroup = buildImageGroup(data.image, !showBlankImage);
     const dataPrice = !data.price ? '' : '<span class="listing-row__price ">' + currencyFormatter.format(data.price) + '</span>';
     const message = '<span style="font-size: 1.1em">' + (data.message ? data.message : 'The author did not provide a description') + '</span>'
     const posted = timestampAsFormattedDate(data.posted, false, false);
-    return ' <div class="col-md-12">'
-        + '     <div class="card">' + imageGroup
-        + '         <div class="card-body">' + buildCompletePostCheckbox(data, editable)
+
+    const card = $(
+        '<div class="card">'
+        + '         <div class="card-body">' + buildCompletePostCheckbox(data)
         + '             <div>' + buildPostTitle(data)
         + '                 <p class="card-text">'
         + '                     <div class="card-subtitle listing-row__details">' + dataPrice
@@ -86,26 +86,27 @@ function buildPostMessage(data, editable) {
         + '                     </small>'
         + '                 </p>'
         + '             </div>'
-        + '         </div> ' + buildPostEditDeleteButtonGroup(data.id, editable)
-        + '     </div>'
-        + ' </div>'
+        + '         </div> '
+        + '</div>');
+    return $('<div class="col-md-12"></div>')
+        .append(card.prepend(imageGroup))
+        .prop('outerHTML');
 }
 
-function buildCompletePostCheckbox(data, editable) {
-    if (editable) {
-        return '<span style="float: right;">'
-            + buildEnableCheckbox(modPostAjaxUrl + data.id, data.completed, 'Hide', 'completed', true)
+function buildCompletePostCheckbox(data) {
+    if (data.urlToModify) {
+        return '<span class="float-right">'
+            + buildEnableCheckbox(data.urlToModify + '/completed', data.completed, 'Hide', 'completed', true)
             + '</span>';
     }
     return '';
 }
 
-function buildPostEditDeleteButtonGroup(id, editable) {
-    if (editable) {
-        return buildEditDeleteButtonGroup(`openPostEditForm(${id})`,
-            `doDeleteItem('${modPostAjaxUrl + id}', context.afterPostDataModified)`);
+function buildPostEditDeleteButtonGroup(card, data) {
+    if (data.urlToModify) {
+        buildEditDeleteButtonGroup(card, () => openPostEditForm(data.urlToModify),
+            () => doDeleteItem(data.urlToModify, postForm.afterDataModified))
     }
-    return '';
 }
 
 function buildPostTitle(data) {
@@ -116,13 +117,14 @@ function buildPostTitle(data) {
 
 }
 
-function buildMessageView(data, short) {
+function buildPostAsPreview(data) {
     return '<div class="listing-row__details">'
         + '     <div class="payment-section">'
         + '         <span class="listing-row__price ">' + (data.price ? currencyFormatter.format(data.price) : '—') + '</span>'
         + '         <span class="listing-row__mileage">' + distanceFormatter.format(data.car.mileage) + ' km</span>'
         + '     </div>'
-        + '     <div class="listing-row__title">'
+        + '     <div class="row-title">'
+        + '         <a class="extra-link clickable"><span class="fa fa-info-circle"></span></a>'
         + '         <strong>' + data.car.vendor.name + '</strong> ' + data.car.model
         + '         <span class="listing-row__country">' + data.car.vendor.country + '</span>'
         + '     </div>'
@@ -132,19 +134,11 @@ function buildMessageView(data, short) {
         + '         <li><strong>Engine:</strong> ' + data.car.engine.type + '</li>'
         + '         <li><strong>Transmission:</strong> ' + data.car.transmission.type + '</li>'
         + '     </ul>'
-        + '     <h6>' + data.title + '</h6>'
-        + '     <span ' + (short ? 'hidden' : '') + '>' + (data.message ? data.message : 'The author did not provide a description') + '</span>'
         + '     <div class="listing-row__posted" style="bottom:0;">'
+        + '         <a class="extra-link" href="profile/' + data.user.id + '">'
+        + '             <span class="fa fa-id-card-o" aria-hidden="true"></span>&nbsp;' + data.user.name
+        + '         </a><br>'
         + '         <span class="fa fa-clock-o"></span>&nbsp;' + timestampAsFormattedDate(data.posted, false, false)
         + '     </div>'
         + ' </div>';
-}
-
-function buildPostEditButton(row) {
-    return '<a onclick="openPostEditForm(' + row.id + ')"><span class="fa fa-pencil"></span></a>'
-}
-
-function buildPostDeleteButton(row) {
-    const url = context.tableUrl + row.id;
-    return '<a onclick="doDeleteItem(\'' + url + '\', context.afterPostDataModified)"><span class="fa fa-remove"></span></a>';
 }

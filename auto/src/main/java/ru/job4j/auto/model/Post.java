@@ -14,7 +14,7 @@ import static javax.persistence.CascadeType.*;
 
 @Entity
 @Table(name = "post")
-@NamedEntityGraphs({@NamedEntityGraph(name = Post.POST_WITH_CAR, attributeNodes = {@NamedAttributeNode(value = "car", subgraph = "car.details")},
+@NamedEntityGraphs({@NamedEntityGraph(name = Post.POST_WITH_CAR, attributeNodes = {@NamedAttributeNode(value = "car", subgraph = "car.details"), @NamedAttributeNode(value = "user")},
         subgraphs = @NamedSubgraph(name = "car.details", attributeNodes = {@NamedAttributeNode(value = "vendor"),
                 @NamedAttributeNode(value = "body"), @NamedAttributeNode(value = "engine"), @NamedAttributeNode(value = "transmission")}))})
 @NamedQueries({

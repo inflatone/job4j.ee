@@ -2,13 +2,13 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="modalTitle"></h4>
+                <h4 class="modal-title listing-row__title" style="font-size: 1.5em"></h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
 
             <div class="modal-body">
                 <form id="formUser" class="border border-light" novalidate>
-                    <input class="form-control" type="hidden" name="id" id="id"/>
+                    <input class="form-control" type="hidden" name="urlToModify" id="url"/>
 
                     <div class="form-group" title="Login">
                         <label for="login" class="col-form-label"></label>
@@ -39,16 +39,19 @@
                     </div>
                 </form>
             </div>
-
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <span class="fa fa-close"></span>
-                    Cancel
-                </button>
-                <button type="button" class="btn btn-primary form-submit">
-                    <span class="fa fa-check"></span>
-                    Save
-                </button>
+                <div class="col-md-5" style="width: 60%; text-align: left">
+                    <div class="btn-group btn-group-sm d-flex" role="group">
+                        <button type="button" class="btn btn-outline-secondary btn-twin" data-dismiss="modal">
+                            <span class="fa fa-close"></span>
+                            Cancel
+                        </button>
+                        <button type="button" class="btn btn-outline-success form-submit btn-twin">
+                            <span class="fa fa-check"></span>
+                            Save
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

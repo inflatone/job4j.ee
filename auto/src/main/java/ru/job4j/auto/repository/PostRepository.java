@@ -57,6 +57,24 @@ public class PostRepository extends BaseEntityRepository<Post> {
                 .getResultList();
     }
 
+    /**
+     * Retrieve post data with all nested objects data (car details, vendor description, image, etc),
+     * need it all to fill a post card
+     *
+     * @param id post id
+     * @return post data
+     */
+    public Post findFully(int id) {
+        return em.find(entityClass, id, Map.of(LOAD.getJpaHintName(), em.createEntityGraph(Post.POST_WITH_CAR)));
+    }
+
+    /**
+     * Retrieve post data without any additional data — need it to fill a post form
+     *
+     * @param id        post id
+     * @param profileId user id
+     * @return post data
+     */
     public Post find(int id, int profileId) {
         return createTypedNamedQuery(Post.FIND, Map.of("id", id, "profileId", profileId))
                 .getResultStream()

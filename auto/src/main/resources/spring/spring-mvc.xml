@@ -49,4 +49,8 @@
         </mvc:argument-resolvers>
     </mvc:annotation-driven>
 
+    <mvc:interceptors>
+        <bean class="ru.job4j.auto.web.DataUrlInterceptor"/>
+    </mvc:interceptors>
+
 </beans>

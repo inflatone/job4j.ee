@@ -5,15 +5,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.job4j.auto.model.Image;
 import ru.job4j.auto.service.ImageService;
+import ru.job4j.auto.to.ImageTo;
+import ru.job4j.auto.web.converter.UrlConverter;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @Controller
@@ -24,40 +27,48 @@ public class ImageController {
 
     private final ImageService service;
 
+    private final UrlConverter urlConverter;
+
     @GetMapping({"/", "/{id}"})
     public ResponseEntity<byte[]> findImage(@PathVariable(required = false) Integer id) {
         return buildImageDataResponse(service.find(id));
     }
 
     @PostMapping("/profile")
-    public ResponseEntity<Image> uploadToUser(@RequestParam MultipartFile userPhoto) throws IOException {
-        return uploadToUser(SecurityHelper.authUserId(), userPhoto);
+    public ResponseEntity<ImageTo> uploadToUser(@RequestParam MultipartFile userPhoto,
+                                                @AuthenticationPrincipal AuthorizedUser auth) throws IOException {
+        return upload(userPhoto, img -> service.uploadToUser(auth.id(), img),
+                (img, url) -> new ImageTo("userPhoto", false, url, urlConverter.userImageModifiableUrl(null)));
     }
 
     @PostMapping("/users/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Image> uploadToUser(@PathVariable Integer id,
-                                              @RequestParam MultipartFile userPhoto) throws IOException {
-        return upload(userPhoto, img -> service.uploadToUser(id, img));
+    public ResponseEntity<ImageTo> uploadToUser(@PathVariable Integer id,
+                                                @RequestParam MultipartFile userPhoto) throws IOException {
+        return upload(userPhoto, img -> service.uploadToUser(id, img),
+                (img, url) -> new ImageTo("userPhoto", false, url, urlConverter.userImageModifiableUrl(id)));
     }
 
     @PostMapping("/profile/posts/{id}")
-    public ResponseEntity<Image> uploadToPost(@PathVariable Integer id,
-                                              @RequestParam MultipartFile postPhoto) throws IOException {
-        return uploadToPost(id, SecurityHelper.authUserId(), postPhoto);
+    public ResponseEntity<ImageTo> uploadToPost(@PathVariable Integer id,
+                                                @RequestParam MultipartFile postPhoto,
+                                                @AuthenticationPrincipal AuthorizedUser auth) throws IOException {
+        return upload(postPhoto, img -> service.uploadToPost(id, auth.id(), img),
+                (img, url) -> new ImageTo("postPhoto", false, url, urlConverter.postImageModifiableUrl(null, id)));
     }
 
     @PostMapping("/users/{profileId}/posts/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Image> uploadToPost(@PathVariable Integer id, @PathVariable Integer profileId,
-                                              @RequestParam MultipartFile postPhoto) throws IOException {
-        return upload(postPhoto, img -> service.uploadToPost(id, profileId, img));
+    public ResponseEntity<ImageTo> uploadToPost(@PathVariable Integer id, @PathVariable Integer profileId,
+                                                @RequestParam MultipartFile postPhoto) throws IOException {
+        return upload(postPhoto, img -> service.uploadToPost(id, profileId, img),
+                (img, url) -> new ImageTo("postPhoto", false, url, urlConverter.postImageModifiableUrl(profileId, id)));
     }
 
     @DeleteMapping("/profile")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete() {
-        delete(SecurityHelper.authUserId());
+    public void delete(@AuthenticationPrincipal AuthorizedUser auth) {
+        service.deleteFromUser(auth.id());
     }
 
     @DeleteMapping("/users/{id}")
@@ -87,13 +98,12 @@ public class ImageController {
                 .body(image.getData());
     }
 
-    private ResponseEntity<Image> upload(MultipartFile file, Function<Image, Image> imageUploader) throws IOException {
+    private ResponseEntity<ImageTo> upload(MultipartFile file,
+                                           Function<Image, Image> imageUploader,
+                                           BiFunction<Image, URI, ImageTo> mapper) throws IOException {
         Image uploaded = imageUploader.apply(retrieveImage(file));
-        URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path((URL + "/{id}"))
-                .buildAndExpand(uploaded.getId())
-                .toUri();
-        return ResponseEntity.created(uriOfNewResource).body(uploaded);
+        URI uriOfNewResource = urlConverter.imageUrl(uploaded.getId());
+        return ResponseEntity.created(uriOfNewResource).body(mapper.apply(uploaded, uriOfNewResource));
     }
 
     private Image retrieveImage(MultipartFile file) throws IOException {

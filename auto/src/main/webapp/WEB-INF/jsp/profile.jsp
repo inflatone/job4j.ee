@@ -6,21 +6,23 @@
 <jsp:include page="common/resources.jsp"/>
 <body>
 
+<script type="text/javascript">
+    const profileId = '${id}';
+</script>
+
 <script type="text/javascript" src="static/js/common/basic.js" defer></script>
 <script type="text/javascript" src="static/js/common/form.js" defer></script>
 <script type="text/javascript" src="static/js/common/list.js" defer></script>
 <script type="text/javascript" src="static/js/common/image.js" defer></script>
 <script type="text/javascript" src="static/js/common/post.js" defer></script>
 
-<script type="text/javascript" src="static/js/profile.js" defer></script>
 <script type="text/javascript" src="static/js/formUser.js" defer></script>
+<script type="text/javascript" src="static/js/profile.js" defer></script>
 
 <div class="container-fluid container-page">
     <jsp:include page="common/header.jsp"/>
 
-    <div class="listing-row__title">
-        <strong>Profile</strong>
-    </div>
+    <div class="listing-row__title">Profile</div>
 
     <div class="row content">
         <div class="col-md-4 sidenav">

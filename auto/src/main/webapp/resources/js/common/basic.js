@@ -1,13 +1,3 @@
-const usersUrl = 'users/';
-const profileUrl = 'profile/';
-const imagesUrl = "images/";
-const postsUrl = "posts/";
-
-const dataAjaxUrl = "ajax/data/"
-const adminAjaxUrl = "ajax/admin/" + usersUrl;
-const profileAjaxUrl = "ajax/" + profileUrl;
-const postAjaxUrl = "ajax/" + postsUrl;
-
 const context = {};
 
 let failNote;

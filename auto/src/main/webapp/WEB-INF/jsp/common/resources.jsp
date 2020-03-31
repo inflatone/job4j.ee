@@ -40,3 +40,7 @@
     <script type="text/javascript" src="static/noty/lib/noty.min.js" defer></script>
     <script type="text/javascript" src="static/font-awesome/js/fontawesome.min.js" defer></script>
 </head>
+
+<script type="text/javascript">
+    const dataUrl = '${dataUrl}';
+</script>

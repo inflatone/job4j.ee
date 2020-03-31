@@ -10,15 +10,15 @@
 <script type="text/javascript" src="static/js/common/basic.js" defer></script>
 <script type="text/javascript" src="static/js/common/form.js" defer></script>
 
-<script type="text/javascript" src="static/js/login.js" defer></script>
 <script type="text/javascript" src="static/js/formUser.js" defer></script>
+<script type="text/javascript" src="static/js/login.js" defer></script>
 
 <div class="container h-100">
     <div class="row h-100 justify-content-center align-items-center">
-        <form:form id="login_form" action="security" method="post" class="border border-light w-50">
+        <form:form id="login_form" action="" method="post" class="border border-light w-50">
             <div class="row">
                 <div class="col-sm-4">
-                    <div class="listing-row__title"><strong>Login</strong></div>
+                    <div class="listing-row__title">Login</div>
                 </div>
                 <div class="col-sm-8">
                     <small class="text-muted tip-text">Enter your credentials below</small>
@@ -42,7 +42,7 @@
                 <button class="btn btn-outline-dark btn-sm" type="button" onclick="loginAs('user', 'password')">
                     Try as User
                 </button>
-                <button class="btn btn-outline-danger btn-sm" type="button" onclick="loginAs('dealer', 'dealer')">
+                <button class="btn btn-outline-primary btn-sm" type="button" onclick="loginAs('dealer', 'dealer')">
                     Try as Admin
                 </button>
             </div>

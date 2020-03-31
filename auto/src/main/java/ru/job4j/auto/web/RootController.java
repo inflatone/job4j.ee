@@ -1,9 +1,7 @@
 package ru.job4j.auto.web;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
@@ -19,14 +17,12 @@ public class RootController {
     }
 
     @GetMapping("/users")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public String getUsers() {
-        return "users";
+    public String getUsers(@AuthenticationPrincipal AuthorizedUser auth) {
+        return auth.isAdmin() ? "users" : "redirect:profile";
     }
 
     @GetMapping("/posts")
-    public String getPosts(@AuthenticationPrincipal AuthorizedUser auth, ModelMap model) {
-        model.addAttribute("profileId", auth.extract().id());
+    public String getPosts() {
         return "posts";
     }
 }

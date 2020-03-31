@@ -20,6 +20,10 @@ public class PostService {
         return checkNotFoundEntityWithId(repository.find(id), id);
     }
 
+    public Post findFully(int id) {
+        return checkNotFoundEntityWithId(repository.findFully(id), id);
+    }
+
     public Post find(int id, int profileId) {
         return checkNotFoundEntityWithId(repository.find(id, profileId), id);
     }
