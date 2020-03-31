@@ -1,12 +1,13 @@
 package ru.job4j.auto.web.post;
 
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import ru.job4j.auto.model.Car;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.job4j.auto.service.PostService;
-import ru.job4j.auto.to.FilterTo;
 import ru.job4j.auto.to.PostTo;
+import ru.job4j.auto.to.filter.PostFilterTo;
 import ru.job4j.auto.web.AuthorizedUser;
 import ru.job4j.auto.web.DataController;
 import ru.job4j.auto.web.converter.ModelConverter;
@@ -21,8 +22,8 @@ public class PostController extends AbstractPostController {
 
     private final ModelConverter converter;
 
-    public PostController(PostService service, ModelConverter converter) {
-        super(service);
+    public PostController(PostService service, FilterToValidator filterValidator, ModelConverter converter) {
+        super(service, filterValidator);
         this.converter = converter;
     }
 
@@ -32,7 +33,7 @@ public class PostController extends AbstractPostController {
     }
 
     @GetMapping("/filter")
-    public List<PostTo> findFiltered(@Valid FilterTo filter,
+    public List<PostTo> findFiltered(@Valid PostFilterTo filter,
                                      @AuthenticationPrincipal AuthorizedUser auth) {
         return converter.asPostTo(super.findFiltered(filter), auth, true);
     }
@@ -40,13 +41,5 @@ public class PostController extends AbstractPostController {
     @GetMapping("/{id}")
     public PostTo find(@PathVariable int id, @AuthenticationPrincipal AuthorizedUser auth) {
         return converter.asPostTo(super.findFully(id), auth, true);
-    }
-
-    @GetMapping("/filtered") // https://habr.com/ru/sandbox/95575/
-    public List<PostTo> findFiltered(@RequestParam @Nullable Boolean hasImage,
-                                     @RequestParam @Nullable Boolean isToday,
-                                     @RequestParam @Nullable Car template,
-                                     @AuthenticationPrincipal AuthorizedUser auth) {
-        return converter.asPostTo(super.findAll(), auth);
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.job4j.auto.BaseEntityTestHelper;
 import ru.job4j.auto.model.Post;
+import ru.job4j.auto.to.filter.PostFilterTo;
 import ru.job4j.auto.util.exception.NotFoundException;
 
 import javax.persistence.EntityNotFoundException;
@@ -50,5 +51,16 @@ class PostServiceTest extends AbstractServiceTest {
     void deleteNotOwn() {
         var thrown = assertThrows(EntityNotFoundException.class, () -> service.delete(POST_BMW.getId(), DEALER.getId()));
         assertEquals("Unable to find post with id=" + POST_BMW.getId(), thrown.getMessage());
+    }
+
+    @Test
+    void findFiltered() {
+//        PostFilterTo.Range<Integer> range = new PostFilterTo.Range<>();
+//        range.setMin(2016);
+//        PostFilterTo filter = new PostFilterTo();
+//        filter.setYear(range);
+//
+//        List<Post> filtered = service.findFiltered(filter);
+//        System.out.println(filtered);
     }
 }

@@ -12,6 +12,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -47,19 +48,19 @@ public abstract class BaseEntityRepository<T extends BaseEntity> {
     public List<T> findAll() {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<T> c = cb.createQuery(entityClass);
-        c.orderBy(orderedBy(cb, c));
+        c.orderBy(orderedBy(cb, c.from(entityClass)));
         return prepareToExecute(em.createQuery(c)).getResultList();
     }
 
     /**
      * Override to set specific found entities order
      *
-     * @param cb criteria builder
-     * @param c  criteria query
+     * @param cb   criteria builder
+     * @param root root element
      * @return order defined
      */
-    protected Order orderedBy(CriteriaBuilder cb, CriteriaQuery<T> c) {
-        return cb.asc(c.from(entityClass).get("id"));
+    protected Order orderedBy(CriteriaBuilder cb, Root<T> root) {
+        return cb.asc(root.get("id"));
     }
 
     /**
@@ -96,8 +97,8 @@ public abstract class BaseEntityRepository<T extends BaseEntity> {
     /**
      * Creates a typed query by the given query factory, then sets on it the given params
      *
-     * @param queryFactory   query factory
-     * @param params given params
+     * @param queryFactory query factory
+     * @param params       given params
      * @return built typed query
      */
     private <Q extends Query> Q createQuery(Function<EntityManager, Q> queryFactory, Map<String, Object> params) {

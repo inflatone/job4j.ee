@@ -4,10 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
-import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.*;
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -20,6 +18,10 @@ import javax.validation.constraints.NotNull;
 public class Car extends BaseEntity {
     public static final String WITH_DETAILS = "graph: car c join details";
 
+    public static final int MIN_YEAR = 1950;
+
+    public static final int MAX_YEAR = 2020;
+
     @NotNull(message = "must be chosen")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id", nullable = false)
@@ -30,7 +32,7 @@ public class Car extends BaseEntity {
     private String model;
 
     @NotNull(message = "must be set")
-    @Range(min = 1950, max = 2020, message = "choose correct year (1950 — 2020)")
+    @Range(min = MIN_YEAR, max = MAX_YEAR, message = "choose correct year (1950 — 2020)")
     @Column(name = "year", nullable = false)
     private Integer year;
 

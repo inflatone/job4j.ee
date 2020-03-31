@@ -4,8 +4,8 @@ import org.springframework.stereotype.Repository;
 import ru.job4j.auto.model.User;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
 import java.util.Map;
 
 import static org.hibernate.graph.GraphSemantic.FETCH;
@@ -43,12 +43,12 @@ public class UserRepository extends BaseEntityRepository<User> {
     /**
      * All find all user queries gonna be sorted by registered date
      *
-     * @param cb criteria builder
-     * @param c  criteria query
+     * @param cb   criteria builder
+     * @param root root element
      * @return user order defined
      */
     @Override
-    protected Order orderedBy(CriteriaBuilder cb, CriteriaQuery<User> c) {
-        return cb.asc(c.from(entityClass).get("registered"));
+    protected Order orderedBy(CriteriaBuilder cb, Root<User> root) {
+        return cb.asc(root.get("registered"));
     }
 }

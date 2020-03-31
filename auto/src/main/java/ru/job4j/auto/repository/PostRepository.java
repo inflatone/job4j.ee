@@ -4,12 +4,15 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.model.User;
+import ru.job4j.auto.repository.filter.QueryTransformer;
+import ru.job4j.auto.to.filter.PostFilterTo;
 
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Map;
 
@@ -17,8 +20,11 @@ import static org.hibernate.graph.GraphSemantic.LOAD;
 
 @Repository
 public class PostRepository extends BaseEntityRepository<Post> {
-    public PostRepository() {
+    private final QueryTransformer<Post> transformer;
+
+    public PostRepository(QueryTransformer<Post> transformer) {
         super(Post.class);
+        this.transformer = transformer;
     }
 
     @Override
@@ -29,13 +35,13 @@ public class PostRepository extends BaseEntityRepository<Post> {
     /**
      * All find all user queries gonna be sorted reversed by date posted
      *
-     * @param cb criteria builder
-     * @param c  criteria query
+     * @param cb   criteria builder
+     * @param root root element
      * @return user order defined
      */
     @Override
-    protected Order orderedBy(CriteriaBuilder cb, CriteriaQuery<Post> c) {
-        return cb.desc(c.from(entityClass).get("posted"));
+    protected Order orderedBy(CriteriaBuilder cb, Root<Post> root) {
+        return cb.desc(root.get("posted"));
     }
 
     @Transactional
@@ -55,6 +61,16 @@ public class PostRepository extends BaseEntityRepository<Post> {
     public List<Post> findAll(int profileId) {
         return prepareToExecute(createTypedNamedQuery(Post.FIND_ALL, Map.of("profileId", profileId)))
                 .getResultList();
+    }
+
+    public List<Post> findFiltered(PostFilterTo filter) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Post> cq = cb.createQuery(entityClass);
+        Root<Post> root = cq.from(entityClass);
+        return prepareToExecute(em.createQuery(
+                transformer.filteringCriteriaQuery(cb, root, cq, filter)
+                        .orderBy(orderedBy(cb, root)))
+        ).getResultList();
     }
 
     /**

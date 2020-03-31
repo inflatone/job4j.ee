@@ -3,9 +3,9 @@ package ru.job4j.auto.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.job4j.auto.model.Car;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.repository.PostRepository;
+import ru.job4j.auto.to.filter.PostFilterTo;
 
 import java.util.List;
 
@@ -36,6 +36,10 @@ public class PostService {
         return repository.findAll(profileId);
     }
 
+    public List<Post> findFiltered(PostFilterTo filter) {
+        return repository.findFiltered(prepareFilter(filter));
+    }
+
     public Post create(Post post, int profileId) {
         return repository.save(post, profileId);
     }
@@ -59,5 +63,30 @@ public class PostService {
 
     public void delete(int id, int profileId) {
         repository.delete(id, profileId);
+    }
+
+    private static PostFilterTo prepareFilter(PostFilterTo filter) {
+        if (filter.getYear() != null) {
+            checkCompare(filter.getYear());
+        }
+
+
+        return filter;
+    }
+
+    private static <E extends Comparable<? super E>> void checkCompare(PostFilterTo.Range<E> range) {
+        if (range == null) {
+            return;
+        }
+
+        if (range.getMin() != null && range.getMax() != null) {
+
+        }
+
+        if (range.getMin().compareTo(range.getMax()) >= 0) {
+            throw new IllegalArgumentException();
+        }
+
+
     }
 }

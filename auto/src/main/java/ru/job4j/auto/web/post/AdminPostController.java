@@ -22,8 +22,8 @@ public class AdminPostController extends AbstractPostController {
 
     private final ModelConverter converter;
 
-    public AdminPostController(PostService service, ModelConverter converter) {
-        super(service);
+    public AdminPostController(PostService service, FilterToValidator filterValidator, ModelConverter converter) {
+        super(service, filterValidator);
         this.converter = converter;
     }
 

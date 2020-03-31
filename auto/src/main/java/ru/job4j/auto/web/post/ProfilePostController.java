@@ -23,8 +23,8 @@ public class ProfilePostController extends AbstractPostController {
 
     private final ModelConverter converter;
 
-    public ProfilePostController(PostService service, ModelConverter converter) {
-        super(service);
+    public ProfilePostController(PostService service, FilterToValidator filterValidator, ModelConverter converter) {
+        super(service, filterValidator);
         this.converter = converter;
     }
 

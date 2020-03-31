@@ -2,10 +2,11 @@ package ru.job4j.auto.web.post;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import one.util.streamex.StreamEx;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import ru.job4j.auto.model.Post;
 import ru.job4j.auto.service.PostService;
-import ru.job4j.auto.to.FilterTo;
+import ru.job4j.auto.to.filter.PostFilterTo;
 
 import java.util.List;
 
@@ -15,6 +16,13 @@ import static ru.job4j.auto.util.ValidationHelper.assureIdConsistent;
 @RequiredArgsConstructor
 public class AbstractPostController {
     private final PostService service;
+
+    private final FilterToValidator filterValidator;
+
+    @InitBinder
+    protected void initBinder(WebDataBinder binder) {
+        binder.addValidators(filterValidator);
+    }
 
     protected Post find(int id) {
         log.info("Find {} ", id);
@@ -41,7 +49,10 @@ public class AbstractPostController {
         return service.findAll(profileId);
     }
 
-    protected List<Post> findFiltered(FilterTo filter) {
+    protected List<Post> findFiltered(PostFilterTo filter) {
+        log.info("Find filtered ones fit {}", filter);
+        return service.findFiltered(filter);
+
 //        var res= StreamEx.of(service.findAll())
 //                .filter(p -> post.getUser() == null || post.getUser().getId().equals(p.getUser().getId()))
 //                .filter(p -> post.getPosted() == null || post.getPosted().isBefore(p.getPosted()))
@@ -54,10 +65,10 @@ public class AbstractPostController {
 //                .filter(p -> post.getCar() == null || post.getCar().getMileage() == null || post.getCar().getMileage().compareTo(p.getCar().getMileage()) >= 0)
 //                .filter(p -> !withImage || p.getImage() != null)
 //                .toList();
-        return StreamEx.of(service.findAll())
-                .filter(p -> filter.getUser() == null || filter.getUser().equals(p.getUser().getId()))
-                .filter(p -> !filter.isWithImage() || p.getImage() != null)
-                .toList();
+//        return StreamEx.of(service.findAll())
+//                .filter(p -> filter.getUser() == null || filter.getUser().equals(p.getUser().getId()))
+//                .filter(p -> !filter.isWithImage() || p.getImage() != null)
+//                .toList();
     }
 
     protected Post create(Post post, int profileId) {
