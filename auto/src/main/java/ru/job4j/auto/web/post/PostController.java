@@ -35,8 +35,8 @@ public class PostController extends AbstractPostController {
     }
 
     @GetMapping("/filter")
-    public List<PostTo> findFiltered(@Valid PostFilterTo filter,
-                                     @AuthenticationPrincipal AuthorizedUser auth) {
+    public List<PostTo> findAll(@Valid PostFilterTo filter,
+                                @AuthenticationPrincipal AuthorizedUser auth) {
         return converter.asPostTo(super.findFiltered(filter), auth, true);
     }
 

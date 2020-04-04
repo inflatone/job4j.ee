@@ -15,7 +15,9 @@ const postTableCtx = {
     },
     "language": {
         "emptyTable": "No post available yet"
-    }
+    },
+    "dom": '<"top"f>rt<"bottom"i>',
+    "paging": false
 }
 
 $(function () {
@@ -37,7 +39,6 @@ function fillProfilePage(urls) {
             add: userData.urlToAddPost,
             form: urls.urlToCarDetails
         }, postTableCtx);
-
         userForm.afterDataModified = () => $.get(userData.url, fillProfile);
     });
 }

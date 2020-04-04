@@ -77,6 +77,15 @@ class ImageControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void uploadEmpty() throws Exception {
+        Image newImage = testHelper.newEntity();
+        perform(userMultipart().auth(USER).attachImage("anotherPhoto", newImage))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+        assertNull(userService.find(USER.getId()).getImage(), "Image must not be set");
+    }
+
+    @Test
     void uploadToAnotherUser() throws Exception {
         Image newImage = testHelper.newEntity();
         perform(userMultipart(DEALER.getId()).auth(USER).attachImage("userPhoto", newImage))

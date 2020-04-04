@@ -80,7 +80,6 @@ function doDeleteItem(url, afterDataModified) {
 }
 
 function sendForm(form) {
-    console.log('icon');
     const icon = turnOnProcessIcon(form.closest('.modal-content').find('.form-submit'), 'fa-check');
     $.ajax({
         type: 'POST',
@@ -155,4 +154,20 @@ function buildEditDeleteButtonGroup(appendTo, onclickEdit, onclickDelete) {
     appendTo.append(buttonGroup);
     $(appendTo).find('.button-edit').click(onclickEdit);
     $(appendTo).find('.button_delete').click(onclickDelete);
+}
+
+function setFieldAsDateTime(field, format, viewMode, params) {
+    field.datetimepicker({
+        format: format,
+        viewMode: viewMode,
+        // Bootstrap 4 doesn't support glyphicons
+        // https://stackoverflow.com/a/58656821/10375242
+        icons: {
+            previous: 'fa fa-angle-left',
+            next: 'fa fa-angle-right'
+        },
+        minDate: params && params.minDate ? params.minDate : false,
+        maxDate: params && params.maxDate ? params.maxDate : moment(),
+        useCurrent: params && params.useCurrent ? params.useCurrent : undefined
+    });
 }

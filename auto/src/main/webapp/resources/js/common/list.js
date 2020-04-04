@@ -1,4 +1,4 @@
-function fillTable(table, url, datatableOpts, paging) {
+function fillTable(table, url, datatableOpts) {
     context.datatableApi = table.DataTable(
         // https://api.jquery.com/jquery.extend/#jQuery-extend-deep-target-object1-objectN
 
@@ -7,7 +7,6 @@ function fillTable(table, url, datatableOpts, paging) {
                 "url": url,
                 "dataSrc": ""
             },
-            "paging": !!paging,
             "info": true
         })
     );

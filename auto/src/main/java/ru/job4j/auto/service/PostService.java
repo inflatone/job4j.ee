@@ -79,14 +79,8 @@ public class PostService {
             return;
         }
 
-        if (range.getMin() != null && range.getMax() != null) {
-
-        }
-
-        if (range.getMin().compareTo(range.getMax()) >= 0) {
+        if (range.getMin().compareTo(range.getMax()) > 0) {
             throw new IllegalArgumentException();
         }
-
-
     }
 }

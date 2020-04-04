@@ -12,12 +12,15 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.job4j.auto.model.Image;
 import ru.job4j.auto.service.ImageService;
 import ru.job4j.auto.to.ImageTo;
+import ru.job4j.auto.util.ValidationHelper;
 import ru.job4j.auto.web.converter.UrlConverter;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static ru.job4j.auto.util.ValidationHelper.checkNotFound;
 
 @Controller
 @RequestMapping(ImageController.URL)
@@ -35,7 +38,7 @@ public class ImageController {
     }
 
     @PostMapping("/profile")
-    public ResponseEntity<ImageTo> uploadToUser(@RequestParam MultipartFile userPhoto,
+    public ResponseEntity<ImageTo> uploadToUser(@RequestParam(required = false) MultipartFile userPhoto,
                                                 @AuthenticationPrincipal AuthorizedUser auth) throws IOException {
         return upload(userPhoto, img -> service.uploadToUser(auth.id(), img),
                 (img, url) -> new ImageTo("userPhoto", false, url, urlConverter.userImageModifiableUrl(null)));
@@ -44,14 +47,14 @@ public class ImageController {
     @PostMapping("/users/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ImageTo> uploadToUser(@PathVariable Integer id,
-                                                @RequestParam MultipartFile userPhoto) throws IOException {
+                                                @RequestParam(required = false) MultipartFile userPhoto) throws IOException {
         return upload(userPhoto, img -> service.uploadToUser(id, img),
                 (img, url) -> new ImageTo("userPhoto", false, url, urlConverter.userImageModifiableUrl(id)));
     }
 
     @PostMapping("/profile/posts/{id}")
     public ResponseEntity<ImageTo> uploadToPost(@PathVariable Integer id,
-                                                @RequestParam MultipartFile postPhoto,
+                                                @RequestParam(required = false) MultipartFile postPhoto,
                                                 @AuthenticationPrincipal AuthorizedUser auth) throws IOException {
         return upload(postPhoto, img -> service.uploadToPost(id, auth.id(), img),
                 (img, url) -> new ImageTo("postPhoto", false, url, urlConverter.postImageModifiableUrl(null, id)));
@@ -60,7 +63,7 @@ public class ImageController {
     @PostMapping("/users/{profileId}/posts/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ImageTo> uploadToPost(@PathVariable Integer id, @PathVariable Integer profileId,
-                                                @RequestParam MultipartFile postPhoto) throws IOException {
+                                                @RequestParam(required = false) MultipartFile postPhoto) throws IOException {
         return upload(postPhoto, img -> service.uploadToPost(id, profileId, img),
                 (img, url) -> new ImageTo("postPhoto", false, url, urlConverter.postImageModifiableUrl(profileId, id)));
     }
@@ -101,14 +104,14 @@ public class ImageController {
     private ResponseEntity<ImageTo> upload(MultipartFile file,
                                            Function<Image, Image> imageUploader,
                                            BiFunction<Image, URI, ImageTo> mapper) throws IOException {
-        Image uploaded = imageUploader.apply(retrieveImage(file));
+        Image uploaded = imageUploader.apply(checkNotFound(retrieveImage(file), "Image was not chosen"));
         URI uriOfNewResource = urlConverter.imageUrl(uploaded.getId());
         return ResponseEntity.created(uriOfNewResource).body(mapper.apply(uploaded, uriOfNewResource));
     }
 
     private Image retrieveImage(MultipartFile file) throws IOException {
         Image image = null;
-        if (!file.isEmpty()) {
+        if (file != null && !file.isEmpty()) {
             var contentType = file.getContentType();
             image = new Image(null, file.getOriginalFilename(),
                     contentType == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : contentType,

@@ -15,7 +15,7 @@
                         <div class="col-md-6">
                             <div class="form-group" title="Vendor">
                                 <label for="vendorId" class="col-form-label"></label>
-                                <select class="form-control" name="car.vendor.id" id="vendorId">
+                                <select class="form-control vendor-id" name="car.vendor.id" id="vendorId">
                                     <option>Vendor</option>
                                 </select>
                             </div>
@@ -49,21 +49,21 @@
                         <div class="col-md-6">
                             <div class="form-group" title="Body">
                                 <label for="bodyId" class="col-form-label"></label>
-                                <select class="form-control" name="car.body.id" id="bodyId">
+                                <select class="form-control body-id" name="car.body.id" id="bodyId">
                                     <option>Body</option>
                                 </select>
                             </div>
 
                             <div class="form-group" title="Engine">
                                 <label for="engineId" class="col-form-label"></label>
-                                <select class="form-control" name="car.engine.id" id="engineId">
+                                <select class="form-control engine-id" name="car.engine.id" id="engineId">
                                     <option>Engine</option>
                                 </select>
                             </div>
 
                             <div class="form-group" title="Transmission">
                                 <label for="transmissionId" class="col-form-label"></label>
-                                <select class="form-control" name="car.transmission.id" id="transmissionId">
+                                <select class="form-control transmission-id" name="car.transmission.id" id="transmissionId">
                                     <option>Transmission</option>
                                 </select>
                             </div>

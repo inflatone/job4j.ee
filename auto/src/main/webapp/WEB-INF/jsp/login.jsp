@@ -17,10 +17,10 @@
     <div class="row h-100 justify-content-center align-items-center">
         <form:form id="login_form" action="" method="post" class="border border-light w-50">
             <div class="row">
-                <div class="col-sm-4">
+                <div class="col-sm-5">
                     <div class="listing-row__title">Login</div>
                 </div>
-                <div class="col-sm-8">
+                <div class="col-sm-7">
                     <small class="text-muted tip-text">Enter your credentials below</small>
                 </div>
             </div>

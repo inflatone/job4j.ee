@@ -15,25 +15,25 @@ function postDataInit(urls, ctx, afterDataModified, onModalClosed) {
     postForm.afterDataModified = afterDataModified ? afterDataModified : () => $.get(urls.get, fillTableByData);
 
     setFormSubmitAction(postForm, sendPostForm);
-    fillTable($('#postTable'), urls.get, ctx, true);
+    fillTable($('#postTable'), urls.get, ctx);
 
-    $.get(urls.form, data => {
-        fillSelectFieldValuesByData(data['vendors'], postForm.find('#vendorId'), v => v.name + ' (' + v.country + ')');
-        fillSelectFieldValuesByData(data['bodies'], postForm.find('#bodyId'), v => v.type);
-        fillSelectFieldValuesByData(data['engines'], postForm.find('#engineId'), v => v.type);
-        fillSelectFieldValuesByData(data['transmissions'], postForm.find('#transmissionId'), v => v.type);
+    fillCarDetails(urls.form);
+
+    setFieldAsYear($('#carYear'));
+}
+
+function setFieldAsYear(field) {
+    setFieldAsDateTime(field, 'YYYY', 'years');
+
+}
+
+function fillCarDetails(url) {
+    $.get(url, data => {
+        fillSelectFieldValuesByData(data['vendors'], $('.vendor-id'), v => v.name + ' (' + v.country + ')');
+        fillSelectFieldValuesByData(data['bodies'], $('.body-id'), v => v.type);
+        fillSelectFieldValuesByData(data['engines'], $('.engine-id'), v => v.type);
+        fillSelectFieldValuesByData(data['transmissions'], $('.transmission-id'), v => v.type);
     })
-
-    $('#carYear').datetimepicker({
-        format: "YYYY",
-        viewMode: "years",
-        // Bootstrap 4 doesn't support glyphicons
-        // https://stackoverflow.com/a/58656821/10375242
-        icons: {
-            previous: 'fa fa-angle-left',
-            next: 'fa fa-angle-right'
-        }
-    });
 }
 
 function sendPostForm() {

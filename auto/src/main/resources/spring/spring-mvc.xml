@@ -38,7 +38,15 @@
         <property name="resolveLazily" value="true"/>
     </bean>
 
-    <mvc:annotation-driven>
+    <bean class="org.springframework.format.support.FormattingConversionServiceFactoryBean" id="conversionService">
+        <property name="formatters">
+            <set>
+                <bean class="ru.job4j.auto.web.converter.DateFormatter"/>
+            </set>
+        </property>
+    </bean>
+
+    <mvc:annotation-driven conversion-service="conversionService">
         <mvc:message-converters>
             <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
                 <property name="objectMapper" ref="mapper"/>

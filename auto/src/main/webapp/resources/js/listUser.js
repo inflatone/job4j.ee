@@ -69,6 +69,7 @@ const userTableCtx = {
     "createdRow": function (row, data) {
         $(row).attr("active", data.enabled);
     },
+    "paging": false
 }
 
 $(function () {

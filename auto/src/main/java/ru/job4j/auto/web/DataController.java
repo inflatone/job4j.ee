@@ -64,7 +64,7 @@ public class DataController {
     private Map<String, URI> usersPageAsAdmin() {
         return Map.of("urlToRoles", urlConverter.buildUrl(URL, "roles"),
                 "urlToUsers", urlConverter.buildUrl(UserController.URL),
-                "urlToRegister", urlConverter.buildUrl(AdminController.URL));
+                "urlToAddUser", urlConverter.buildUrl(AdminController.URL));
     }
 
     @GetMapping("/posts")

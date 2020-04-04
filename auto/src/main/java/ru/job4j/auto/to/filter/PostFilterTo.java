@@ -100,12 +100,12 @@ public class PostFilterTo extends BaseFilterTo {
     protected static class DateRange extends Range<Instant> {
         @Override
         Instant defaultMin() {
-            return Instant.MIN;
+            return Instant.ofEpochSecond(1);
         }
 
         @Override
         Instant defaultMax() {
-            return Instant.MAX;
+            return Instant.ofEpochSecond(Integer.MAX_VALUE);
         }
     }
 }
