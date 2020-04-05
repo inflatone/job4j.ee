@@ -8,8 +8,6 @@ import ru.job4j.auto.model.Post;
 import ru.job4j.auto.service.PostService;
 import ru.job4j.auto.web.AbstractControllerTest;
 
-import java.util.List;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.job4j.auto.TestModelData.*;

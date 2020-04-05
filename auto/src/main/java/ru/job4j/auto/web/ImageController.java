@@ -12,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.job4j.auto.model.Image;
 import ru.job4j.auto.service.ImageService;
 import ru.job4j.auto.to.ImageTo;
-import ru.job4j.auto.util.ValidationHelper;
 import ru.job4j.auto.web.converter.UrlConverter;
 
 import java.io.IOException;

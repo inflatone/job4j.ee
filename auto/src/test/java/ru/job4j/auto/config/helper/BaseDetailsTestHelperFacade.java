@@ -1,7 +1,6 @@
 package ru.job4j.auto.config.helper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sun.xml.bind.v2.model.core.ID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import one.util.streamex.StreamEx;

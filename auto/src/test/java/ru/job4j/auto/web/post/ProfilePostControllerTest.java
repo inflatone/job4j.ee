@@ -2,7 +2,6 @@ package ru.job4j.auto.web.post;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import ru.job4j.auto.config.helper.BaseEntityTestHelper;
 import ru.job4j.auto.config.helper.ToTestHelpers.PostToTestHelper;

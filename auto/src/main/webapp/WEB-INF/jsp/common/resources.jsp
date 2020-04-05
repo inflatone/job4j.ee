@@ -1,11 +1,12 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-    <meta name="_csrf" content="${_csrf.token}"/>
-    <meta name="_csrf_header" content="${_csrf.headerName}"/>
+    <meta name="_csrf" content="${fn:escapeXml(_csrf.token)}"/>
+    <meta name="_csrf_header" content="${fn:escapeXml(_csrf.headerName)}"/>
 
     <meta name="auto" content="width=device-width, initial-scale=1">
     <title>Auto manager app</title>
