@@ -16,10 +16,10 @@ before_install:
   - psql -c 'create user "user"; grant all privileges on database test to "user";' -U postgres
 
 install:
-  mvn install -P travis,!main -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+  mvn install -P travis,liquibase,!main -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
 script:
-  mvn test -P travis,!main -B
+  mvn test -P travis,liquibase,!main -B
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

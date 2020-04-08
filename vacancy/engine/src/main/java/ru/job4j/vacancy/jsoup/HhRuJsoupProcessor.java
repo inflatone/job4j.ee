@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import ru.job4j.vacancy.model.SourceTitle;
+import ru.job4j.vacancy.model.VacancyData;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -13,7 +14,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -94,7 +98,7 @@ public class HhRuJsoupProcessor extends AbstractJsoupProcessor {
 
     @Override
     String grabLink(Element row) {
-        return row.select("a").first().attr("href");
+         return row.getElementsByAttributeValue("data-qa", "vacancy-serp__vacancy-title").first().attr("href");
     }
 
     @Override

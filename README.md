@@ -16,7 +16,7 @@
 Имеется возможность по созданию/редактированию/удалению собственных объявлений. Предусмотрена «админка».
 
 ----
-## <a href="https://github.com/inflatone/job4j.ee/tree/task_1731/vacancy">Web-приложение «Парсер вакансий»</a>
+## <a href="https://github.com/inflatone/job4j.ee/tree/task_1731/vacancy">Web-приложение «Граббер вакансий»</a>
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/df661ff60cef47ceb6e566e9e207150c?branch=task_1731)](https://www.codacy.com/manual/inflatone/job4j.ee?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=inflatone/job4j.ee&amp;utm_campaign=Badge_Grade)
 [![Build Status](https://api.travis-ci.org/inflatone/job4j.ee.svg?branch=task_1731)](https://travis-ci.org/inflatone/job4j.ee/branches)
