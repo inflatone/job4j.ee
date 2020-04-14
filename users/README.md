@@ -13,7 +13,7 @@
 
 Используется мною как основа для всех последующих проектов web-приложений.
 
-### При реалиазации использовано:
+### При реализации использовано:
 * JDK 11, Tomcat 9, Maven 3
 * Maven plugins: <a href="https://www.liquibase.org/documentation/maven/index.html">Liquibase</a>, <a href="https://github.com/heroku/webapp-runner">WebApp runner</a> (via <a href="https://maven.apache.org/plugins/maven-dependency-plugin/">Dependency plugin</a>), <a href="https://maven.apache.org/enforcer/maven-enforcer-plugin/">Enforcer</a> (dependency convergence)
 * <a href="https://github.com/google/guice">Google Guice</a> (lightweight dependency injection framework)

@@ -43,12 +43,11 @@
 Реализована возможность самостоятельной регистрации новых пользователей.
 
 ----
-## <a href="https://github.com/inflatone/job4j.ee/tree/task_3786/notes">Web-приложение «TODO list»</a>
+## <a href="https://github.com/inflatone/job4j.ee/tree/master/notes">Web-приложение «TODO list»</a>
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/df661ff60cef47ceb6e566e9e207150c?branch=task_3786)](https://www.codacy.com/manual/inflatone/job4j.ee?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=inflatone/job4j.ee&amp;utm_campaign=Badge_Grade)
 [![Build Status](https://api.travis-ci.org/inflatone/job4j.ee.svg?branch=task_3786)](https://travis-ci.org/inflatone/job4j.ee/branches)
 [![codecov](https://codecov.io/gh/inflatone/job4j.ee/branch/task_3786/graph/badge.svg)](https://codecov.io/gh/inflatone/job4j.ee/branch/task_3786)
-[![Heroku](https://heroku-badge.herokuapp.com/?app=sanenotes)](http://saneseeker.herokuapp.com/)
 ##### Java 11 / Tomcat / Hibernate / Hsqldb / JUnit 5
 Является простым однопользовательским приложением для управления заметками, хранящихся в базе данных. 
 Для работы с ними используется Hibernate.
