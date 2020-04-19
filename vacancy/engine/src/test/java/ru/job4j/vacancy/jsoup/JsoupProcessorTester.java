@@ -74,6 +74,11 @@ class JsoupProcessorTester {
         assertEquals(ZonedDateTime.of(LocalDateTime.of(expectedDate, expectedTime), ZoneId.systemDefault()), dateTime);
     }
 
+    void parseDateTime(ZonedDateTime expectedDateTime, String dateTimeLine) {
+        var dateTime = processor.parseDateTime(dateTimeLine);
+        assertEquals(expectedDateTime, dateTime);
+    }
+
     void grabLink(String expected, Element row) {
         var url = processor.grabLink(row);
         assertEquals(expected, url);
