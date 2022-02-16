@@ -15,7 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!--DB-->
-        <postgresql.version>42.2.8</postgresql.version>
+        <postgresql.version>42.3.3</postgresql.version>
         <hsqldb.version>2.5.0</hsqldb.version>
 
         <liquibase.version>3.6.3</liquibase.version>
